@@ -104,6 +104,7 @@ Usa **Expo Router**: cada archivo dentro de `src/app/` es una pantalla y su ruta
 | `src/app/(tabs)/index.js` | Inicio (panel) |
 | `src/app/vehiculo/[id]/index.js` | Detalle del vehículo (`[id]` = número del vehículo) |
 | `src/app/vehiculo/[id]/servicio.js` | Registrar cambio |
+| `src/app/vehiculo/[id]/ultimos-cambios.js` | "¿Cuándo cambiaste cada parte?" (RN-16): aparece al registrar un vehículo |
 | `src/app/vehiculo/[id]/kilometraje.js` · `parte.js` · `documento.js` · `editar.js` | Ventanas de acción |
 
 Piezas clave:

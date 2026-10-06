@@ -109,6 +109,7 @@ CREATE TABLE partes_vehiculo (
   intervalo_meses      INT NOT NULL,
   ultimo_cambio_km     INT NOT NULL,      -- desde aquí se mide el desgaste (RN-07)
   ultimo_cambio_fecha  DATE NOT NULL,
+  ultimo_cambio_conocido BOOLEAN NOT NULL DEFAULT TRUE,  -- FALSE = no se sabe; se cuenta desde la matrícula (RN-16)
   activa               BOOLEAN NOT NULL DEFAULT TRUE,   -- "quitar" una parte la desactiva y conserva su historial
   CONSTRAINT fk_parte_vehiculo FOREIGN KEY (vehiculo_id) REFERENCES vehiculos(id) ON DELETE CASCADE,
   CONSTRAINT ck_parte_km    CHECK (intervalo_km IS NULL OR intervalo_km > 0),

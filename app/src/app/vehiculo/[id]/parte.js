@@ -1,10 +1,10 @@
 // RF-07 + RN-05: agregar una parte o ajustar sus intervalos (nunca en cero),
 // y RF-09: ver el historial de cambios de esa parte.
 // Sin "parteId" en la ruta -> parte nueva.  Con "parteId" -> editar esa parte.
-import { useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { View } from 'react-native';
 import { volver } from '../../../utils/navegacion';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { api } from '../../../api/cliente';
 import { Aviso, BarraDesgaste, Boton, Campo, Cargando, Casilla, Fila, Pantalla, Separador, Tarjeta, Texto } from '../../../components/ui';
 import { confirmar } from '../../../utils/dialogos';
@@ -22,8 +22,9 @@ export default function Parte() {
   const [meses, setMeses] = useState('');
   const [error, setError] = useState('');
 
-  // Si se está editando, se cargan la parte (con su desgaste) y su historial
-  useEffect(() => {
+  // Si se está editando, se cargan la parte (con su desgaste) y su historial.
+  // useFocusEffect: se recarga al volver de "Corregir último cambio".
+  useFocusEffect(useCallback(() => {
     if (nueva) return;
     Promise.all([api(`/vehiculos/${id}`), api(`/partes/${parteId}/historial`)])
       .then(([vehiculo, h]) => {
@@ -37,7 +38,7 @@ export default function Parte() {
         setCargada(true);
       })
       .catch((e) => setError(e.message));
-  }, [id, parteId, nueva]);
+  }, [id, parteId, nueva]));
 
   async function guardar() {
     setError('');
@@ -66,8 +67,16 @@ export default function Parte() {
       {parte && (
         <Tarjeta>
           <BarraDesgaste porcentaje={parte.desgaste.porcentaje} estado={parte.desgaste.estado} />
-          <Texto>{porcentaje(parte.desgaste.porcentaje)} de desgaste (por {parte.desgaste.motivo === 'km' ? 'kilómetros' : 'tiempo'})</Texto>
-          <Texto variante="pequeno">Último cambio: {fecha(parte.ultimo_cambio_fecha)}, {km(parte.ultimo_cambio_km)}</Texto>
+          {parte.ultimo_cambio_conocido && (
+            <Texto>{porcentaje(parte.desgaste.porcentaje)} de desgaste (por {parte.desgaste.motivo === 'km' ? 'kilómetros' : 'tiempo'})</Texto>
+          )}
+          {parte.ultimo_cambio_conocido
+            ? <Texto variante="pequeno">Último cambio: {fecha(parte.ultimo_cambio_fecha)}, {km(parte.ultimo_cambio_km)}</Texto>
+            : <Aviso tipo="aviso">No sabemos cuándo se cambió por última vez, así que se cuenta desde la matrícula. Revísala o indica su último cambio.</Aviso>}
+          {/* RN-16: solo mientras la parte no tenga cambios registrados en la app */}
+          {parte.cambios_registrados === 0 && (
+            <Boton titulo="Corregir último cambio" onPress={() => router.push(`/vehiculo/${id}/ultimos-cambios?parteId=${parteId}`)} />
+          )}
         </Tarjeta>
       )}
 

@@ -67,7 +67,8 @@ export default function Inicio() {
             </Fila>
             <BarraDesgaste porcentaje={p.desgaste.porcentaje} estado={p.desgaste.estado} />
             <Texto variante="pequeno">
-              {porcentaje(p.desgaste.porcentaje)} de desgaste{p.costoEstimado !== null ? ` · Último costo: ${pesos(p.costoEstimado)}` : ''}
+              {p.conocido ? `${porcentaje(p.desgaste.porcentaje)} de desgaste` : 'Último cambio desconocido · revísala'}
+              {p.costoEstimado !== null ? ` · Último costo: ${pesos(p.costoEstimado)}` : ''}
             </Texto>
           </Pressable>
         ))}

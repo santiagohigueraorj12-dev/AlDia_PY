@@ -34,7 +34,10 @@ async function alertasDePartes(v, fechaHoy) {
         await notificaciones.crear(v.usuario_id, {
           tipo: 'parte',
           titulo: `Cambio vencido: ${parte.nombre} (${v.placa})`,
-          mensaje: `Lleva ${porcentaje.toLocaleString('es-CO')} % de desgaste. Haz el cambio lo antes posible.`,
+          // RN-16: si no se sabe cuándo se cambió, se pide revisarla en vez de afirmar el desgaste
+          mensaje: parte.ultimo_cambio_conocido
+            ? `Lleva ${porcentaje.toLocaleString('es-CO')} % de desgaste. Haz el cambio lo antes posible.`
+            : 'No sabemos cuándo se cambió por última vez. Revísala en tu próximo servicio o indica la fecha de su último cambio.',
           enlace: `/vehiculo/${v.id}`,  // ruta de la pantalla en la app
           clave: `${ciclo}:vencida:${fechaHoy}`,
         });

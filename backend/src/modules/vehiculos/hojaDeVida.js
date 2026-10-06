@@ -40,7 +40,7 @@ function generarHojaDeVida(res, vehiculo, servicios) {
     p.nombre,
     `${p.intervalo_km ? `${p.intervalo_km.toLocaleString('es-CO')} km / ` : ''}${p.intervalo_meses} meses`,
     `${formatoColombia(p.ultimo_cambio_fecha)} - ${p.ultimo_cambio_km.toLocaleString('es-CO')} km`,
-    `${p.desgaste.porcentaje}%`,
+    p.ultimo_cambio_conocido ? `${p.desgaste.porcentaje}%` : 'Desconocido',
     ESTADOS_PARTE[p.desgaste.estado],
   ]));
 

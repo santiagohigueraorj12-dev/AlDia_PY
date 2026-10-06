@@ -72,7 +72,7 @@ para circular" (revisión técnico-mecánica vencida, SOAT por vencer y kilometr
 ### Pruebas unitarias
 ```bash
 cd backend
-npm test                    # 45 pruebas de las reglas de negocio
+npm test                    # 53 pruebas de las reglas de negocio
 npm run test:cobertura      # con porcentaje de cobertura
 ```
 

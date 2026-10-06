@@ -6,7 +6,9 @@
 const { transaccion } = require('../../config/db');
 const AppError = require('../../utils/AppError');
 const { hoy, ahora } = require('../../utils/fechas');
-const { calcularDesgaste, ordenarPorUrgencia, sugerenciasServicio } = require('../../domain/desgaste');
+const {
+  calcularDesgaste, ordenarPorUrgencia, sugerenciasServicio, validarUltimoCambio, ultimoCambioDesconocido,
+} = require('../../domain/desgaste');
 const { validarNuevoKm, promedioDiario, kmParaCalculo } = require('../../domain/kilometraje');
 const { estadoVehiculo, costoPorKm, fechaPrimeraRtm } = require('../../domain/vehiculo');
 const { estadoDocumento } = require('../../domain/documentos');
@@ -92,6 +94,8 @@ async function detalle(usuarioId, id) {
 
 /**
  * RF-04: registra el vehículo, su primera lectura de km y su plan de partes (RN-05).
+ * RN-16: las partes arrancan contando desde la matrícula; después la app pide
+ * al usuario indicar cuándo cambió cada una (ver fijarUltimosCambios).
  * RN-14: si la primera revisión técnico-mecánica todavía no ha llegado,
  * se registra el documento con la fecha calculada.
  */
@@ -104,7 +108,8 @@ async function crear(usuarioId, datos, fotoUrl) {
   const id = await transaccion(async (conn) => {
     const vehiculoId = await repo.crear(conn, { ...datos, usuario_id: usuarioId, foto_url: fotoUrl });
     await conn.query('INSERT INTO lecturas_km (vehiculo_id, km, fecha) VALUES (?, ?, NOW())', [vehiculoId, datos.km_inicial]);
-    await repo.copiarPlanBase(conn, vehiculoId, datos.tipo_vehiculo_id, datos.km_inicial, fechaHoy);
+    const desconocido = ultimoCambioDesconocido(datos.fecha_matricula);
+    await repo.copiarPlanBase(conn, vehiculoId, datos.tipo_vehiculo_id, desconocido.km, desconocido.fecha);
 
     if (regla) {
       const primeraRtm = fechaPrimeraRtm(datos.fecha_matricula, regla);
@@ -191,6 +196,41 @@ async function quitarParte(usuarioId, parteId) {
   return detalle(usuarioId, parte.vehiculo_id);
 }
 
+/**
+ * RN-16: el usuario indica cuándo fue el último cambio de una o varias partes
+ * (al registrar un vehículo con uso, o después para corregir el dato).
+ *   partes = [{ parte_id, desconocido: true }]  o  [{ parte_id, km, fecha }]
+ * Solo se permite en partes sin cambios registrados en la app: si ya tienen,
+ * el historial es el que manda.
+ */
+async function fijarUltimosCambios(usuarioId, vehiculoId, partes) {
+  const vehiculo = await vehiculoDelUsuario(usuarioId, vehiculoId);
+  const actuales = await repo.partesActivas(vehiculoId);
+  const fechaHoy = hoy();
+
+  const cambios = partes.map((dato) => {
+    const parte = actuales.find((p) => p.id === dato.parte_id);
+    if (!parte) throw new AppError('Una de las partes no pertenece a este vehículo');
+    if (parte.cambios_registrados > 0) {
+      throw new AppError(`"${parte.nombre}" ya tiene cambios registrados en la app; su desgaste se calcula desde el último.`);
+    }
+    if (dato.desconocido) {
+      const { km, fecha } = ultimoCambioDesconocido(vehiculo.fecha_matricula);
+      return { parteId: parte.id, km, fecha, conocido: false };
+    }
+    const validacion = validarUltimoCambio({
+      km: dato.km, fecha: dato.fecha, kmActual: vehiculo.km_actual, fechaMatricula: vehiculo.fecha_matricula, hoy: fechaHoy,
+    });
+    if (!validacion.valido) throw new AppError(`"${parte.nombre}": ${validacion.mensaje}`);
+    return { parteId: parte.id, km: dato.km, fecha: dato.fecha, conocido: true };
+  });
+
+  await transaccion(async (conn) => {
+    for (const c of cambios) await repo.fijarUltimoCambio(conn, c.parteId, c);
+  });
+  return detalle(usuarioId, vehiculoId);
+}
+
 async function historialParte(usuarioId, parteId) {
   const parte = await parteDelUsuario(usuarioId, parteId);
   return { parte, historial: await repo.historialParte(parteId) };
@@ -245,6 +285,6 @@ async function historial(usuarioId, vehiculoId) {
 
 module.exports = {
   armarVehiculo, listar, detalle, crear, actualizar, eliminar, actualizarKm, lecturas,
-  agregarParte, actualizarParte, quitarParte, historialParte,
+  agregarParte, actualizarParte, quitarParte, historialParte, fijarUltimosCambios,
   sugerencias, registrarServicio, historial,
 };

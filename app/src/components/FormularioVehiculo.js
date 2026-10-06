@@ -94,7 +94,7 @@ export default function FormularioVehiculo({ vehiculo, onGuardado }) {
         </View>
 
         {!editando && (
-          <Texto variante="pequeno">Al registrarlo se cargará el plan de partes recomendado para su tipo. Luego puedes ajustarlo según el manual de tu vehículo.</Texto>
+          <Texto variante="pequeno">Al registrarlo se cargará el plan de partes recomendado para su tipo y luego te preguntaremos cuándo cambiaste cada parte por última vez.</Texto>
         )}
         <Boton titulo={enviando ? 'Guardando…' : 'Guardar'} tipo="primario" onPress={guardar} deshabilitado={enviando} />
       </Tarjeta>

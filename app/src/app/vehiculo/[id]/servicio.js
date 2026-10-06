@@ -96,7 +96,7 @@ export default function RegistrarServicio() {
               <Fila estilo={{ justifyContent: 'space-between' }}>
                 <Texto estilo={{ flexShrink: 1 }}>{p.nombre}</Texto>
                 <Fila>
-                  <Texto variante="pequeno">{porcentaje(p.desgaste.porcentaje)}</Texto>
+                  <Texto variante="pequeno">{p.ultimo_cambio_conocido ? porcentaje(p.desgaste.porcentaje) : "Desconocido"}</Texto>
                   <Etiqueta estado={ESTADO_PARTE[p.desgaste.estado]} />
                 </Fila>
               </Fila>

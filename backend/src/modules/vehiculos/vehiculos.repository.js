@@ -62,17 +62,35 @@ async function registrarLectura(conn, vehiculoId, km) {
 
 // --- Partes ---
 
-/** RN-05: copia el plan base del tipo de vehículo. Todas las partes arrancan en 0 %. */
+/**
+ * RN-05: copia el plan base del tipo de vehículo.
+ * RN-16: todas las partes arrancan con el último cambio "desconocido"
+ * (contando desde la matrícula) hasta que el usuario indique el real.
+ */
 function copiarPlanBase(conn, vehiculoId, tipoId, km, fecha) {
   return conn.query(
-    `INSERT INTO partes_vehiculo (vehiculo_id, codigo, nombre, intervalo_km, intervalo_meses, ultimo_cambio_km, ultimo_cambio_fecha)
-     SELECT ?, codigo, nombre, intervalo_km, intervalo_meses, ?, ? FROM plan_base_partes WHERE tipo_vehiculo_id = ?`,
+    `INSERT INTO partes_vehiculo (vehiculo_id, codigo, nombre, intervalo_km, intervalo_meses,
+                                  ultimo_cambio_km, ultimo_cambio_fecha, ultimo_cambio_conocido)
+     SELECT ?, codigo, nombre, intervalo_km, intervalo_meses, ?, ?, FALSE FROM plan_base_partes WHERE tipo_vehiculo_id = ?`,
     [vehiculoId, km, fecha, tipoId],
   );
 }
 
+/** Partes activas, con cuántos cambios tienen registrados en la app. */
 function partesActivas(vehiculoId) {
-  return query('SELECT * FROM partes_vehiculo WHERE vehiculo_id = ? AND activa = TRUE', [vehiculoId]);
+  return query(
+    `SELECT p.*, (SELECT COUNT(*) FROM cambios_parte c WHERE c.parte_id = p.id) AS cambios_registrados
+     FROM partes_vehiculo p WHERE p.vehiculo_id = ? AND p.activa = TRUE`,
+    [vehiculoId],
+  );
+}
+
+/** RN-16: guarda el último cambio indicado por el usuario (o lo deja como desconocido). */
+function fijarUltimoCambio(conn, parteId, { km, fecha, conocido }) {
+  return conn.query(
+    'UPDATE partes_vehiculo SET ultimo_cambio_km = ?, ultimo_cambio_fecha = ?, ultimo_cambio_conocido = ? WHERE id = ?',
+    [km, fecha, conocido, parteId],
+  );
 }
 
 function buscarParte(id) {
@@ -128,7 +146,7 @@ async function registrarCambio(conn, { servicioId, parteId, costo, marcaReferenc
   );
   // RN-09: el desgaste vuelve a 0 % porque el "último cambio" pasa a ser este.
   await conn.query(
-    'UPDATE partes_vehiculo SET ultimo_cambio_km = ?, ultimo_cambio_fecha = ? WHERE id = ?',
+    'UPDATE partes_vehiculo SET ultimo_cambio_km = ?, ultimo_cambio_fecha = ?, ultimo_cambio_conocido = TRUE WHERE id = ?',
     [km, fecha, parteId],
   );
 }
@@ -178,6 +196,6 @@ function reglaRtm(tipoId) {
 module.exports = {
   listarDelUsuario, listarTodos, buscarDelUsuario, placaEnUso, crear, actualizar, eliminar,
   lecturas, registrarLectura,
-  copiarPlanBase, partesActivas, buscarParte, crearParte, actualizarParte, desactivarParte, ultimoCostoPorParte,
+  copiarPlanBase, partesActivas, fijarUltimoCambio, buscarParte, crearParte, actualizarParte, desactivarParte, ultimoCostoPorParte,
   crearServicio, registrarCambio, historialServicios, historialParte, costoMantenimiento, reglaRtm,
 };

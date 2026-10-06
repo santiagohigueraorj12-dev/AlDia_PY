@@ -60,6 +60,17 @@ export default function DetalleVehiculo() {
         </Aviso>
       )}
 
+      {/* RN-16: partes cuyo último cambio no se conoce (y que aún se pueden indicar) */}
+      {vehiculo.partes.some((p) => !p.ultimo_cambio_conocido && p.cambios_registrados === 0) && (
+        <View style={{ gap: 6 }}>
+          <Aviso tipo="aviso">
+            Hay {vehiculo.partes.filter((p) => !p.ultimo_cambio_conocido && p.cambios_registrados === 0).length} partes sin fecha de último cambio:
+            se cuentan desde la matrícula. Indícalas para que el desgaste sea real.
+          </Aviso>
+          <Boton titulo="Indicar último cambio de las partes" onPress={() => router.push(`/vehiculo/${id}/ultimos-cambios`)} />
+        </View>
+      )}
+
       <Fila>
         <Cifra valor={km(vehiculo.km_actual)} texto="Kilometraje registrado" />
         <Cifra valor={vehiculo.promedioDiarioKm === null ? '—' : km(vehiculo.promedioDiarioKm)} texto="Promedio por día" />
@@ -102,12 +113,18 @@ function Partes({ vehiculo }) {
           </Fila>
           <BarraDesgaste porcentaje={p.desgaste.porcentaje} estado={p.desgaste.estado} />
           <Texto variante="pequeno">
-            {porcentaje(p.desgaste.porcentaje)} (por {p.desgaste.motivo === 'km' ? 'kilómetros' : 'tiempo'}) · {cuantoFalta(p.desgaste)}
+            {p.ultimo_cambio_conocido
+              ? `${porcentaje(p.desgaste.porcentaje)} (por ${p.desgaste.motivo === 'km' ? 'kilómetros' : 'tiempo'}) · ${cuantoFalta(p.desgaste)}`
+              : 'Último cambio desconocido · revísala en tu próximo servicio'}
           </Texto>
         </Pressable>
       ))}
       <Separador />
       <Boton titulo="+ Agregar parte" tipo="enlace" onPress={() => router.push(`/vehiculo/${vehiculo.id}/parte`)} />
+      {/* RN-16: corregir cuándo se cambiaron las partes que aún no tienen cambios en la app */}
+      {vehiculo.partes.some((p) => p.cambios_registrados === 0) && (
+        <Boton titulo="Indicar último cambio de las partes" tipo="enlace" onPress={() => router.push(`/vehiculo/${vehiculo.id}/ultimos-cambios`)} />
+      )}
     </Tarjeta>
   );
 }

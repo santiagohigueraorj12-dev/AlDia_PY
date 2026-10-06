@@ -4,6 +4,7 @@ const { test, describe } = require('node:test');
 const assert = require('node:assert/strict');
 const {
   calcularDesgaste, estadoPorDesgaste, ordenarPorUrgencia, sugerenciasServicio,
+  validarUltimoCambio, ultimoCambioDesconocido,
 } = require('../src/domain/desgaste');
 
 const aceiteMoto = {
@@ -88,7 +89,41 @@ describe('RN-10: sugerir filtro de aceite', () => {
     const otras = [partes[0], { ...partes[1], desgaste: { porcentaje: 49 } }];
     assert.equal(sugerenciasServicio([1], otras).length, 0);
   });
+  test('si no se sabe cuándo se cambió el filtro, el mensaje lo dice', () => {
+    const otras = [partes[0], { ...partes[1], ultimo_cambio_conocido: 0, desgaste: { porcentaje: 900 } }];
+    assert.match(sugerenciasServicio([1], otras)[0].mensaje, /No sabemos/);
+  });
   test('no sugiere si no se cambia el aceite', () => {
     assert.equal(sugerenciasServicio([], partes).length, 0);
+  });
+});
+
+describe('RN-16: último cambio de un vehículo con uso', () => {
+  const base = { kmActual: 30000, fechaMatricula: '2020-03-01', hoy: '2026-10-06' };
+
+  test('un dato válido se acepta', () => {
+    assert.equal(validarUltimoCambio({ ...base, km: 28500, fecha: '2026-08-10' }).valido, true);
+  });
+  test('el km no puede pasar del actual', () => {
+    assert.equal(validarUltimoCambio({ ...base, km: 30001, fecha: '2026-08-10' }).valido, false);
+  });
+  test('la fecha no puede ser futura', () => {
+    assert.equal(validarUltimoCambio({ ...base, km: 1000, fecha: '2026-10-07' }).valido, false);
+  });
+  test('la fecha no puede ser anterior a la matrícula', () => {
+    assert.equal(validarUltimoCambio({ ...base, km: 0, fecha: '2020-02-28' }).valido, false);
+  });
+  test('si no se sabe, se cuenta desde la matrícula', () => {
+    assert.deepEqual(ultimoCambioDesconocido('2020-03-01'), { km: 0, fecha: '2020-03-01' });
+  });
+  test('una moto usada con pastillas "desconocidas" sale vencida', () => {
+    const { km, fecha } = ultimoCambioDesconocido('2020-03-01');
+    const pastillas = { intervalo_km: 10000, intervalo_meses: 12, ultimo_cambio_km: km, ultimo_cambio_fecha: fecha };
+    assert.equal(calcularDesgaste(pastillas, 30000, { hoy: '2026-10-06' }).estado, 'vencida');
+  });
+  test('una moto nueva con partes "desconocidas" sale casi en 0 %', () => {
+    const { km, fecha } = ultimoCambioDesconocido('2026-10-01');
+    const aceite = { intervalo_km: 3000, intervalo_meses: 3, ultimo_cambio_km: km, ultimo_cambio_fecha: fecha };
+    assert.equal(calcularDesgaste(aceite, 50, { hoy: '2026-10-06' }).estado, 'bien');
   });
 });

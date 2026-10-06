@@ -36,7 +36,10 @@ async function resumen(usuarioId) {
   const partesUrgentes = vehiculos
     .flatMap((v) => v.partes
       .filter((p) => p.desgaste.estado !== 'bien')
-      .map((p) => ({ id: p.id, nombre: p.nombre, desgaste: p.desgaste, costoEstimado: p.costoEstimado, vehiculoId: v.id, placa: v.placa })))
+      .map((p) => ({
+        id: p.id, nombre: p.nombre, desgaste: p.desgaste, costoEstimado: p.costoEstimado,
+        conocido: Boolean(p.ultimo_cambio_conocido), vehiculoId: v.id, placa: v.placa,
+      })))
     .sort((a, b) => b.desgaste.porcentaje - a.desgaste.porcentaje);
 
   // Documentos vencidos o que vencen en 30 días o menos

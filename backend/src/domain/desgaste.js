@@ -87,12 +87,38 @@ function sugerenciasServicio(idsSeleccionadas, partes) {
   if (!filtro || seleccionadas.has(filtro.id)) return [];
   if (filtro.desgaste.porcentaje < UMBRAL_SUGERIR_FILTRO) return [];
 
+  // RN-16: la BD guarda el booleano como 0/1; si es 0, no se sabe cuándo se cambió
+  const desconocido = filtro.ultimo_cambio_conocido === 0 || filtro.ultimo_cambio_conocido === false;
   return [{
     parteId: filtro.id,
     nombre: filtro.nombre,
     porcentaje: filtro.desgaste.porcentaje,
-    mensaje: `El filtro de aceite lleva ${filtro.desgaste.porcentaje.toLocaleString('es-CO')} % de desgaste. Te sugerimos cambiarlo en este mismo servicio.`,
+    mensaje: desconocido
+      ? 'No sabemos cuándo se cambió el filtro de aceite. Te sugerimos cambiarlo en este mismo servicio.'
+      : `El filtro de aceite lleva ${filtro.desgaste.porcentaje.toLocaleString('es-CO')} % de desgaste. Te sugerimos cambiarlo en este mismo servicio.`,
   }];
+}
+
+/**
+ * RN-16: valida el último cambio que el usuario indica para una parte
+ * (cuando registra un vehículo con uso o corrige el dato después).
+ *  - El km no puede ser mayor al km actual del vehículo.
+ *  - La fecha no puede ser futura ni anterior a la matrícula.
+ */
+function validarUltimoCambio({ km, fecha, kmActual, fechaMatricula, hoy }) {
+  if (!Number.isInteger(km) || km < 0) return { valido: false, mensaje: 'El kilometraje debe ser un número entero positivo.' };
+  if (km > kmActual) return { valido: false, mensaje: `El kilometraje no puede ser mayor al actual del vehículo (${kmActual.toLocaleString('es-CO')} km).` };
+  if (fecha > hoy) return { valido: false, mensaje: 'La fecha no puede ser futura.' };
+  if (fecha < fechaMatricula) return { valido: false, mensaje: 'La fecha no puede ser anterior a la matrícula del vehículo.' };
+  return { valido: true };
+}
+
+/**
+ * RN-16: si no se sabe cuándo se cambió una parte, se cuenta desde la
+ * matrícula, como si nunca se hubiera cambiado (0 km y fecha de matrícula).
+ */
+function ultimoCambioDesconocido(fechaMatricula) {
+  return { km: 0, fecha: fechaMatricula };
 }
 
 function redondear(n) {
@@ -102,4 +128,5 @@ function redondear(n) {
 module.exports = {
   UMBRAL_PROXIMA, UMBRAL_VENCIDA,
   estadoPorDesgaste, calcularDesgaste, ordenarPorUrgencia, sugerenciasServicio,
+  validarUltimoCambio, ultimoCambioDesconocido,
 };

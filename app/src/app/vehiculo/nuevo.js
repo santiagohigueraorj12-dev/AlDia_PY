@@ -3,6 +3,6 @@ import { router } from 'expo-router';
 import FormularioVehiculo from '../../components/FormularioVehiculo';
 
 export default function NuevoVehiculo() {
-  // Al guardar, se reemplaza esta pantalla por el detalle del vehículo creado
-  return <FormularioVehiculo onGuardado={(v) => router.replace(`/vehiculo/${v.id}`)} />;
+  // RN-16: al guardar, se pregunta cuándo se cambió por última vez cada parte
+  return <FormularioVehiculo onGuardado={(v) => router.replace(`/vehiculo/${v.id}/ultimos-cambios?nuevo=1`)} />;
 }

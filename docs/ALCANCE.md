@@ -45,6 +45,7 @@ gasta en mantenimiento y controla el vencimiento de los documentos del vehículo
 | RN-13 | Las alertas de documentos se envían 30, 7 y 1 día antes del vencimiento, y el mismo día. | `domain/documentos.js` |
 | RN-14 | La fecha de la primera RTM se calcula con la fecha de matrícula y la regla del tipo de vehículo (motos 2 años, carros 5), que configura el Administrador. | `domain/vehiculo.js` |
 | RN-15 | Al renovar un documento se conserva el historial. La nueva fecha de vencimiento debe ser posterior a la anterior. | `domain/documentos.js` |
+| RN-16 | Al registrar un vehículo, cada parte se cuenta desde la matrícula (0 km y fecha de matrícula), como si nunca se hubiera cambiado. El usuario puede indicar el km y la fecha de su último cambio real: el km no puede pasar del actual y la fecha no puede ser futura ni anterior a la matrícula. Solo se puede indicar mientras la parte no tenga cambios registrados en la app. | `domain/desgaste.js` → `validarUltimoCambio()` |
 
 ## Requisitos funcionales
 **Usuarios**
@@ -56,7 +57,7 @@ gasta en mantenimiento y controla el vencimiento de los documentos del vehículo
 - RF-04: Registrar, editar y eliminar vehículos (tipo, marca, modelo, año, placa, fecha de matrícula, km inicial y foto).
 - RF-05: Actualizar el kilometraje y ver su historial.
 - RF-06: Ver las partes con su % de desgaste y estado, de la más a la menos urgente.
-- RF-07: Agregar y quitar partes del plan y ajustar sus intervalos.
+- RF-07: Agregar y quitar partes del plan, ajustar sus intervalos e indicar cuándo fue su último cambio.
 - RF-08: Registrar un servicio con el cambio de una o varias partes.
 - RF-09: Consultar el historial de cambios de cada vehículo y de cada parte.
 - RF-10: Ver el costo total de mantenimiento y el costo por kilómetro.
@@ -92,7 +93,7 @@ gasta en mantenimiento y controla el vencimiento de los documentos del vehículo
 | RNF-08 | Localización | Español, pesos colombianos, zona horaria de Bogotá, fechas dd/mm/aaaa. |
 | RNF-09 | Privacidad | Ley 1581 de 2012: autorización de datos y opción de eliminar la cuenta. |
 | RNF-10 | Mantenibilidad | Backend por capas con las reglas de negocio en funciones independientes; código en Git. |
-| RNF-11 | Calidad | Pruebas unitarias de las reglas de desgaste, kilometraje, estado del vehículo y documentos. |
+| RNF-11 | Calidad | Pruebas unitarias de las reglas de desgaste, kilometraje, último cambio, estado del vehículo y documentos. |
 
 ## Tecnologías
 - **App (celular y computador):** Expo (React Native + React Native Web) con Expo Router

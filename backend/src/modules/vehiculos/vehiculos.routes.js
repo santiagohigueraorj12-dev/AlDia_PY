@@ -44,6 +44,18 @@ const esquemas = {
   }),
   parte: z.object(intervalos),
   sugerencias: z.object({ parteIds: z.array(z.number().int()) }),
+  // RN-16: por cada parte, o "no lo sé" (desconocido) o el km y la fecha del último cambio
+  ultimosCambios: z.object({
+    partes: z.array(z.object({
+      parte_id: z.number().int(),
+      desconocido: z.boolean().optional(),
+      km: z.number().int().min(0, 'El kilometraje no puede ser negativo').optional(),
+      fecha: fecha.optional(),
+    }).refine(
+      (p) => p.desconocido || (p.km !== undefined && p.fecha !== undefined),
+      { message: 'Indica el km y la fecha del último cambio, o marca "No lo sé"' },
+    )).min(1),
+  }),
   servicio: z.object({
     fecha,
     km: z.coerce.number().int().min(0),
@@ -71,6 +83,7 @@ vehiculos.get('/:id/kilometraje', c.lecturas);
 
 // Plan de partes (RF-07)
 vehiculos.post('/:id/partes', validar(esquemas.parteNueva), c.agregarParte);
+vehiculos.put('/:id/ultimos-cambios', validar(esquemas.ultimosCambios), c.fijarUltimosCambios);  // RN-16
 
 // Servicios / cambios de partes (RF-08, RF-09)
 vehiculos.post('/:id/servicios/sugerencias', validar(esquemas.sugerencias), c.sugerencias);  // RN-10
