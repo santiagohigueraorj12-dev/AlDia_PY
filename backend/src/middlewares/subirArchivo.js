@@ -7,6 +7,18 @@ const AppError = require('../utils/AppError');
 
 const CARPETA = path.join(__dirname, '..', '..', 'uploads');
 const TIPOS_PERMITIDOS = ['image/jpeg', 'image/png', 'application/pdf'];
+const EXTENSIONES_PERMITIDAS = ['.jpg', '.jpeg', '.png', '.pdf'];
+
+/**
+ * ¿El archivo es JPG, PNG o PDF?
+ * Algunos celulares envían el archivo sin tipo ("application/octet-stream");
+ * en ese caso se decide por la extensión del nombre.
+ */
+function esPermitido(archivo) {
+  if (TIPOS_PERMITIDOS.includes(archivo.mimetype)) return true;
+  const sinTipo = !archivo.mimetype || archivo.mimetype === 'application/octet-stream';
+  return sinTipo && EXTENSIONES_PERMITIDAS.includes(path.extname(archivo.originalname).toLowerCase());
+}
 
 const almacenamiento = multer.diskStorage({
   destination: CARPETA,
@@ -21,7 +33,7 @@ const subirArchivo = multer({
   storage: almacenamiento,
   limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, archivo, cb) => {
-    if (TIPOS_PERMITIDOS.includes(archivo.mimetype)) cb(null, true);
+    if (esPermitido(archivo)) cb(null, true);
     else cb(new AppError('Solo se permiten archivos JPG, PNG o PDF'));
   },
 });

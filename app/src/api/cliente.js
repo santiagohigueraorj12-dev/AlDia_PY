@@ -93,8 +93,9 @@ export async function api(ruta, { metodo = 'GET', datos, formulario } = {}) {
   let respuesta;
   try {
     respuesta = await fetch(`${SERVIDOR}/api${ruta}`, opciones);
-  } catch {
-    throw new ErrorApi(`No se pudo conectar con el servidor (${SERVIDOR}). Revisa que el backend esté encendido${ES_WEB ? '' : ' y que el celular esté en la misma red Wi-Fi'}.`, 0);
+  } catch (error) {
+    // Al final va el detalle técnico: sirve para saber qué falló exactamente
+    throw new ErrorApi(`No se pudo conectar con el servidor (${SERVIDOR}). Revisa que el backend esté encendido${ES_WEB ? '' : ' y que el celular esté en la misma red Wi-Fi'}. Detalle: ${error.message}`, 0);
   }
 
   if (respuesta.status === 401 && tokenEnMemoria) {
@@ -110,12 +111,14 @@ export async function api(ruta, { metodo = 'GET', datos, formulario } = {}) {
 
 /**
  * Convierte el archivo elegido (foto o PDF) en lo que espera un FormData.
- *  - En el celular, React Native acepta { uri, name, type } como si fuera un archivo.
  *  - En el navegador, el selector entrega un File real (archivo.web).
+ *  - En el celular se usa File de expo-file-system, que funciona como un archivo
+ *    real (un Blob). Desde Expo SDK 54 el fetch del celular es el de Expo y ya
+ *    no acepta el formato antiguo de React Native { uri, name, type }.
  */
 export function archivoParaFormulario(archivo) {
   if (archivo.web) return archivo.web;
-  return { uri: archivo.uri, name: archivo.nombre, type: archivo.tipo };
+  return new File(archivo.uri);
 }
 
 /**
