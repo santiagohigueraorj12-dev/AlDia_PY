@@ -3,7 +3,8 @@
 // Sin "parteId" en la ruta -> parte nueva.  Con "parteId" -> editar esa parte.
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
-import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { volver } from '../../../utils/navegacion';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { api } from '../../../api/cliente';
 import { Aviso, BarraDesgaste, Boton, Campo, Cargando, Casilla, Fila, Pantalla, Separador, Tarjeta, Texto } from '../../../components/ui';
 import { confirmar } from '../../../utils/dialogos';
@@ -44,7 +45,7 @@ export default function Parte() {
     try {
       if (nueva) await api(`/vehiculos/${id}/partes`, { metodo: 'POST', datos });
       else await api(`/partes/${parteId}`, { metodo: 'PUT', datos });
-      router.back();
+      volver(`/vehiculo/${id}`);
     } catch (e) {
       setError(e.message);
     }
@@ -53,7 +54,7 @@ export default function Parte() {
   async function quitar() {
     if (!(await confirmar('Quitar parte', `¿Quitar "${parte.nombre}" del plan? Su historial se conserva.`, 'Quitar'))) return;
     await api(`/partes/${parteId}`, { metodo: 'DELETE' });
-    router.back();
+    volver(`/vehiculo/${id}`);
   }
 
   if (!cargada) return error ? <Pantalla><Aviso>{error}</Aviso></Pantalla> : <Cargando />;

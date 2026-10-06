@@ -1,5 +1,6 @@
 // RF-04: editar los datos de un vehículo.
-import { router, useLocalSearchParams } from 'expo-router';
+import { volver } from '../../../utils/navegacion';
+import { useLocalSearchParams } from 'expo-router';
 import { useDatos } from '../../../api/useDatos';
 import { Aviso, Cargando, Pantalla } from '../../../components/ui';
 import FormularioVehiculo from '../../../components/FormularioVehiculo';
@@ -10,5 +11,5 @@ export default function EditarVehiculo() {
 
   if (error) return <Pantalla><Aviso>{error}</Aviso></Pantalla>;
   if (!vehiculo) return <Cargando />;
-  return <FormularioVehiculo vehiculo={vehiculo} onGuardado={() => router.back()} />;
+  return <FormularioVehiculo vehiculo={vehiculo} onGuardado={() => volver(`/vehiculo/${id}`)} />;
 }

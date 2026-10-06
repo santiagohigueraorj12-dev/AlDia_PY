@@ -3,7 +3,8 @@
 // de un día), se pide confirmación y se reenvía con confirmado = true.
 import { useState } from 'react';
 import { View } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { volver } from '../../../utils/navegacion';
+import { useLocalSearchParams } from 'expo-router';
 import { api } from '../../../api/cliente';
 import { useDatos } from '../../../api/useDatos';
 import { Aviso, Boton, Campo, Cargando, Fila, Pantalla, Separador, Tarjeta, Texto } from '../../../components/ui';
@@ -22,7 +23,7 @@ export default function Kilometraje() {
     setEnviando(true);
     try {
       await api(`/vehiculos/${id}/kilometraje`, { metodo: 'POST', datos: { km: Number(km), confirmado } });
-      router.back();
+      volver(`/vehiculo/${id}`);
     } catch (e) {
       if (e.datos.requiereConfirmacion) setPregunta(e.message);
       else setError(e.message);

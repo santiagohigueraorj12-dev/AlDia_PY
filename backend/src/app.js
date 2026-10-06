@@ -3,6 +3,7 @@
 // Si quieres saber qué URL atiende cada módulo, mira este archivo.
 // =====================================================================
 const express = require('express');
+const cors = require('cors');
 const { query } = require('./config/db');
 const { CARPETA } = require('./middlewares/subirArchivo');
 const { requiereSesion, requiereAdmin } = require('./middlewares/auth');
@@ -17,6 +18,10 @@ const adminRoutes = require('./modules/admin/admin.routes');
 
 const app = express();
 
+// CORS: permite que la app abierta en el navegador (otro puerto u otro computador)
+// llame a esta API. Es seguro abrirlo a cualquier origen porque la sesión viaja en
+// el encabezado Authorization (token JWT), no en cookies.
+app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static(CARPETA)); // fotos y documentos adjuntos
 

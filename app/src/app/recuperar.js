@@ -1,6 +1,6 @@
 // RF-02: recuperar la contraseña en dos pasos: pedir el código y luego usarlo.
 import { useState } from 'react';
-import { router } from 'expo-router';
+import { volver } from '../utils/navegacion';
 import { api } from '../api/cliente';
 import { Aviso, Boton, Campo, Pantalla, Tarjeta } from '../components/ui';
 
@@ -54,7 +54,7 @@ export default function Recuperar() {
             <Boton titulo="Cambiar contraseña" tipo="primario" onPress={cambiarPassword} deshabilitado={!token || password.length < 8} />
           </>
         )}
-        {paso === 3 && <Boton titulo="Volver a iniciar sesión" tipo="primario" onPress={() => router.back()} />}
+        {paso === 3 && <Boton titulo="Volver a iniciar sesión" tipo="primario" onPress={() => volver('/login')} />}
       </Tarjeta>
     </Pantalla>
   );

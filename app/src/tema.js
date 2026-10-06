@@ -4,6 +4,7 @@
 import { useColorScheme } from 'react-native';
 
 const claro = {
+  esOscuro: false,
   fondo: '#f4f6f9',
   superficie: '#ffffff',
   superficie2: '#eef2f7',
@@ -19,6 +20,7 @@ const claro = {
 };
 
 const oscuro = {
+  esOscuro: true,
   fondo: '#0f1620',
   superficie: '#17212d',
   superficie2: '#1f2b39',

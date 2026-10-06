@@ -19,7 +19,7 @@ export default function FormularioVehiculo({ vehiculo, onGuardado }) {
     fecha_matricula: vehiculo?.fecha_matricula ?? '',
     km_inicial: '',
   });
-  const [foto, setFoto] = useState(null);  // { uri, nombre, tipo }
+  const [foto, setFoto] = useState(null);  // { uri, nombre, tipo, web }
   const [error, setError] = useState('');
   const [enviando, setEnviando] = useState(false);
 
@@ -34,7 +34,8 @@ export default function FormularioVehiculo({ vehiculo, onGuardado }) {
     if (r.canceled) return;
     const a = r.assets[0];
     if (a.fileSize && a.fileSize > 5 * 1024 * 1024) { setError('La foto no puede pesar más de 5 MB'); return; }
-    setFoto({ uri: a.uri, nombre: a.fileName || 'foto.jpg', tipo: a.mimeType || 'image/jpeg' });
+    // a.file solo existe en el navegador (es el archivo real elegido en el computador)
+    setFoto({ uri: a.uri, nombre: a.fileName || 'foto.jpg', tipo: a.mimeType || 'image/jpeg', web: a.file });
   }
 
   async function guardar() {

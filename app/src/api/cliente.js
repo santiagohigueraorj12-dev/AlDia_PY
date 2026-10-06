@@ -1,20 +1,28 @@
 // =====================================================================
 // Cliente de la API: TODAS las llamadas al backend pasan por aquí.
 // Agrega el token JWT y convierte los errores del servidor en excepciones.
+//
+// La app corre en el celular (Android/iOS) y en el computador (navegador).
+// Las pocas diferencias entre ambos están aquí, marcadas con ES_WEB.
 // =====================================================================
+import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 import * as SecureStore from 'expo-secure-store';
 import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 
+const ES_WEB = Platform.OS === 'web';
+
 /**
- * Dirección del backend.
- * En el celular "localhost" es el propio celular, así que se usa la IP del
- * computador donde corre Expo (la misma red Wi-Fi). Se puede forzar otra
- * dirección con la variable EXPO_PUBLIC_API_URL en el archivo movil/.env
+ * Dirección del backend (puerto 4000).
+ *  - En el navegador: el mismo computador desde el que se abrió la página.
+ *  - En el celular: "localhost" sería el propio celular, así que se usa la IP
+ *    del computador donde corre Expo (misma red Wi-Fi).
+ * Se puede forzar otra dirección con EXPO_PUBLIC_API_URL en el archivo app/.env
  */
 function calcularServidor() {
   if (process.env.EXPO_PUBLIC_API_URL) return process.env.EXPO_PUBLIC_API_URL;
+  if (ES_WEB) return `http://${window.location.hostname}:4000`;
   const ipComputador = Constants.expoConfig?.hostUri?.split(':')[0];
   return `http://${ipComputador || 'localhost'}:4000`;
 }
@@ -27,20 +35,27 @@ export function urlArchivo(ruta) {
 }
 
 // --- Token de sesión ---
-// Se guarda cifrado en el celular con SecureStore (RNF-01) y se mantiene
-// una copia en memoria para no leerlo en cada petición.
+// En el celular se guarda cifrado con SecureStore (RNF-01).
+// En el navegador SecureStore no existe y se usa el almacenamiento del navegador.
+// Además se mantiene una copia en memoria para no leerlo en cada petición.
 const CLAVE_TOKEN = 'aldia_token';
 let tokenEnMemoria = null;
 
 export async function cargarToken() {
-  tokenEnMemoria = await SecureStore.getItemAsync(CLAVE_TOKEN);
+  tokenEnMemoria = ES_WEB ? localStorage.getItem(CLAVE_TOKEN) : await SecureStore.getItemAsync(CLAVE_TOKEN);
   return tokenEnMemoria;
 }
 
 export async function guardarToken(token) {
   tokenEnMemoria = token;
-  if (token) await SecureStore.setItemAsync(CLAVE_TOKEN, token);
-  else await SecureStore.deleteItemAsync(CLAVE_TOKEN);
+  if (ES_WEB) {
+    if (token) localStorage.setItem(CLAVE_TOKEN, token);
+    else localStorage.removeItem(CLAVE_TOKEN);
+  } else if (token) {
+    await SecureStore.setItemAsync(CLAVE_TOKEN, token);
+  } else {
+    await SecureStore.deleteItemAsync(CLAVE_TOKEN);
+  }
 }
 
 // Se llama cuando el backend responde 401 (sesión vencida). La define SesionContext.
@@ -79,7 +94,7 @@ export async function api(ruta, { metodo = 'GET', datos, formulario } = {}) {
   try {
     respuesta = await fetch(`${SERVIDOR}/api${ruta}`, opciones);
   } catch {
-    throw new ErrorApi(`No se pudo conectar con el servidor (${SERVIDOR}). Revisa que el backend esté encendido y que el celular esté en la misma red Wi-Fi.`, 0);
+    throw new ErrorApi(`No se pudo conectar con el servidor (${SERVIDOR}). Revisa que el backend esté encendido${ES_WEB ? '' : ' y que el celular esté en la misma red Wi-Fi'}.`, 0);
   }
 
   if (respuesta.status === 401 && tokenEnMemoria) {
@@ -94,15 +109,32 @@ export async function api(ruta, { metodo = 'GET', datos, formulario } = {}) {
 }
 
 /**
- * Prepara un archivo elegido en el celular para enviarlo en un FormData.
- * React Native acepta { uri, name, type } como si fuera un archivo.
+ * Convierte el archivo elegido (foto o PDF) en lo que espera un FormData.
+ *  - En el celular, React Native acepta { uri, name, type } como si fuera un archivo.
+ *  - En el navegador, el selector entrega un File real (archivo.web).
  */
 export function archivoParaFormulario(archivo) {
+  if (archivo.web) return archivo.web;
   return { uri: archivo.uri, name: archivo.nombre, type: archivo.tipo };
 }
 
-/** Descarga un PDF protegido (ej.: la hoja de vida) y abre el menú "Compartir" del celular. */
+/**
+ * Descarga un PDF protegido (ej.: la hoja de vida).
+ *  - En el celular abre el menú "Compartir" (WhatsApp, correo, guardar…).
+ *  - En el navegador lo descarga como cualquier archivo.
+ */
 export async function descargarYCompartir(ruta, nombreArchivo) {
+  if (ES_WEB) {
+    const respuesta = await fetch(`${SERVIDOR}/api${ruta}`, { headers: { Authorization: `Bearer ${tokenEnMemoria}` } });
+    if (!respuesta.ok) throw new ErrorApi('No se pudo descargar el archivo', respuesta.status);
+    const url = URL.createObjectURL(await respuesta.blob());
+    const enlace = document.createElement('a');
+    enlace.href = url;
+    enlace.download = nombreArchivo;
+    enlace.click();
+    URL.revokeObjectURL(url);
+    return;
+  }
   const destino = new File(Paths.cache, nombreArchivo);
   if (destino.exists) destino.delete();
   const archivo = await File.downloadFileAsync(`${SERVIDOR}/api${ruta}`, destino, {

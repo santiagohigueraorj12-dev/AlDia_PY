@@ -3,7 +3,8 @@
 // RN-10: si se elige el aceite, el backend puede sugerir agregar el filtro.
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { volver } from '../../../utils/navegacion';
+import { useLocalSearchParams } from 'expo-router';
 import { api } from '../../../api/cliente';
 import { useDatos } from '../../../api/useDatos';
 import { Aviso, Boton, Campo, Cargando, Casilla, Etiqueta, Fila, Pantalla, Separador, Tarjeta, Texto } from '../../../components/ui';
@@ -65,7 +66,7 @@ export default function RegistrarServicio() {
           })),
         },
       });
-      router.back();
+      volver(`/vehiculo/${id}`);
     } catch (e) {
       setError(e.message);
       setEnviando(false);

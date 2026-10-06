@@ -1,4 +1,6 @@
-// Campo para elegir una fecha con el calendario nativo del celular.
+// Campo para elegir una fecha.
+//  - En el celular abre el calendario nativo (Android o iOS).
+//  - En el computador usa el selector de fecha del navegador.
 // Recibe y devuelve la fecha como texto 'AAAA-MM-DD' (igual que la API).
 import { useState } from 'react';
 import { Platform, Pressable, Text, View } from 'react-native';
@@ -43,6 +45,27 @@ export default function CampoFecha({ etiqueta, valor, onCambio, minima, maxima }
   }
 
   const estiloCaja = { borderWidth: 1, borderColor: c.borde, borderRadius: 10, padding: 11, backgroundColor: c.superficie };
+
+  if (Platform.OS === 'web') {
+    // En el navegador se dibuja un <input type="date"> normal de HTML
+    return (
+      <View style={{ gap: 4 }}>
+        {etiqueta && <Text style={{ color: c.texto, fontWeight: '600', fontSize: 14 }}>{etiqueta}</Text>}
+        <input
+          type="date"
+          value={valor || ''}
+          min={minima}
+          max={maxima}
+          onChange={(e) => onCambio(e.target.value)}
+          aria-label={etiqueta}
+          style={{
+            border: `1px solid ${c.borde}`, borderRadius: 10, padding: 10, fontSize: 15,
+            fontFamily: 'inherit', color: c.texto, backgroundColor: c.superficie, colorScheme: c.esOscuro ? 'dark' : 'light',
+          }}
+        />
+      </View>
+    );
+  }
 
   return (
     <View style={{ gap: 4 }}>

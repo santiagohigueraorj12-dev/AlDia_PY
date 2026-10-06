@@ -2,7 +2,7 @@
 
 > **"Que no se te pase ningún cambio de tu vehículo."**
 
-Aplicación móvil para controlar el **mantenimiento de motos y carros**. Calcula el desgaste de cada parte
+Aplicación para controlar el **mantenimiento de motos y carros**, que funciona en el **celular y en el computador**. Calcula el desgaste de cada parte
 (aceite, frenos, llantas…) según los kilómetros y el tiempo, avisa cuándo toca cada cambio, lleva el costo
 del mantenimiento y controla el vencimiento del SOAT, la revisión técnico-mecánica y el impuesto.
 
@@ -11,7 +11,7 @@ Integrantes: Simon Higuera y Santiago Higuera.
 
 | Capa | Tecnología |
 |---|---|
-| App móvil | Expo SDK 57 (React Native) — Android e iOS |
+| App | Expo SDK 57 (React Native) — Android, iOS y navegador del computador |
 | Backend | Node.js + Express 5 (API REST) |
 | Base de datos | MariaDB (administrada con HeidiSQL) |
 
@@ -39,22 +39,26 @@ copy .env.example .env      # en Git Bash: cp .env.example .env  (revisa el puer
 npm run dev                 # queda en http://localhost:4000
 ```
 
-### 3. App móvil (Expo)
-1. Instala **Expo Go** en tu celular (Play Store o App Store).
-2. Conecta el celular a la **misma red Wi-Fi** que el computador.
-3. En **otra** terminal:
-   ```bash
-   cd movil
-   npm install
-   npx expo start
-   ```
-4. Escanea el código QR con Expo Go (Android) o con la cámara (iPhone).
+### 3. App (celular y computador)
+Es **un solo proyecto** que se abre en el celular y en el navegador del computador. En **otra** terminal:
+```bash
+cd app
+npm install
+npx expo start
+```
 
-La app encuentra sola el backend usando la IP del computador (la misma que muestra Expo debajo del QR),
-en el puerto 4000. Si no conecta:
+**En el computador:** presiona la tecla `w` en esa terminal, o abre http://localhost:8081 en Chrome, Edge o Firefox.
+Desde otro computador de la misma red se abre con `http://IP-DEL-COMPUTADOR:8081`.
+
+**En el celular:**
+1. Instala **Expo Go** (Play Store o App Store).
+2. Conecta el celular a la **misma red Wi-Fi** que el computador.
+3. Escanea el código QR con Expo Go (Android) o con la cámara (iPhone).
+
+La app encuentra sola el backend (puerto 4000) usando la dirección del computador. Si no conecta:
 - La primera vez que corre el backend, Windows pregunta si permite el acceso a la red: elige **Permitir**
   (o abre el puerto 4000 en el Firewall de Windows).
-- Puedes fijar la dirección a mano creando `movil/.env` con `EXPO_PUBLIC_API_URL=http://TU-IP:4000`.
+- Puedes fijar la dirección a mano creando `app/.env` con `EXPO_PUBLIC_API_URL=http://TU-IP:4000`.
 
 ### Usuarios de prueba
 | Rol | Correo | Contraseña |
@@ -79,7 +83,7 @@ npm run test:cobertura      # con porcentaje de cobertura
 AlDia_PY/
 ├── database/            Scripts SQL para HeidiSQL (esquema, catálogos, demo)
 ├── docs/                Alcance (reglas y requisitos) y arquitectura
-├── movil/               ⭐ App móvil (Expo)
+├── app/                 ⭐ App para celular y computador (Expo)
 │   └── src/
 │       ├── app/         Pantallas: cada archivo es una pantalla (Expo Router)
 │       ├── components/  Piezas reutilizables (botones, campos, barra de desgaste…)

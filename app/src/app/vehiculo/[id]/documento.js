@@ -2,7 +2,8 @@
 // RN-15: al renovar, la nueva fecha de vencimiento debe ser posterior a la anterior.
 import { useEffect, useState } from 'react';
 import { Linking, View } from 'react-native';
-import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { volver } from '../../../utils/navegacion';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import * as DocumentPicker from 'expo-document-picker';
 import { api, archivoParaFormulario, urlArchivo } from '../../../api/cliente';
 import { useDatos } from '../../../api/useDatos';
@@ -17,7 +18,7 @@ export default function Documento() {
   const [vence, setVence] = useState('');
   const [valor, setValor] = useState('');
   const [fechaPago, setFechaPago] = useState(hoyISO());
-  const [archivo, setArchivo] = useState(null);  // { uri, nombre, tipo }
+  const [archivo, setArchivo] = useState(null);  // { uri, nombre, tipo, web }
   const [historial, setHistorial] = useState([]);
   const [error, setError] = useState('');
   const [enviando, setEnviando] = useState(false);
@@ -37,7 +38,8 @@ export default function Documento() {
     if (r.canceled) return;
     const a = r.assets[0];
     if (a.size && a.size > 5 * 1024 * 1024) { setError('El archivo no puede pesar más de 5 MB'); return; }  // RNF-03
-    setArchivo({ uri: a.uri, nombre: a.name, tipo: a.mimeType || 'application/pdf' });
+    // a.file solo existe en el navegador (es el archivo real elegido en el computador)
+    setArchivo({ uri: a.uri, nombre: a.name, tipo: a.mimeType || 'application/pdf', web: a.file });
   }
 
   async function guardar() {
@@ -52,7 +54,7 @@ export default function Documento() {
     try {
       if (doc) await api(`/documentos/${doc.id}/renovar`, { metodo: 'POST', formulario });
       else await api(`/vehiculos/${id}/documentos`, { metodo: 'POST', formulario });
-      router.back();
+      volver(`/vehiculo/${id}`);
     } catch (e) {
       setError(e.message);
       setEnviando(false);
@@ -62,7 +64,7 @@ export default function Documento() {
   async function eliminar() {
     if (!(await confirmar('Eliminar documento', `¿Eliminar el registro de ${nombre} y su historial?`, 'Eliminar'))) return;
     await api(`/documentos/${doc.id}`, { metodo: 'DELETE' });
-    router.back();
+    volver(`/vehiculo/${id}`);
   }
 
   return (

@@ -13,7 +13,8 @@ export function Pantalla({ children, onRefrescar, refrescando = false }) {
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: c.fondo }}
-      contentContainerStyle={{ padding: 16, paddingBottom: 40, gap: 14 }}
+      // En el computador el contenido no pasa de 820 px de ancho y queda centrado
+      contentContainerStyle={{ padding: 16, paddingBottom: 40, gap: 14, width: '100%', maxWidth: 820, alignSelf: 'center' }}
       keyboardShouldPersistTaps="handled"
       refreshControl={onRefrescar ? <RefreshControl refreshing={refrescando} onRefresh={onRefrescar} tintColor={c.primario} /> : undefined}
     >

@@ -34,7 +34,7 @@ export default function DetalleVehiculo() {
   async function eliminar() {
     if (!(await confirmar('Eliminar vehículo', `¿Eliminar ${vehiculo.placa} con todo su historial? No se puede deshacer.`, 'Eliminar'))) return;
     await api(`/vehiculos/${id}`, { metodo: 'DELETE' });
-    router.back();
+    router.replace('/vehiculos');  // el vehículo ya no existe: se va a la lista
   }
 
   return (

@@ -3,7 +3,7 @@
 ## La idea general
 
 ```
- App móvil (Expo)           Backend (Express)                           MariaDB
+ App (Expo)                 Backend (Express)                           MariaDB
 ┌──────────────┐  HTTP   ┌──────────────────────────────────────────┐   SQL   ┌────────┐
 │ app/   ──► api/cliente ─┼─► routes ─► controller ─► service ─► repository ─┼────────►│ aldia  │
 └──────────────┘  JSON   │                             │                    │         └────────┘
@@ -27,9 +27,9 @@ El backend está organizado **por capas** (RNF-10). Cada capa tiene una sola res
 
 ## Ejemplo: ¿qué pasa al registrar un cambio de aceite?
 
-1. **App** — `movil/src/app/vehiculo/[id]/servicio.js` llama a
+1. **App** — `app/src/app/vehiculo/[id]/servicio.js` llama a
    `api('/vehiculos/1/servicios', { metodo: 'POST', datos: {...} })`.
-2. **Cliente** — `movil/src/api/cliente.js` agrega el token JWT y hace el `fetch`.
+2. **Cliente** — `app/src/api/cliente.js` agrega el token JWT y hace el `fetch`.
 3. **app.js** — `requiereSesion` verifica el token y deja el usuario en `req.usuario`.
 4. **Rutas** — `vehiculos.routes.js` valida con Zod que lleguen fecha, km y al menos una parte.
 5. **Controlador** — `vehiculos.controller.js → registrarServicio` llama al servicio.
@@ -88,7 +88,12 @@ cambia (porque cambian la fecha y el km del último cambio) y la parte vuelve a 
 | GET/POST | `/api/notificaciones` · `/contador` · `/:id/leer` · `/leer-todas` | Notificaciones |
 | GET/POST/PUT/DELETE | `/api/admin/...` | Plan base, reglas RTM, usuarios |
 
-## App móvil (movil/)
+## App (app/) — celular y computador
+Es **un solo código** que corre en Android, iOS y en el navegador del computador (Expo + React Native Web).
+Las pocas diferencias entre celular y computador están aisladas en `src/api/cliente.js` (dónde se guarda el
+token y cómo se descarga el PDF), `src/components/CampoFecha.js` (calendario nativo o del navegador) y
+`src/utils/dialogos.js` (alertas). Se reconocen porque preguntan `Platform.OS === 'web'`.
+
 Usa **Expo Router**: cada archivo dentro de `src/app/` es una pantalla y su ruta sale del nombre del archivo.
 
 | Archivo | Pantalla |

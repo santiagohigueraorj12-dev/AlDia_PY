@@ -2,7 +2,7 @@
 
 > **"Que no se te pase ningún cambio de tu vehículo."**
 
-AlDía es una aplicación móvil que ayuda a las personas a llevar al día el **mantenimiento de sus motos y carros**:
+AlDía es una aplicación para celular y computador que ayuda a las personas a llevar al día el **mantenimiento de sus motos y carros**:
 calcula el desgaste de cada parte según los kilómetros y el tiempo, avisa cuándo toca cada cambio, registra lo que se
 gasta en mantenimiento y controla el vencimiento de los documentos del vehículo (SOAT, revisión técnico-mecánica e impuesto).
 
@@ -87,7 +87,7 @@ gasta en mantenimiento y controla el vencimiento de los documentos del vehículo
 | RNF-03 | Seguridad | Adjuntos solo JPG, PNG o PDF de máximo 5 MB. |
 | RNF-04 | Usabilidad | Registrar un cambio toma máximo 3 pasos. Estados con colores (verde, amarillo, rojo) y barras de desgaste. |
 | RNF-05 | Accesibilidad | Modo claro y oscuro según el celular; contraste WCAG AA. |
-| RNF-06 | Compatibilidad | La app funciona en Android e iOS (Expo). |
+| RNF-06 | Compatibilidad | La app funciona en Android e iOS, y en el computador desde Chrome, Edge o Firefox. |
 | RNF-07 | Integridad | Registrar un servicio y renovar un documento se hacen en transacciones de la BD. |
 | RNF-08 | Localización | Español, pesos colombianos, zona horaria de Bogotá, fechas dd/mm/aaaa. |
 | RNF-09 | Privacidad | Ley 1581 de 2012: autorización de datos y opción de eliminar la cuenta. |
@@ -95,7 +95,7 @@ gasta en mantenimiento y controla el vencimiento de los documentos del vehículo
 | RNF-11 | Calidad | Pruebas unitarias de las reglas de desgaste, kilometraje, estado del vehículo y documentos. |
 
 ## Tecnologías
-- **App móvil:** Expo (React Native) con Expo Router
+- **App (celular y computador):** Expo (React Native + React Native Web) con Expo Router
 - **Backend:** Node.js + Express (API REST)
 - **Base de datos:** MariaDB (administrada con HeidiSQL)
 - **Control de versiones:** Git y GitHub
