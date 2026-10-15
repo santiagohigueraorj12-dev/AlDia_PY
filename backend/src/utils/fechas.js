@@ -1,5 +1,5 @@
 // Utilidades de fechas. Trabajamos las fechas como texto 'AAAA-MM-DD'
-// y siempre en la zona horaria de Bogotá (RNF-09), así evitamos errores
+// y siempre en la zona horaria de Bogotá (RNF-08), así evitamos errores
 // de un día de diferencia por la hora UTC.
 
 const ZONA = 'America/Bogota';
@@ -66,7 +66,7 @@ function finMes(texto) {
   return sumarDias(sumarMeses(inicioMes(texto), 1), -1);
 }
 
-/** 'AAAA-MM-DD' -> 'dd/mm/aaaa' (formato colombiano, RNF-09). */
+/** 'AAAA-MM-DD' -> 'dd/mm/aaaa' (formato colombiano, RNF-08). */
 function formatoColombia(texto) {
   if (!texto) return '';
   const [a, m, d] = texto.slice(0, 10).split('-');

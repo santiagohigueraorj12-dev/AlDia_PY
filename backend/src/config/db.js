@@ -9,7 +9,7 @@ const pool = mariadb.createPool({
   decimalAsNumber: true,             // los DECIMAL llegan como número de JavaScript
   bigIntAsNumber: true,              // los COUNT(*) e ids llegan como número
   insertIdAsNumber: true,
-  initSql: "SET time_zone = '-05:00'", // hora de Bogotá (RNF-09)
+  initSql: "SET time_zone = '-05:00'", // hora de Bogotá (RNF-08)
 });
 
 /** Ejecuta una consulta y devuelve las filas (o el resultado del INSERT/UPDATE). */
@@ -24,7 +24,7 @@ async function queryUno(sql, params = []) {
 }
 
 /**
- * Ejecuta varias operaciones dentro de una TRANSACCIÓN (RNF-08):
+ * Ejecuta varias operaciones dentro de una TRANSACCIÓN (RNF-07):
  * o se guardan todas, o no se guarda ninguna.
  *
  *   await transaccion(async (conn) => {

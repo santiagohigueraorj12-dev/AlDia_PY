@@ -67,7 +67,7 @@ function tabla(doc, columnas, filas) {
   doc.moveDown(0.5);
 }
 
-/** $1.234.567 (pesos colombianos, RNF-09). */
+/** $1.234.567 (pesos colombianos, RNF-08). */
 function pesos(valor) {
   if (valor === null || valor === undefined) return '—';
   return `$${Math.round(Number(valor)).toLocaleString('es-CO')}`;
