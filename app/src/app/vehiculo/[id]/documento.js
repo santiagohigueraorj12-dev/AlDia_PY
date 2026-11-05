@@ -78,12 +78,12 @@ export default function Documento() {
             <Texto variante="negrita">Vence el {fecha(doc.fecha_vencimiento)}</Texto>
             <Etiqueta estado={ESTADO_DOCUMENTO[doc.estado]} />
           </Fila>
-          {doc.archivo_url && <Boton titulo="Ver archivo adjunto" tipo="enlace" onPress={() => Linking.openURL(urlArchivo(doc.archivo_url))} />}
+          {doc.archivo_url && <Boton titulo="Ver archivo adjunto" icono="eye-outline" tipo="enlace" onPress={() => Linking.openURL(urlArchivo(doc.archivo_url))} />}
         </Tarjeta>
       )}
 
       <Tarjeta estilo={{ gap: 12 }}>
-        <Texto variante="subtitulo">{doc ? 'Renovar' : 'Registrar'}</Texto>
+        <Texto variante="subtitulo">{doc ? 'Renovar: escribe los datos del nuevo documento' : 'Registrar el documento'}</Texto>
         <NotaObligatorios />
         <Aviso>{general}</Aviso>
         <CampoFecha etiqueta={doc ? 'Nueva fecha de vencimiento' : 'Fecha de vencimiento'} obligatorio valor={vence}
@@ -95,10 +95,10 @@ export default function Documento() {
         <CampoFecha etiqueta="Fecha de pago" valor={fechaPago} maxima={hoyISO()}
           onCambio={(f) => { setFechaPago(f); limpiar('fecha_pago'); }} error={errores.fecha_pago} />
         <View style={{ gap: 4 }}>
-          <Boton titulo={archivo ? `📎 ${archivo.nombre}` : 'Adjuntar foto o PDF (opcional)'} onPress={elegirArchivo} />
+          <Boton titulo={archivo ? archivo.nombre : 'Adjuntar foto o PDF (opcional)'} icono={archivo ? 'attach' : 'cloud-upload-outline'} onPress={elegirArchivo} />
           <MensajeCampo ayuda="JPG, PNG o PDF de máximo 5 MB." error={errores.archivo} />
         </View>
-        <Boton titulo={enviando ? 'Guardando…' : 'Guardar'} tipo="primario" onPress={guardar} deshabilitado={enviando} />
+        <Boton titulo={enviando ? 'Guardando…' : 'Guardar'} icono="checkmark-circle" tipo="primario" onPress={guardar} deshabilitado={enviando} />
       </Tarjeta>
 
       {doc && (
@@ -116,7 +116,7 @@ export default function Documento() {
               </View>
             ))}
           </Tarjeta>
-          <Boton titulo="Eliminar documento" tipo="peligro" onPress={eliminar} />
+          <Boton titulo="Eliminar documento" icono="trash-outline" tipo="peligro" onPress={eliminar} />
         </>
       )}
     </Pantalla>

@@ -3,17 +3,30 @@ import { useState } from 'react';
 import { api } from '../../api/cliente';
 import { useErrores } from '../../api/useErrores';
 import { useSesion } from '../../context/SesionContext';
-import { Aviso, Boton, Campo, CampoPassword, Pantalla, Tarjeta, Texto } from '../../components/ui';
+import { Text, View } from 'react-native';
+import { Aviso, Boton, Campo, CampoPassword, Pantalla, Tarjeta, Texto, TituloSeccion } from '../../components/ui';
+import { useColores } from '../../tema';
 import { confirmar } from '../../utils/dialogos';
 
 export default function Cuenta() {
   const { usuario, setUsuario, cerrarSesion } = useSesion();
+  const c = useColores();
+  // Iniciales del nombre para el círculo: "Santiago Higuera" -> "SH"
+  const iniciales = usuario.nombre.split(' ').filter(Boolean).slice(0, 2).map((p) => p[0].toUpperCase()).join('');
   return (
     <Pantalla>
-      <Texto variante="suave">{usuario.correo}</Texto>
+      <Tarjeta estilo={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+        <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: c.primario, alignItems: 'center', justifyContent: 'center' }}>
+          <Text style={{ color: c.primarioTexto, fontSize: 20, fontWeight: '700' }}>{iniciales}</Text>
+        </View>
+        <View style={{ flex: 1 }}>
+          <Texto variante="subtitulo">{usuario.nombre}</Texto>
+          <Texto variante="suave">{usuario.correo}</Texto>
+        </View>
+        <Boton titulo="Cerrar sesión" icono="log-out-outline" pequeno onPress={cerrarSesion} />
+      </Tarjeta>
       <DatosPersonales usuario={usuario} onGuardado={setUsuario} />
       <CambiarPassword />
-      <Boton titulo="Cerrar sesión" onPress={cerrarSesion} />
       <EliminarCuenta onEliminada={cerrarSesion} />
     </Pantalla>
   );
@@ -36,14 +49,14 @@ function DatosPersonales({ usuario, onGuardado }) {
 
   return (
     <Tarjeta estilo={{ gap: 12 }}>
-      <Texto variante="subtitulo">Datos personales</Texto>
+      <TituloSeccion titulo="Datos personales" icono="person-outline" />
       <Aviso>{general}</Aviso>
       <Aviso tipo="ok">{mensaje}</Aviso>
       <Campo etiqueta="Nombre" obligatorio value={nombre} error={errores.nombre}
         onChangeText={(t) => { setNombre(t); limpiar('nombre'); }} />
       <Campo etiqueta="Teléfono" placeholder="Ej.: 3001234567" value={telefono} keyboardType="phone-pad"
         error={errores.telefono} onChangeText={(t) => { setTelefono(t); limpiar('telefono'); }} />
-      <Boton titulo="Guardar" tipo="primario" onPress={guardar} />
+      <Boton titulo="Guardar cambios" icono="save-outline" tipo="primario" onPress={guardar} />
     </Tarjeta>
   );
 }
@@ -66,14 +79,14 @@ function CambiarPassword() {
 
   return (
     <Tarjeta estilo={{ gap: 12 }}>
-      <Texto variante="subtitulo">Cambiar contraseña</Texto>
+      <TituloSeccion titulo="Cambiar contraseña" icono="lock-closed-outline" />
       <Aviso>{general}</Aviso>
       <Aviso tipo="ok">{mensaje}</Aviso>
       <CampoPassword etiqueta="Contraseña actual" obligatorio value={actual} error={errores.actual}
         onChangeText={(t) => { setActual(t); limpiar('actual'); }} />
       <CampoPassword etiqueta="Nueva contraseña" obligatorio ayuda="Mínimo 8 caracteres." value={nueva} error={errores.nueva}
         onChangeText={(t) => { setNueva(t); limpiar('nueva'); }} />
-      <Boton titulo="Cambiar contraseña" tipo="primario" onPress={guardar} />
+      <Boton titulo="Cambiar contraseña" icono="key-outline" tipo="primario" onPress={guardar} />
     </Tarjeta>
   );
 }
@@ -94,12 +107,12 @@ function EliminarCuenta({ onEliminada }) {
 
   return (
     <Tarjeta estilo={{ gap: 12 }}>
-      <Texto variante="subtitulo">Eliminar mi cuenta</Texto>
-      <Texto variante="suave">Ley 1581 de 2012: puedes eliminar tu cuenta y todos tus datos en cualquier momento.</Texto>
+      <TituloSeccion titulo="Eliminar mi cuenta" icono="trash-outline" />
+      <Texto variante="suave">Puedes eliminar tu cuenta y todos tus datos cuando quieras (Ley 1581 de 2012). Se borran también tus vehículos y su historial.</Texto>
       <Aviso>{general}</Aviso>
       <CampoPassword etiqueta="Confirma con tu contraseña" value={password} error={errores.password}
         onChangeText={(t) => { setPassword(t); limpiar('password'); }} />
-      <Boton titulo="Eliminar cuenta" tipo="peligro" onPress={eliminar} />
+      <Boton titulo="Eliminar cuenta" icono="trash-outline" tipo="peligro" onPress={eliminar} />
     </Tarjeta>
   );
 }

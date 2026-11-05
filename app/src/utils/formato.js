@@ -67,4 +67,21 @@ export const ESTADO_DOCUMENTO = {
   vencido: { texto: 'Vencido', clase: 'vencida' },
 };
 
+/** Frase corta, en palabras simples, que explica el estado de un vehículo. */
+export const EXPLICACION_VEHICULO = {
+  al_dia: 'Todo en orden. No tienes nada pendiente.',
+  requiere_atencion: 'Tiene partes o documentos que debes atender pronto.',
+  no_apto: 'Tiene un documento obligatorio vencido: no debería circular hasta renovarlo.',
+};
+
+/** Qué tiene que hacer el usuario con una parte, según su estado. */
+export function queHacerParte(desgaste, conocido = true) {
+  if (!conocido) return 'No sabemos cuándo se cambió: revísala en tu próximo servicio';
+  if (desgaste.estado === 'vencida') return 'Ya le tocaba el cambio: cámbiala lo antes posible';
+  const km = desgaste.kmRestantes !== null && desgaste.kmRestantes !== undefined ? `${Number(desgaste.kmRestantes).toLocaleString('es-CO')} km o ` : '';
+  const dias = `${desgaste.diasRestantes} día${desgaste.diasRestantes === 1 ? '' : 's'}`;
+  if (desgaste.estado === 'proxima') return `Cámbiala pronto: faltan ${km}${dias}`;
+  return `Está bien: faltan ${km}${dias}`;
+}
+
 export const NOMBRE_DOCUMENTO = { soat: 'SOAT', rtm: 'Revisión técnico-mecánica', impuesto: 'Impuesto vehicular' };

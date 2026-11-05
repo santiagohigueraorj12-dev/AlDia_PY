@@ -8,7 +8,7 @@ import { useLocalSearchParams } from 'expo-router';
 import { api } from '../../../api/cliente';
 import { useDatos } from '../../../api/useDatos';
 import { useErrores } from '../../../api/useErrores';
-import { Aviso, Boton, Campo, Cargando, Fila, Pantalla, Separador, Tarjeta, Texto } from '../../../components/ui';
+import { Aviso, Boton, Campo, Cargando, Cifra, Fila, Pantalla, Separador, Tarjeta, Texto, TituloSeccion } from '../../../components/ui';
 import { fecha, km as formatoKm } from '../../../utils/formato';
 
 export default function Kilometraje() {
@@ -39,27 +39,30 @@ export default function Kilometraje() {
   return (
     <Pantalla>
       <Tarjeta estilo={{ gap: 12 }}>
-        <Texto variante="suave">Último registrado: <Texto variante="negrita">{formatoKm(ultimo.km)}</Texto> ({fecha(ultimo.fecha)})</Texto>
+        <Fila>
+          <Cifra icono="speedometer-outline" valor={formatoKm(ultimo.km)} texto={`Último registrado (${fecha(ultimo.fecha)})`} />
+        </Fila>
+        <Aviso tipo="info">Escribe el número que marca el tablero (odómetro) de tu vehículo hoy.</Aviso>
         <Aviso>{general}</Aviso>
         {pregunta ? (
           <>
             <Aviso tipo="aviso">{pregunta}</Aviso>
             <Fila>
-              <Boton titulo="Sí, es correcto" tipo="primario" onPress={() => guardar(true)} />
-              <Boton titulo="No, corregir" onPress={() => { setPregunta(''); setEnviando(false); }} />
+              <Boton titulo="Sí, es correcto" icono="checkmark" tipo="primario" onPress={() => guardar(true)} />
+              <Boton titulo="No, corregir" icono="create-outline" onPress={() => { setPregunta(''); setEnviando(false); }} />
             </Fila>
           </>
         ) : (
           <>
             <Campo etiqueta="Kilometraje actual del odómetro" obligatorio placeholder="Ej.: 15.800" value={km}
               onChangeText={(t) => { setKm(t); limpiar('km'); }} keyboardType="number-pad" autoFocus error={errores.km} />
-            <Boton titulo={enviando ? 'Guardando…' : 'Guardar'} tipo="primario" onPress={() => guardar()} deshabilitado={enviando} />
+            <Boton titulo={enviando ? 'Guardando…' : 'Guardar kilometraje'} icono="checkmark-circle" tipo="primario" onPress={() => guardar()} deshabilitado={enviando} />
           </>
         )}
       </Tarjeta>
 
       <Tarjeta>
-        <Texto variante="subtitulo">Historial</Texto>
+        <TituloSeccion titulo="Historial" icono="time-outline" />
         {lecturas.map((l, i) => {
           const anterior = lecturas[i + 1];
           return (

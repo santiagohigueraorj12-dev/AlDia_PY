@@ -99,7 +99,7 @@ export default function UltimosCambios() {
       </Tarjeta>
 
       <Aviso>{general}</Aviso>
-      <Boton titulo={enviando ? 'Guardando…' : 'Guardar'} tipo="primario" onPress={guardar} deshabilitado={enviando || partes.length === 0} />
+      <Boton titulo={enviando ? 'Guardando…' : 'Guardar'} icono="checkmark-circle" tipo="primario" onPress={guardar} deshabilitado={enviando || partes.length === 0} />
       {nuevo && <Boton titulo="Ahora no (lo haré después)" tipo="enlace" onPress={terminar} />}
     </Pantalla>
   );

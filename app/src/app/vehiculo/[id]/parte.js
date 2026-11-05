@@ -82,7 +82,7 @@ export default function Parte() {
             : <Aviso tipo="aviso">No sabemos cuándo se cambió por última vez, así que se cuenta desde la matrícula. Revísala o indica su último cambio.</Aviso>}
           {/* RN-16: solo mientras la parte no tenga cambios registrados en la app */}
           {parte.cambios_registrados === 0 && (
-            <Boton titulo="Corregir último cambio" onPress={() => router.push(`/vehiculo/${id}/ultimos-cambios?parteId=${parteId}`)} />
+            <Boton titulo="Corregir último cambio" icono="calendar-outline" onPress={() => router.push(`/vehiculo/${id}/ultimos-cambios?parteId=${parteId}`)} />
           )}
         </Tarjeta>
       )}
@@ -107,7 +107,7 @@ export default function Parte() {
           </View>
         </Fila>
         {nueva && <Texto variante="pequeno">La parte nueva empieza en 0 % de desgaste (como si se hubiera cambiado hoy).</Texto>}
-        <Boton titulo="Guardar" tipo="primario" onPress={guardar} />
+        <Boton titulo="Guardar" icono="checkmark-circle" tipo="primario" onPress={guardar} />
       </Tarjeta>
 
       {!nueva && (
@@ -126,7 +126,7 @@ export default function Parte() {
               </View>
             ))}
           </Tarjeta>
-          <Boton titulo="Quitar parte del plan" tipo="peligro" onPress={quitar} />
+          <Boton titulo="Quitar parte del plan" icono="trash-outline" tipo="peligro" onPress={quitar} />
         </>
       )}
     </Pantalla>

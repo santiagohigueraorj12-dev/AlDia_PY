@@ -114,14 +114,14 @@ export default function FormularioVehiculo({ vehiculo, onGuardado }) {
         <View style={{ gap: 6 }}>
           <EtiquetaCampo texto="Foto (opcional)" />
           {fotoActual && <Image source={{ uri: fotoActual }} style={{ width: '100%', height: 160, borderRadius: 8 }} />}
-          <Boton titulo={fotoActual ? 'Cambiar foto' : 'Elegir foto'} onPress={elegirFoto} />
+          <Boton titulo={fotoActual ? 'Cambiar foto' : 'Elegir foto'} icono="camera-outline" onPress={elegirFoto} />
           <MensajeCampo ayuda="JPG o PNG de máximo 5 MB." error={errores.foto} />
         </View>
 
         {!editando && (
           <Texto variante="pequeno">Al registrarlo se cargará el plan de partes recomendado para su tipo y luego te preguntaremos cuándo cambiaste cada parte por última vez.</Texto>
         )}
-        <Boton titulo={enviando ? 'Guardando…' : 'Guardar'} tipo="primario" onPress={guardar} deshabilitado={enviando} />
+        <Boton titulo={enviando ? 'Guardando…' : 'Guardar'} icono="checkmark-circle" tipo="primario" onPress={guardar} deshabilitado={enviando} />
       </Tarjeta>
     </Pantalla>
   );

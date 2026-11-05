@@ -8,18 +8,19 @@ import { useLocalSearchParams } from 'expo-router';
 import { api } from '../../../api/cliente';
 import { useDatos } from '../../../api/useDatos';
 import { useErrores } from '../../../api/useErrores';
-import { Aviso, Boton, Campo, Cargando, Casilla, Etiqueta, Fila, MensajeCampo, NotaObligatorios, Pantalla, Separador, Tarjeta, Texto } from '../../../components/ui';
+import { Aviso, Boton, Campo, Cargando, Casilla, Etiqueta, Fila, MensajeCampo, NotaObligatorios, Pantalla, Paso, Separador, Tarjeta, Texto } from '../../../components/ui';
 import CampoFecha from '../../../components/CampoFecha';
 import { ESTADO_PARTE, aNumero, hoyISO, pesos, porcentaje } from '../../../utils/formato';
 
 export default function RegistrarServicio() {
-  const { id } = useLocalSearchParams();
+  // parteId (opcional): viene del botón "Ya lo cambié" del Inicio y deja esa parte marcada
+  const { id, parteId } = useLocalSearchParams();
   const { datos: vehiculo } = useDatos(`/vehiculos/${id}`);
   const [fecha, setFecha] = useState(hoyISO());
   const [km, setKm] = useState('');
   const [lugar, setLugar] = useState('');
   // Partes elegidas: { [parteId]: { costo, marca_referencia } }
-  const [elegidas, setElegidas] = useState({});
+  const [elegidas, setElegidas] = useState(parteId ? { [parteId]: { costo: '', marca_referencia: '' } } : {});
   const [sugerencias, setSugerencias] = useState([]);
   const { errores, general, mostrar, limpiar, reiniciar } = useErrores();
   const [enviando, setEnviando] = useState(false);
@@ -83,7 +84,7 @@ export default function RegistrarServicio() {
     <Pantalla>
       <Aviso>{general}</Aviso>
       <Tarjeta estilo={{ gap: 12 }}>
-        <Texto variante="subtitulo">{vehiculo.placa} · Datos del servicio</Texto>
+        <Paso numero={1} titulo="¿Cuándo y dónde?" ayuda={`Servicio de ${vehiculo.placa}`} />
         <NotaObligatorios />
         <CampoFecha etiqueta="Fecha del servicio" obligatorio valor={fecha} maxima={hoyISO()}
           onCambio={(f) => { setFecha(f); limpiar('fecha'); }} error={errores.fecha} />
@@ -94,8 +95,8 @@ export default function RegistrarServicio() {
       </Tarjeta>
 
       <Tarjeta>
-        <Texto variante="subtitulo">¿Qué partes cambiaste?</Texto>
-        <MensajeCampo ayuda="Marca las partes y escribe cuánto costó cada una." error={errores.cambios} />
+        <Paso numero={2} titulo="¿Qué partes cambiaste?" ayuda="Marca las partes y escribe cuánto costó cada una." />
+        <MensajeCampo error={errores.cambios} />
         {vehiculo.partes.map((p) => (
           <View key={p.id} style={{ gap: 6 }}>
             <Separador />
@@ -126,15 +127,22 @@ export default function RegistrarServicio() {
 
       {sugerencias.map((s) => (
         <View key={s.parteId} style={{ gap: 6 }}>
-          <Aviso tipo="aviso">💡 {s.mensaje}</Aviso>
-          <Boton titulo={`Agregar ${s.nombre.toLowerCase()}`} onPress={() => alternar(s.parteId)} />
+          <Aviso tipo="info" accion={<Boton titulo={`Agregar ${s.nombre.toLowerCase()}`} icono="add" pequeno onPress={() => alternar(s.parteId)} />}>
+            {s.mensaje}
+          </Aviso>
         </View>
       ))}
 
-      <Texto variante="subtitulo">Total del servicio: {pesos(total)}</Texto>
-      <Boton
-        titulo={enviando ? 'Guardando…' : `Guardar ${ids.length || ''} cambio${ids.length === 1 ? '' : 's'}`}
-        tipo="primario" onPress={guardar} deshabilitado={enviando} />
+      <Tarjeta estilo={{ gap: 12 }}>
+        <Paso numero={3} titulo="Revisa y guarda" />
+        <Fila estilo={{ justifyContent: 'space-between' }}>
+          <Texto variante="suave">{ids.length} parte{ids.length === 1 ? '' : 's'} marcada{ids.length === 1 ? '' : 's'}</Texto>
+          <Texto variante="subtitulo">Total: {pesos(total)}</Texto>
+        </Fila>
+        <Boton
+          titulo={enviando ? 'Guardando…' : ids.length ? `Guardar ${ids.length} cambio${ids.length === 1 ? '' : 's'}` : 'Guardar cambios'}
+          icono="checkmark-circle" tipo="primario" onPress={guardar} deshabilitado={enviando} />
+      </Tarjeta>
     </Pantalla>
   );
 }

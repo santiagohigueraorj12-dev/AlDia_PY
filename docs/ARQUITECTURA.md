@@ -128,7 +128,12 @@ Piezas clave:
   del computador donde corre Expo, y guarda el token cifrado con `expo-secure-store`.
 - `src/api/useDatos.js` — carga datos y los **recarga cada vez que la pantalla vuelve a verse**. Por eso, al
   cerrar "Registrar cambio", el detalle del vehículo ya aparece actualizado sin código extra.
-- `src/components/ui.js` — botones, campos (con `*` de obligatorio y error en rojo), contraseña con botón para verla, tarjetas, etiquetas de estado y barra de desgaste.
+- `src/components/ui.js` — botones (con ícono), campos (con `*` de obligatorio y error en rojo), contraseña con botón para verla,
+  tarjetas, etiquetas de estado, barra de desgaste y las piezas que hacen la interfaz intuitiva: `Icono` (ícono en círculo
+  de color), `IconoVehiculo`, `ElementoLista` (fila tocable con flecha), `Segmentos` (pestañas dentro de una pantalla),
+  `Vacio` (lista vacía que explica qué hacer), `Paso` (pasos numerados de un formulario) y `Aviso` con botón de acción.
+- `src/utils/tareas.js` — arma la lista "Lo que debes hacer" del Inicio: documentos vencidos, partes vencidas,
+  kilometraje sin actualizar y lo que está próximo, cada uno con el botón que lleva a resolverlo.
 - `src/components/EncabezadoPublico.js` — barra superior de las pantallas públicas: logo a la izquierda, "Iniciar sesión" y "Crear cuenta" a la derecha.
 - `src/components/AsistenteFlotante.js` — botón redondo abajo a la derecha (solo con sesión, en las pestañas y en el
   detalle del vehículo) que abre el chat del asistente. Las respuestas las arma el backend en `domain/asistente.js`
