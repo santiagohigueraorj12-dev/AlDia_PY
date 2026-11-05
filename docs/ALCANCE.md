@@ -46,6 +46,7 @@ gasta en mantenimiento y controla el vencimiento de los documentos del vehículo
 | RN-14 | La fecha de la primera RTM se calcula con la fecha de matrícula y la regla del tipo de vehículo (motos 2 años, carros 5), que configura el Administrador. | `domain/vehiculo.js` |
 | RN-15 | Al renovar un documento se conserva el historial. La nueva fecha de vencimiento debe ser posterior a la anterior. | `domain/documentos.js` |
 | RN-16 | Al registrar un vehículo, cada parte se cuenta desde la matrícula (0 km y fecha de matrícula), como si nunca se hubiera cambiado. El usuario puede indicar el km y la fecha de su último cambio real: el km no puede pasar del actual y la fecha no puede ser futura ni anterior a la matrícula. Solo se puede indicar mientras la parte no tenga cambios registrados en la app. | `domain/desgaste.js` → `validarUltimoCambio()` |
+| RN-17 | El asistente no es una inteligencia artificial: sus preguntas son fijas y cada respuesta se arma solo con los datos registrados del vehículo elegido (desgaste, documentos, costos y kilometraje), uno a la vez. Si falta un dato, lo dice en vez de inventarlo. No usa internet ni servicios externos. | `domain/asistente.js` |
 
 ## Requisitos funcionales
 **Usuarios**
@@ -79,6 +80,9 @@ gasta en mantenimiento y controla el vencimiento de los documentos del vehículo
 
 **Proceso automático**
 - RF-20: Cada día (y al iniciar el servidor) recalcular el desgaste, estimar el kilometraje y generar las alertas.
+
+**Asistente**
+- RF-21: Consultar el asistente de preguntas: un botón flotante abre una ventana donde el usuario elige un vehículo y una de 7 preguntas frecuentes (qué le toca cambiar, si puede circular, cuándo vencen sus documentos, qué viene este mes, cuánto ha gastado, cuánto costará el próximo mantenimiento y cuántos km lleva). Solo con sesión iniciada.
 
 ## Requisitos no funcionales
 | Código | Tipo | Requisito |

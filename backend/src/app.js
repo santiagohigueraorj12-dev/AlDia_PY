@@ -15,6 +15,7 @@ const { router: documentos } = require('./modules/documentos/documentos.routes')
 const panelRoutes = require('./modules/panel/panel.routes');
 const notificacionesRoutes = require('./modules/notificaciones/notificaciones.routes');
 const adminRoutes = require('./modules/admin/admin.routes');
+const asistenteRoutes = require('./modules/asistente/asistente.routes');
 
 const app = express();
 
@@ -37,6 +38,7 @@ app.use('/api/partes', partes);
 app.use('/api/documentos', documentos);
 app.use('/api/panel', panelRoutes);
 app.use('/api/notificaciones', notificacionesRoutes);
+app.use('/api/asistente', asistenteRoutes);
 app.use('/api/admin', requiereAdmin, adminRoutes);
 
 // --- Manejo de errores (siempre al final) ---

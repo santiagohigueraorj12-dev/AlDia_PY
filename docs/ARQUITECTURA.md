@@ -100,6 +100,7 @@ con `AppError.campo('km', 'mensaje')`.
 | GET/DELETE | `/api/documentos/:id` · POST `/api/documentos/:id/renovar` | Historial / eliminar / renovar |
 | GET | `/api/panel` · `/api/panel/calendario?mes=AAAA-MM` | Panel y calendario |
 | GET/POST | `/api/notificaciones` · `/contador` · `/:id/leer` · `/leer-todas` | Notificaciones |
+| GET | `/api/asistente/preguntas` · `/api/asistente/vehiculos/:id/:pregunta` | Asistente: lista de preguntas y respuesta sobre un vehículo (RF-21) |
 | GET/POST/PUT/DELETE | `/api/admin/...` | Plan base, reglas RTM, usuarios |
 
 ## App (app/) — celular y computador
@@ -129,5 +130,8 @@ Piezas clave:
   cerrar "Registrar cambio", el detalle del vehículo ya aparece actualizado sin código extra.
 - `src/components/ui.js` — botones, campos (con `*` de obligatorio y error en rojo), contraseña con botón para verla, tarjetas, etiquetas de estado y barra de desgaste.
 - `src/components/EncabezadoPublico.js` — barra superior de las pantallas públicas: logo a la izquierda, "Iniciar sesión" y "Crear cuenta" a la derecha.
+- `src/components/AsistenteFlotante.js` — botón redondo abajo a la derecha (solo con sesión, en las pestañas y en el
+  detalle del vehículo) que abre el chat del asistente. Las respuestas las arma el backend en `domain/asistente.js`
+  con los datos del vehículo (RN-17): la app solo muestra las preguntas como botones y pinta la respuesta.
 - `src/api/useErrores.js` — reparte los errores que devuelve el backend para mostrar cada uno debajo de su campo.
 - `src/tema.js` — colores del modo claro y oscuro (se elige según el celular).
