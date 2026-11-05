@@ -1,46 +1,55 @@
 // Rutas de vehículos y partes:  /api/vehiculos/...  y  /api/partes/...
 const { Router } = require('express');
-const { z } = require('zod');
 const validar = require('../../middlewares/validar');
 const { subirArchivo } = require('../../middlewares/subirArchivo');
+const {
+  z, texto, textoOpcional, entero, fecha, aEntero,
+} = require('../../utils/validaciones');
 const c = require('./vehiculos.controller');
 const { registrarEnVehiculo } = require('../documentos/documentos.routes');
 
-const fecha = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Fecha no válida');
 const anioActual = new Date().getFullYear();
 
-// Los datos del vehículo llegan como formulario (multipart) por la foto,
-// por eso se usa z.coerce para convertir los textos en números.
+// Placa: se quitan espacios y guiones ("abc-123" -> "ABC123")
+const placa = z.preprocess(
+  (v) => (typeof v === 'string' ? v.replace(/[\s-]/g, '').toUpperCase() : v),
+  z.string({ required_error: 'Escribe la placa' })
+    .min(1, 'Escribe la placa')
+    .regex(/^[A-Z0-9]{5,7}$/, 'La placa no es válida (ej.: ABC123 para carro o ABC12D para moto)'),
+);
+
 const datosVehiculo = {
-  marca: z.string().trim().min(1, 'Escribe la marca').max(50),
-  modelo: z.string().trim().min(1, 'Escribe el modelo').max(50),
-  anio: z.coerce.number().int().min(1950).max(anioActual + 1, 'Año no válido'),
-  placa: z.string().trim().toUpperCase().regex(/^[A-Z0-9]{5,7}$/, 'Placa no válida (ej.: ABC123 o ABC12D)'),
-  fecha_matricula: fecha,
+  marca: texto('la marca', { max: 50 }),
+  modelo: texto('el modelo', { max: 50 }),
+  anio: entero('el año', { min: 1950, max: anioActual + 1 }),
+  placa,
+  fecha_matricula: fecha('la fecha de matrícula', { noFutura: true }),
 };
 
 // RN-05: los intervalos no pueden quedar en cero
 const intervalos = {
-  nombre: z.string().trim().min(2, 'Escribe el nombre de la parte').max(100),
-  intervalo_km: z.coerce.number().int().positive('El intervalo en km debe ser mayor a cero').nullable(),
-  intervalo_meses: z.coerce.number().int().positive('El intervalo en meses debe ser mayor a cero'),
+  nombre: texto('el nombre de la parte', { min: 2, max: 100 }),
+  intervalo_km: entero('el intervalo en km', { min: 1, vacioEsNulo: true }),  // null = solo por tiempo
+  intervalo_meses: entero('el intervalo en meses', { min: 1, max: 240 }),
 };
 
 const esquemas = {
   crear: z.object({
     ...datosVehiculo,
-    tipo_vehiculo_id: z.coerce.number().int().positive('Elige el tipo de vehículo'),
-    km_inicial: z.coerce.number().int().min(0, 'El kilometraje no puede ser negativo'),
+    tipo_vehiculo_id: z.preprocess(aEntero, z.number({
+      required_error: 'Elige si es moto o carro', invalid_type_error: 'Elige si es moto o carro',
+    }).int().positive('Elige si es moto o carro')),
+    km_inicial: entero('el kilometraje actual'),
   }),
   actualizar: z.object(datosVehiculo),
   km: z.object({
-    km: z.coerce.number().int().min(0),
+    km: entero('el kilometraje'),
     confirmado: z.boolean().default(false),
   }),
   parteNueva: z.object({
     ...intervalos,
-    ultimo_cambio_km: z.coerce.number().int().min(0).optional(),
-    ultimo_cambio_fecha: fecha.optional(),
+    ultimo_cambio_km: entero('el kilometraje del último cambio', { opcional: true }),
+    ultimo_cambio_fecha: fecha('la fecha del último cambio', { opcional: true, noFutura: true }),
   }),
   parte: z.object(intervalos),
   sugerencias: z.object({ parteIds: z.array(z.number().int()) }),
@@ -49,22 +58,24 @@ const esquemas = {
     partes: z.array(z.object({
       parte_id: z.number().int(),
       desconocido: z.boolean().optional(),
-      km: z.number().int().min(0, 'El kilometraje no puede ser negativo').optional(),
-      fecha: fecha.optional(),
-    }).refine(
-      (p) => p.desconocido || (p.km !== undefined && p.fecha !== undefined),
-      { message: 'Indica el km y la fecha del último cambio, o marca "No lo sé"' },
-    )).min(1),
+      km: entero('el kilometraje', { opcional: true }),
+      fecha: fecha('la fecha', { opcional: true }),
+    }).superRefine((p, ctx) => {
+      if (p.desconocido) return;
+      // El error se marca en el campo que falta, para mostrarlo debajo de él
+      if (p.km === undefined) ctx.addIssue({ code: 'custom', path: ['km'], message: 'Escribe el kilometraje' });
+      if (p.fecha === undefined) ctx.addIssue({ code: 'custom', path: ['fecha'], message: 'Elige la fecha' });
+    })).min(1),
   }),
   servicio: z.object({
-    fecha,
-    km: z.coerce.number().int().min(0),
-    lugar: z.string().trim().max(120).optional().nullable(),
+    fecha: fecha('la fecha del servicio', { noFutura: true }),
+    km: entero('el kilometraje'),
+    lugar: textoOpcional('el lugar', { max: 120 }),
     cambios: z.array(z.object({
       parte_id: z.number().int(),
-      costo: z.coerce.number().min(0, 'El costo no puede ser negativo'),
-      marca_referencia: z.string().trim().max(120).optional().nullable(),
-    })).min(1, 'Elige al menos una parte'),
+      costo: entero('el costo', { opcional: true }).transform((v) => v ?? 0),  // vacío = $0
+      marca_referencia: textoOpcional('la marca', { max: 120 }),
+    }), { required_error: 'Elige al menos una parte' }).min(1, 'Elige al menos una parte'),
   }),
 };
 

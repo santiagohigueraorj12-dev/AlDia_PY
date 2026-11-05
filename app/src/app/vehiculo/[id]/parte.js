@@ -6,7 +6,8 @@ import { View } from 'react-native';
 import { volver } from '../../../utils/navegacion';
 import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { api } from '../../../api/cliente';
-import { Aviso, BarraDesgaste, Boton, Campo, Cargando, Casilla, Fila, Pantalla, Separador, Tarjeta, Texto } from '../../../components/ui';
+import { useErrores } from '../../../api/useErrores';
+import { Aviso, BarraDesgaste, Boton, Campo, Cargando, Casilla, Fila, NotaObligatorios, Pantalla, Separador, Tarjeta, Texto } from '../../../components/ui';
 import { confirmar } from '../../../utils/dialogos';
 import { fecha, km, pesos, porcentaje } from '../../../utils/formato';
 
@@ -20,7 +21,8 @@ export default function Parte() {
   const [soloTiempo, setSoloTiempo] = useState(false);
   const [intervaloKm, setIntervaloKm] = useState('');
   const [meses, setMeses] = useState('');
-  const [error, setError] = useState('');
+  const [error, setError] = useState('');  // error al cargar la parte
+  const { errores, general, mostrar, limpiar, reiniciar, marcar } = useErrores();
 
   // Si se está editando, se cargan la parte (con su desgaste) y su historial.
   // useFocusEffect: se recarga al volver de "Corregir último cambio".
@@ -41,14 +43,19 @@ export default function Parte() {
   }, [id, parteId, nueva]));
 
   async function guardar() {
-    setError('');
-    const datos = { nombre, intervalo_km: soloTiempo ? null : Number(intervaloKm), intervalo_meses: Number(meses) };
+    reiniciar();
+    // Si no es "solo por tiempo", el intervalo en km es obligatorio
+    if (!soloTiempo && !intervaloKm.trim()) {
+      marcar('intervalo_km', 'Escribe cada cuántos km se cambia, o marca "solo por tiempo"');
+      return;
+    }
+    const datos = { nombre, intervalo_km: soloTiempo ? null : intervaloKm, intervalo_meses: meses };
     try {
       if (nueva) await api(`/vehiculos/${id}/partes`, { metodo: 'POST', datos });
       else await api(`/partes/${parteId}`, { metodo: 'PUT', datos });
       volver(`/vehiculo/${id}`);
     } catch (e) {
-      setError(e.message);
+      mostrar(e);
     }
   }
 
@@ -82,17 +89,25 @@ export default function Parte() {
 
       <Tarjeta estilo={{ gap: 12 }}>
         <Texto variante="subtitulo">{nueva ? 'Datos de la parte' : 'Ajustar intervalos'}</Texto>
-        <Aviso>{error}</Aviso>
-        <Campo etiqueta="Nombre" value={nombre} onChangeText={setNombre} />
-        <Casilla marcada={soloTiempo} onCambio={setSoloTiempo}>Se controla solo por tiempo (no por kilómetros)</Casilla>
-        <Fila estilo={{ flexWrap: 'nowrap' }}>
+        <NotaObligatorios />
+        <Aviso>{general}</Aviso>
+        <Campo etiqueta="Nombre" obligatorio placeholder="Ej.: Guaya del clutch" value={nombre}
+          onChangeText={(t) => { setNombre(t); limpiar('nombre'); }} error={errores.nombre} />
+        <Casilla marcada={soloTiempo} onCambio={(v) => { setSoloTiempo(v); limpiar('intervalo_km'); }}>Se controla solo por tiempo (no por kilómetros)</Casilla>
+        <Fila estilo={{ flexWrap: 'nowrap', alignItems: 'flex-start' }}>
           {!soloTiempo && (
-            <View style={{ flex: 1 }}><Campo etiqueta="Cada (km)" value={intervaloKm} onChangeText={setIntervaloKm} keyboardType="number-pad" /></View>
+            <View style={{ flex: 1 }}>
+              <Campo etiqueta="Cada (km)" obligatorio placeholder="Ej.: 5.000" value={intervaloKm} keyboardType="number-pad"
+                onChangeText={(t) => { setIntervaloKm(t); limpiar('intervalo_km'); }} error={errores.intervalo_km} />
+            </View>
           )}
-          <View style={{ flex: 1 }}><Campo etiqueta="Cada (meses)" value={meses} onChangeText={setMeses} keyboardType="number-pad" /></View>
+          <View style={{ flex: 1 }}>
+            <Campo etiqueta="Cada (meses)" obligatorio placeholder="Ej.: 6" value={meses} keyboardType="number-pad"
+              onChangeText={(t) => { setMeses(t); limpiar('intervalo_meses'); }} error={errores.intervalo_meses} />
+          </View>
         </Fila>
         {nueva && <Texto variante="pequeno">La parte nueva empieza en 0 % de desgaste (como si se hubiera cambiado hoy).</Texto>}
-        <Boton titulo="Guardar" tipo="primario" onPress={guardar} deshabilitado={!nombre || !meses || (!soloTiempo && !intervaloKm)} />
+        <Boton titulo="Guardar" tipo="primario" onPress={guardar} />
       </Tarjeta>
 
       {!nueva && (

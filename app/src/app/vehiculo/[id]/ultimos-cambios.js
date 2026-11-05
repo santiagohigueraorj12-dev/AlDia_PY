@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { api } from '../../../api/cliente';
+import { useErrores } from '../../../api/useErrores';
 import { Aviso, Boton, Cargando, Pantalla, Separador, Tarjeta, Texto } from '../../../components/ui';
 import CamposUltimoCambio from '../../../components/CamposUltimoCambio';
 import { volver } from '../../../utils/navegacion';
@@ -16,7 +17,8 @@ export default function UltimosCambios() {
   const { id, nuevo, parteId } = useLocalSearchParams();
   const [vehiculo, setVehiculo] = useState(null);
   const [respuestas, setRespuestas] = useState({});  // { [parteId]: { sabe, km, fecha } }
-  const [error, setError] = useState('');
+  const [error, setError] = useState('');  // error al cargar
+  const { errores, general, mostrar, limpiar, reiniciar } = useErrores();
   const [enviando, setEnviando] = useState(false);
 
   useEffect(() => {
@@ -44,7 +46,7 @@ export default function UltimosCambios() {
     .filter((p) => !parteId || p.id === Number(parteId));
 
   async function guardar() {
-    setError('');
+    reiniciar();
     setEnviando(true);
     try {
       await api(`/vehiculos/${id}/ultimos-cambios`, {
@@ -53,19 +55,18 @@ export default function UltimosCambios() {
           partes: partes.map((p) => {
             const r = respuestas[p.id];
             return r.sabe
-              ? { parte_id: p.id, km: Number(r.km), fecha: r.fecha }
+              ? { parte_id: p.id, km: r.km, fecha: r.fecha || undefined }
               : { parte_id: p.id, desconocido: true };
           }),
         },
       });
       terminar();
     } catch (e) {
-      setError(e.message);
+      mostrar(e);
       setEnviando(false);
     }
   }
 
-  const incompleta = partes.some((p) => respuestas[p.id]?.sabe && (!respuestas[p.id].km || !respuestas[p.id].fecha));
 
   return (
     <Pantalla>
@@ -88,16 +89,17 @@ export default function UltimosCambios() {
             <Texto variante="negrita">{p.nombre}</Texto>
             <CamposUltimoCambio
               valor={respuestas[p.id]}
-              onCambio={(r) => setRespuestas({ ...respuestas, [p.id]: r })}
+              onCambio={(r) => { setRespuestas({ ...respuestas, [p.id]: r }); limpiar(`partes.${i}.km`); limpiar(`partes.${i}.fecha`); }}
               kmActual={vehiculo.km_actual}
               fechaMatricula={vehiculo.fecha_matricula}
+              errores={{ km: errores[`partes.${i}.km`], fecha: errores[`partes.${i}.fecha`] }}
             />
           </View>
         ))}
       </Tarjeta>
 
-      {incompleta && <Aviso tipo="aviso">Completa el km y la fecha de las partes marcadas con “Sí, lo sé”.</Aviso>}
-      <Boton titulo={enviando ? 'Guardando…' : 'Guardar'} tipo="primario" onPress={guardar} deshabilitado={enviando || incompleta || partes.length === 0} />
+      <Aviso>{general}</Aviso>
+      <Boton titulo={enviando ? 'Guardando…' : 'Guardar'} tipo="primario" onPress={guardar} deshabilitado={enviando || partes.length === 0} />
       {nuevo && <Boton titulo="Ahora no (lo haré después)" tipo="enlace" onPress={terminar} />}
     </Pantalla>
   );

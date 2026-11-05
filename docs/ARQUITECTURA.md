@@ -62,6 +62,20 @@ Cada notificación tiene una **clave** única por usuario (ej.: `parte:5:2026-04
 Se inserta con `INSERT IGNORE`, así que si ya existe no pasa nada. Cuando se registra un cambio, la clave
 cambia (porque cambian la fecha y el km del último cambio) y la parte vuelve a poder alertar.
 
+## Validación de formularios
+Todas las reglas de los formularios usan las piezas de `backend/src/utils/validaciones.js` (`texto`, `entero`, `fecha`,
+`correo`…), así que todos validan igual y con mensajes en español. Aceptan números escritos a la colombiana
+("15.400", "$38.000").
+
+Cuando algo falla, el backend responde **todos** los errores a la vez, uno por campo:
+```json
+{ "error": "Revisa los campos marcados.",
+  "errores": { "marca": "Escribe la marca", "km_inicial": "Escribe el kilometraje actual" } }
+```
+La app (`useErrores`) muestra cada mensaje en rojo debajo de su campo. Las reglas de negocio que dependen de la
+base de datos (por ejemplo, "el kilometraje no puede ser menor al último registrado") también indican su campo,
+con `AppError.campo('km', 'mensaje')`.
+
 ## Seguridad
 - Contraseñas con **bcrypt**; sesión con **JWT** que expira (RNF-01) — `modules/auth/auth.service.js`.
 - Cada consulta filtra por el dueño: `buscarDelUsuario(id, usuarioId)`. Si el vehículo no es tuyo, la
@@ -99,7 +113,8 @@ Usa **Expo Router**: cada archivo dentro de `src/app/` es una pantalla y su ruta
 | Archivo | Pantalla |
 |---|---|
 | `src/app/_layout.js` | Raíz: sesión y qué pantallas se ven con o sin sesión (`Stack.Protected`) |
-| `src/app/login.js`, `registro.js`, `recuperar.js` | Cuenta |
+| `src/app/bienvenida.js` | Página de inicio pública: qué es AlDía, cómo funciona y funciones. Es lo primero que ve quien no ha iniciado sesión |
+| `src/app/login.js`, `registro.js`, `recuperar.js` | Cuenta (usan `components/PantallaAutenticacion.js`) |
 | `src/app/(tabs)/_layout.js` | Pestañas de abajo: Inicio, Vehículos, Calendario, Alertas, Cuenta (y Admin) |
 | `src/app/(tabs)/index.js` | Inicio (panel) |
 | `src/app/vehiculo/[id]/index.js` | Detalle del vehículo (`[id]` = número del vehículo) |
@@ -112,5 +127,7 @@ Piezas clave:
   del computador donde corre Expo, y guarda el token cifrado con `expo-secure-store`.
 - `src/api/useDatos.js` — carga datos y los **recarga cada vez que la pantalla vuelve a verse**. Por eso, al
   cerrar "Registrar cambio", el detalle del vehículo ya aparece actualizado sin código extra.
-- `src/components/ui.js` — botones, campos, tarjetas, etiquetas de estado y barra de desgaste.
+- `src/components/ui.js` — botones, campos (con `*` de obligatorio y error en rojo), contraseña con botón para verla, tarjetas, etiquetas de estado y barra de desgaste.
+- `src/components/EncabezadoPublico.js` — barra superior de las pantallas públicas: logo a la izquierda, "Iniciar sesión" y "Crear cuenta" a la derecha.
+- `src/api/useErrores.js` — reparte los errores que devuelve el backend para mostrar cada uno debajo de su campo.
 - `src/tema.js` — colores del modo claro y oscuro (se elige según el celular).

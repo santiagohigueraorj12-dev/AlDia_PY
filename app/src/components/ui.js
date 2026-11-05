@@ -1,5 +1,6 @@
 // Componentes pequeños que se reutilizan en todas las pantallas.
 // Así cada pantalla se lee fácil: <Pantalla>, <Tarjeta>, <Boton>, <Campo>...
+import { useState } from 'react';
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useColores } from '../tema';
@@ -74,18 +75,85 @@ export function Boton({ titulo, onPress, tipo = 'normal', deshabilitado = false,
   );
 }
 
-/** Campo de texto con su etiqueta. Recibe las mismas props que TextInput. */
-export function Campo({ etiqueta, ayuda, ...props }) {
+/** Etiqueta de un campo. Si es obligatorio muestra un asterisco rojo. */
+export function EtiquetaCampo({ texto, obligatorio = false }) {
+  const c = useColores();
+  if (!texto) return null;
+  return (
+    <Text style={{ color: c.texto, fontWeight: '600', fontSize: 14 }}>
+      {texto}{obligatorio && <Text style={{ color: c.vencida }}> *</Text>}
+    </Text>
+  );
+}
+
+/** Nota al inicio de un formulario: "Los campos con * son obligatorios." */
+export function NotaObligatorios() {
+  const c = useColores();
+  return (
+    <Text style={{ color: c.textoSuave, fontSize: 12.5 }}>
+      Los campos con <Text style={{ color: c.vencida, fontWeight: '700' }}>*</Text> son obligatorios.
+    </Text>
+  );
+}
+
+/** Texto de ayuda gris, o el error en rojo si lo hay (el error tiene prioridad). */
+export function MensajeCampo({ ayuda, error }) {
+  const c = useColores();
+  if (error) return <Text style={{ color: c.vencida, fontSize: 13 }} accessibilityRole="alert">⚠ {error}</Text>;
+  if (ayuda) return <Text style={{ color: c.textoSuave, fontSize: 12.5 }}>{ayuda}</Text>;
+  return null;
+}
+
+/** Estilo de la caja de un campo; el borde se pone rojo si hay error. */
+export function estiloCaja(c, error) {
+  return {
+    borderWidth: error ? 1.5 : 1, borderColor: error ? c.vencida : c.borde, borderRadius: 10,
+    padding: 11, fontSize: 15, color: c.texto, backgroundColor: c.superficie,
+  };
+}
+
+/**
+ * Campo de texto con su etiqueta. Recibe las mismas props que TextInput, más:
+ *   obligatorio -> muestra * en la etiqueta
+ *   error       -> borde rojo y mensaje debajo
+ *   ayuda       -> texto gris debajo (cuando no hay error)
+ */
+export function Campo({ etiqueta, ayuda, error, obligatorio = false, ...props }) {
   const c = useColores();
   return (
     <View style={{ gap: 4 }}>
-      {etiqueta && <Text style={{ color: c.texto, fontWeight: '600', fontSize: 14 }}>{etiqueta}</Text>}
-      <TextInput
-        placeholderTextColor={c.textoSuave}
-        style={{ borderWidth: 1, borderColor: c.borde, borderRadius: 10, padding: 11, fontSize: 15, color: c.texto, backgroundColor: c.superficie }}
-        {...props}
-      />
-      {ayuda && <Text style={{ color: c.textoSuave, fontSize: 12.5 }}>{ayuda}</Text>}
+      <EtiquetaCampo texto={etiqueta} obligatorio={obligatorio} />
+      <TextInput placeholderTextColor={c.textoSuave} style={estiloCaja(c, error)} {...props} />
+      <MensajeCampo ayuda={ayuda} error={error} />
+    </View>
+  );
+}
+
+/** Campo de contraseña con botón para ver u ocultar lo escrito. */
+export function CampoPassword({ etiqueta, ayuda, error, obligatorio = false, ...props }) {
+  const c = useColores();
+  const [visible, setVisible] = useState(false);
+  return (
+    <View style={{ gap: 4 }}>
+      <EtiquetaCampo texto={etiqueta} obligatorio={obligatorio} />
+      <View style={{ justifyContent: 'center' }}>
+        <TextInput
+          placeholderTextColor={c.textoSuave}
+          style={[estiloCaja(c, error), { paddingRight: 46 }]}
+          secureTextEntry={!visible}
+          autoCapitalize="none"
+          {...props}
+        />
+        <Pressable
+          onPress={() => setVisible(!visible)}
+          style={{ position: 'absolute', right: 10, padding: 4 }}
+          accessibilityRole="button"
+          accessibilityLabel={visible ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+        >
+          <Ionicons name={visible ? 'eye-off-outline' : 'eye-outline'} size={22} color={c.textoSuave} />
+        </Pressable>
+      </View>
+      <MensajeCampo ayuda={ayuda} error={error} />
     </View>
   );
 }
@@ -141,14 +209,17 @@ export function Cargando() {
 }
 
 /** Casilla de verificación (React Native no trae una). El texto puede ser cualquier contenido. */
-export function Casilla({ marcada, onCambio, children }) {
+export function Casilla({ marcada, onCambio, error, children }) {
   const c = useColores();
   return (
-    <Pressable onPress={() => onCambio(!marcada)} accessibilityRole="checkbox" accessibilityState={{ checked: marcada }}
-      style={{ flexDirection: 'row', gap: 10, alignItems: 'center', paddingVertical: 6 }}>
-      <Ionicons name={marcada ? 'checkbox' : 'square-outline'} size={24} color={marcada ? c.primario : c.textoSuave} />
-      <View style={{ flex: 1 }}>{typeof children === 'string' ? <Text style={{ color: c.texto, fontSize: 14 }}>{children}</Text> : children}</View>
-    </Pressable>
+    <View style={{ gap: 2 }}>
+      <Pressable onPress={() => onCambio(!marcada)} accessibilityRole="checkbox" accessibilityState={{ checked: marcada }}
+        style={{ flexDirection: 'row', gap: 10, alignItems: 'center', paddingVertical: 6 }}>
+        <Ionicons name={marcada ? 'checkbox' : 'square-outline'} size={24} color={marcada ? c.primario : error ? c.vencida : c.textoSuave} />
+        <View style={{ flex: 1 }}>{typeof children === 'string' ? <Text style={{ color: c.texto, fontSize: 14 }}>{children}</Text> : children}</View>
+      </Pressable>
+      <MensajeCampo error={error} />
+    </View>
   );
 }
 

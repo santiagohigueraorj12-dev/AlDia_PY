@@ -6,6 +6,16 @@ export function pesos(valor) {
   return `$${Math.round(Number(valor)).toLocaleString('es-CO')}`;
 }
 
+/**
+ * Lee un número escrito por el usuario a la colombiana: "15.400" o "$38.000" -> 38000.
+ * Si está vacío o no es un número, devuelve 0.
+ */
+export function aNumero(texto) {
+  const limpio = String(texto ?? '').replace(/[\s.,$]/g, '');
+  const numero = Number(limpio);
+  return limpio === '' || Number.isNaN(numero) ? 0 : numero;
+}
+
 /** 66.3 -> "66,3 %" (coma decimal, como se escribe en Colombia) */
 export function porcentaje(valor) {
   return `${Number(valor).toLocaleString('es-CO', { maximumFractionDigits: 1 })} %`;

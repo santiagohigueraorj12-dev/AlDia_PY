@@ -7,9 +7,10 @@ import { volver } from '../../../utils/navegacion';
 import { useLocalSearchParams } from 'expo-router';
 import { api } from '../../../api/cliente';
 import { useDatos } from '../../../api/useDatos';
-import { Aviso, Boton, Campo, Cargando, Casilla, Etiqueta, Fila, Pantalla, Separador, Tarjeta, Texto } from '../../../components/ui';
+import { useErrores } from '../../../api/useErrores';
+import { Aviso, Boton, Campo, Cargando, Casilla, Etiqueta, Fila, MensajeCampo, NotaObligatorios, Pantalla, Separador, Tarjeta, Texto } from '../../../components/ui';
 import CampoFecha from '../../../components/CampoFecha';
-import { ESTADO_PARTE, hoyISO, pesos, porcentaje } from '../../../utils/formato';
+import { ESTADO_PARTE, aNumero, hoyISO, pesos, porcentaje } from '../../../utils/formato';
 
 export default function RegistrarServicio() {
   const { id } = useLocalSearchParams();
@@ -20,7 +21,7 @@ export default function RegistrarServicio() {
   // Partes elegidas: { [parteId]: { costo, marca_referencia } }
   const [elegidas, setElegidas] = useState({});
   const [sugerencias, setSugerencias] = useState([]);
-  const [error, setError] = useState('');
+  const { errores, general, mostrar, limpiar, reiniciar } = useErrores();
   const [enviando, setEnviando] = useState(false);
 
   const ids = Object.keys(elegidas).map(Number);
@@ -43,6 +44,7 @@ export default function RegistrarServicio() {
     if (copia[parteId]) delete copia[parteId];
     else copia[parteId] = { costo: '', marca_referencia: '' };
     setElegidas(copia);
+    limpiar('cambios');
   }
 
   function cambiarDato(parteId, campo, valor) {
@@ -50,45 +52,50 @@ export default function RegistrarServicio() {
   }
 
   async function guardar() {
-    setError('');
+    reiniciar();
     setEnviando(true);
     try {
+      // Los números se envían tal como se escribieron ("15.400", "$38.000"): el backend los entiende
       await api(`/vehiculos/${id}/servicios`, {
         metodo: 'POST',
         datos: {
           fecha,
-          km: Number(km),
+          km,
           lugar,
           cambios: ids.map((parteId) => ({
             parte_id: parteId,
-            costo: Number(elegidas[parteId].costo || 0),
+            costo: elegidas[parteId].costo,
             marca_referencia: elegidas[parteId].marca_referencia,
           })),
         },
       });
       volver(`/vehiculo/${id}`);
     } catch (e) {
-      setError(e.message);
+      mostrar(e);
       setEnviando(false);
     }
   }
 
   if (!vehiculo) return <Cargando />;
-  const total = ids.reduce((s, parteId) => s + Number(elegidas[parteId].costo || 0), 0);
+  const total = ids.reduce((s, parteId) => s + aNumero(elegidas[parteId].costo), 0);
 
   return (
     <Pantalla>
-      <Aviso>{error}</Aviso>
+      <Aviso>{general}</Aviso>
       <Tarjeta estilo={{ gap: 12 }}>
         <Texto variante="subtitulo">{vehiculo.placa} · Datos del servicio</Texto>
-        <CampoFecha etiqueta="Fecha" valor={fecha} onCambio={setFecha} maxima={hoyISO()} />
-        <Campo etiqueta="Kilometraje" value={km} onChangeText={setKm} keyboardType="number-pad"
-          ayuda={`No puede ser mayor al actual (${vehiculo.km_actual.toLocaleString('es-CO')} km)`} />
-        <Campo etiqueta="Lugar / taller (opcional)" value={lugar} onChangeText={setLugar} />
+        <NotaObligatorios />
+        <CampoFecha etiqueta="Fecha del servicio" obligatorio valor={fecha} maxima={hoyISO()}
+          onCambio={(f) => { setFecha(f); limpiar('fecha'); }} error={errores.fecha} />
+        <Campo etiqueta="Kilometraje en el servicio" obligatorio value={km} keyboardType="number-pad"
+          onChangeText={(t) => { setKm(t); limpiar('km'); }} error={errores.km}
+          ayuda={`No puede ser mayor al actual (${vehiculo.km_actual.toLocaleString('es-CO')} km).`} />
+        <Campo etiqueta="Lugar o taller" placeholder="Ej.: Taller MotoExpress" value={lugar} onChangeText={setLugar} error={errores.lugar} />
       </Tarjeta>
 
       <Tarjeta>
         <Texto variante="subtitulo">¿Qué partes cambiaste?</Texto>
+        <MensajeCampo ayuda="Marca las partes y escribe cuánto costó cada una." error={errores.cambios} />
         {vehiculo.partes.map((p) => (
           <View key={p.id} style={{ gap: 6 }}>
             <Separador />
@@ -104,7 +111,9 @@ export default function RegistrarServicio() {
             {elegidas[p.id] && (
               <Fila estilo={{ flexWrap: 'nowrap', paddingLeft: 34 }}>
                 <View style={{ flex: 1 }}>
-                  <Campo value={elegidas[p.id].costo} onChangeText={(t) => cambiarDato(p.id, 'costo', t)} keyboardType="number-pad" placeholder="Costo ($)" accessibilityLabel={`Costo de ${p.nombre}`} />
+                  <Campo value={elegidas[p.id].costo} keyboardType="number-pad" placeholder="Costo ($)" accessibilityLabel={`Costo de ${p.nombre}`}
+                    onChangeText={(t) => { cambiarDato(p.id, 'costo', t); limpiar(`cambios.${ids.indexOf(p.id)}.costo`); }}
+                    error={errores[`cambios.${ids.indexOf(p.id)}.costo`]} />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Campo value={elegidas[p.id].marca_referencia} onChangeText={(t) => cambiarDato(p.id, 'marca_referencia', t)} placeholder="Marca" accessibilityLabel={`Marca de ${p.nombre}`} />
@@ -125,7 +134,7 @@ export default function RegistrarServicio() {
       <Texto variante="subtitulo">Total del servicio: {pesos(total)}</Texto>
       <Boton
         titulo={enviando ? 'Guardando…' : `Guardar ${ids.length || ''} cambio${ids.length === 1 ? '' : 's'}`}
-        tipo="primario" onPress={guardar} deshabilitado={enviando || ids.length === 0 || !km} />
+        tipo="primario" onPress={guardar} deshabilitado={enviando} />
     </Pantalla>
   );
 }

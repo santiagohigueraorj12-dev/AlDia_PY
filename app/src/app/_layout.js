@@ -38,11 +38,12 @@ function Navegacion() {
         <Stack.Screen name="vehiculo/[id]/ultimos-cambios" options={{ title: 'Último cambio de las partes', presentation: 'modal' }} />
       </Stack.Protected>
 
-      {/* Solo sin sesión */}
+      {/* Solo sin sesión. "bienvenida" va primero: es lo que ve quien entra sin haber iniciado sesión */}
       <Stack.Protected guard={!usuario}>
-        <Stack.Screen name="login" options={{ headerShown: false }} />
-        <Stack.Screen name="registro" options={{ title: 'Crear cuenta' }} />
-        <Stack.Screen name="recuperar" options={{ title: 'Recuperar contraseña' }} />
+        <Stack.Screen name="bienvenida" options={{ headerShown: false, title: 'AlDía' }} />
+        <Stack.Screen name="login" options={{ headerShown: false, title: 'Iniciar sesión' }} />
+        <Stack.Screen name="registro" options={{ headerShown: false, title: 'Crear cuenta' }} />
+        <Stack.Screen name="recuperar" options={{ headerShown: false, title: 'Recuperar contraseña' }} />
       </Stack.Protected>
     </Stack>
   );

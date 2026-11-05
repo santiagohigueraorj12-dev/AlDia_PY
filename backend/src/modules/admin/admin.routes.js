@@ -1,17 +1,17 @@
 // Rutas de administración:  /api/admin/...   (solo rol "admin")
 const { Router } = require('express');
-const { z } = require('zod');
 const validar = require('../../middlewares/validar');
+const { z, texto, entero } = require('../../utils/validaciones');
 const servicio = require('./admin.service');
 
 const esquemas = {
-  // Los intervalos no pueden quedar en cero; intervalo_km null = solo por tiempo
+  // Los intervalos no pueden quedar en cero; intervalo_km vacío (null) = solo por tiempo
   parte: z.object({
-    nombre: z.string().trim().min(2, 'Escribe el nombre de la parte').max(100),
-    intervalo_km: z.coerce.number().int().positive('El intervalo en km debe ser mayor a cero').nullable(),
-    intervalo_meses: z.coerce.number().int().positive('El intervalo en meses debe ser mayor a cero'),
+    nombre: texto('el nombre de la parte', { min: 2, max: 100 }),
+    intervalo_km: entero('el intervalo en km', { min: 1, vacioEsNulo: true }),
+    intervalo_meses: entero('el intervalo en meses', { min: 1, max: 240 }),
   }),
-  rtm: z.object({ anios_primera: z.coerce.number().int().min(1).max(20) }),
+  rtm: z.object({ anios_primera: entero('los años', { min: 1, max: 20 }) }),
   activo: z.object({ activo: z.boolean() }),
 };
 

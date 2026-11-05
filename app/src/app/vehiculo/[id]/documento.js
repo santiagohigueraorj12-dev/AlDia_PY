@@ -7,7 +7,8 @@ import { Stack, useLocalSearchParams } from 'expo-router';
 import * as DocumentPicker from 'expo-document-picker';
 import { api, archivoParaFormulario, urlArchivo } from '../../../api/cliente';
 import { useDatos } from '../../../api/useDatos';
-import { Aviso, Boton, Campo, Cargando, Etiqueta, Fila, Pantalla, Separador, Tarjeta, Texto } from '../../../components/ui';
+import { useErrores } from '../../../api/useErrores';
+import { Aviso, Boton, Campo, Cargando, Etiqueta, Fila, MensajeCampo, NotaObligatorios, Pantalla, Separador, Tarjeta, Texto } from '../../../components/ui';
 import CampoFecha from '../../../components/CampoFecha';
 import { confirmar } from '../../../utils/dialogos';
 import { ESTADO_DOCUMENTO, NOMBRE_DOCUMENTO, fecha, hoyISO, pesos } from '../../../utils/formato';
@@ -20,7 +21,7 @@ export default function Documento() {
   const [fechaPago, setFechaPago] = useState(hoyISO());
   const [archivo, setArchivo] = useState(null);  // { uri, nombre, tipo, web }
   const [historial, setHistorial] = useState([]);
-  const [error, setError] = useState('');
+  const { errores, general, mostrar, limpiar, reiniciar, setGeneral } = useErrores();
   const [enviando, setEnviando] = useState(false);
 
   const doc = vehiculo?.documentos.find((d) => d.tipo === tipo);
@@ -37,13 +38,13 @@ export default function Documento() {
     const r = await DocumentPicker.getDocumentAsync({ type: ['image/jpeg', 'image/png', 'application/pdf'], copyToCacheDirectory: true });
     if (r.canceled) return;
     const a = r.assets[0];
-    if (a.size && a.size > 5 * 1024 * 1024) { setError('El archivo no puede pesar más de 5 MB'); return; }  // RNF-03
+    if (a.size && a.size > 5 * 1024 * 1024) { setGeneral('El archivo no puede pesar más de 5 MB'); return; }  // RNF-03
     // a.file solo existe en el navegador (es el archivo real elegido en el computador)
     setArchivo({ uri: a.uri, nombre: a.name, tipo: a.mimeType || 'application/pdf', web: a.file });
   }
 
   async function guardar() {
-    setError('');
+    reiniciar();
     setEnviando(true);
     const formulario = new FormData();
     if (!doc) formulario.append('tipo', tipo);
@@ -56,7 +57,7 @@ export default function Documento() {
       else await api(`/vehiculos/${id}/documentos`, { metodo: 'POST', formulario });
       volver(`/vehiculo/${id}`);
     } catch (e) {
-      setError(e.message);
+      mostrar(e);
       setEnviando(false);
     }
   }
@@ -83,12 +84,21 @@ export default function Documento() {
 
       <Tarjeta estilo={{ gap: 12 }}>
         <Texto variante="subtitulo">{doc ? 'Renovar' : 'Registrar'}</Texto>
-        <Aviso>{error}</Aviso>
-        <CampoFecha etiqueta={doc ? 'Nueva fecha de vencimiento' : 'Fecha de vencimiento'} valor={vence} onCambio={setVence} minima={doc?.fecha_vencimiento} />
-        <Campo etiqueta="Valor pagado ($)" value={valor} onChangeText={setValor} keyboardType="number-pad" />
-        <CampoFecha etiqueta="Fecha de pago" valor={fechaPago} onCambio={setFechaPago} maxima={hoyISO()} />
-        <Boton titulo={archivo ? `📎 ${archivo.nombre}` : 'Adjuntar foto o PDF (opcional)'} onPress={elegirArchivo} />
-        <Boton titulo={enviando ? 'Guardando…' : 'Guardar'} tipo="primario" onPress={guardar} deshabilitado={enviando || !vence} />
+        <NotaObligatorios />
+        <Aviso>{general}</Aviso>
+        <CampoFecha etiqueta={doc ? 'Nueva fecha de vencimiento' : 'Fecha de vencimiento'} obligatorio valor={vence}
+          onCambio={(f) => { setVence(f); limpiar('fecha_vencimiento'); }} minima={doc?.fecha_vencimiento}
+          error={errores.fecha_vencimiento}
+          ayuda={doc ? `Debe ser posterior al ${fecha(doc.fecha_vencimiento)}.` : 'La fecha que aparece en el documento.'} />
+        <Campo etiqueta="Valor pagado ($)" placeholder="Ej.: 420.000" value={valor} keyboardType="number-pad"
+          onChangeText={(t) => { setValor(t); limpiar('valor'); }} error={errores.valor} />
+        <CampoFecha etiqueta="Fecha de pago" valor={fechaPago} maxima={hoyISO()}
+          onCambio={(f) => { setFechaPago(f); limpiar('fecha_pago'); }} error={errores.fecha_pago} />
+        <View style={{ gap: 4 }}>
+          <Boton titulo={archivo ? `📎 ${archivo.nombre}` : 'Adjuntar foto o PDF (opcional)'} onPress={elegirArchivo} />
+          <MensajeCampo ayuda="JPG, PNG o PDF de máximo 5 MB." error={errores.archivo} />
+        </View>
+        <Boton titulo={enviando ? 'Guardando…' : 'Guardar'} tipo="primario" onPress={guardar} deshabilitado={enviando} />
       </Tarjeta>
 
       {doc && (

@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { Platform, Pressable, Text, View } from 'react-native';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { useColores } from '../tema';
+import { EtiquetaCampo, MensajeCampo, estiloCaja as cajaCampo } from './ui';
 import { fecha as formatoFecha } from '../utils/formato';
 
 /** 'AAAA-MM-DD' -> Date (hora local) */
@@ -19,7 +20,7 @@ function aTexto(date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
 
-export default function CampoFecha({ etiqueta, valor, onCambio, minima, maxima }) {
+export default function CampoFecha({ etiqueta, valor, onCambio, minima, maxima, error, ayuda, obligatorio = false }) {
   const c = useColores();
   const [mostrarIos, setMostrarIos] = useState(false);
   const actual = valor ? aDate(valor) : new Date();
@@ -44,13 +45,13 @@ export default function CampoFecha({ etiqueta, valor, onCambio, minima, maxima }
     }
   }
 
-  const estiloCaja = { borderWidth: 1, borderColor: c.borde, borderRadius: 10, padding: 11, backgroundColor: c.superficie };
+  const estiloCaja = cajaCampo(c, error);
 
   if (Platform.OS === 'web') {
     // En el navegador se dibuja un <input type="date"> normal de HTML
     return (
       <View style={{ gap: 4 }}>
-        {etiqueta && <Text style={{ color: c.texto, fontWeight: '600', fontSize: 14 }}>{etiqueta}</Text>}
+        <EtiquetaCampo texto={etiqueta} obligatorio={obligatorio} />
         <input
           type="date"
           value={valor || ''}
@@ -59,17 +60,18 @@ export default function CampoFecha({ etiqueta, valor, onCambio, minima, maxima }
           onChange={(e) => onCambio(e.target.value)}
           aria-label={etiqueta}
           style={{
-            border: `1px solid ${c.borde}`, borderRadius: 10, padding: 10, fontSize: 15,
+            border: error ? `1.5px solid ${c.vencida}` : `1px solid ${c.borde}`, borderRadius: 10, padding: 10, fontSize: 15,
             fontFamily: 'inherit', color: c.texto, backgroundColor: c.superficie, colorScheme: c.esOscuro ? 'dark' : 'light',
           }}
         />
+        <MensajeCampo ayuda={ayuda} error={error} />
       </View>
     );
   }
 
   return (
     <View style={{ gap: 4 }}>
-      {etiqueta && <Text style={{ color: c.texto, fontWeight: '600', fontSize: 14 }}>{etiqueta}</Text>}
+      <EtiquetaCampo texto={etiqueta} obligatorio={obligatorio} />
       <Pressable onPress={abrir} style={estiloCaja} accessibilityRole="button">
         <Text style={{ color: valor ? c.texto : c.textoSuave, fontSize: 15 }}>{valor ? formatoFecha(valor) : 'Elegir fecha'}</Text>
       </Pressable>
@@ -85,6 +87,7 @@ export default function CampoFecha({ etiqueta, valor, onCambio, minima, maxima }
           }}
         />
       )}
+      <MensajeCampo ayuda={ayuda} error={error} />
     </View>
   );
 }

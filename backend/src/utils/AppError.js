@@ -14,6 +14,11 @@ class AppError extends Error {
   static prohibido(mensaje = 'No tienes permiso para hacer esto') {
     return new AppError(mensaje, 403);
   }
+
+  /** Error de un campo del formulario: la app lo muestra debajo de ese campo. */
+  static campo(campo, mensaje, status = 400) {
+    return new AppError(mensaje, status, { campo, errores: { [campo]: mensaje } });
+  }
 }
 
 module.exports = AppError;

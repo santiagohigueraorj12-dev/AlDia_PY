@@ -1,30 +1,29 @@
 // Rutas de usuarios:  /api/auth/...
 const { Router } = require('express');
-const { z } = require('zod');
 const validar = require('../../middlewares/validar');
 const { requiereSesion } = require('../../middlewares/auth');
+const {
+  z, texto, textoOpcional, correo, passwordNueva, passwordActual,
+} = require('../../utils/validaciones');
 const c = require('./auth.controller');
 
-const password = z.string().min(8, 'La contraseña debe tener al menos 8 caracteres');
-const correo = z.string().trim().toLowerCase().email('Correo no válido');
+const nombre = texto('tu nombre', { min: 2, max: 100 });
+const telefono = textoOpcional('el teléfono', { max: 20 });
 
 const esquemas = {
   registro: z.object({
-    nombre: z.string().trim().min(2, 'Escribe tu nombre'),
-    correo,
-    telefono: z.string().trim().max(20).optional().nullable(),
-    password,
-    aceptaDatos: z.boolean(),
+    nombre,
+    correo: correo(),
+    telefono,
+    password: passwordNueva(),
+    aceptaDatos: z.literal(true, { errorMap: () => ({ message: 'Debes autorizar el tratamiento de tus datos para crear la cuenta' }) }),
   }),
-  login: z.object({ correo, password: z.string().min(1, 'Escribe tu contraseña') }),
-  recuperar: z.object({ correo }),
-  restablecer: z.object({ token: z.string().min(10), password }),
-  perfil: z.object({
-    nombre: z.string().trim().min(2, 'Escribe tu nombre'),
-    telefono: z.string().trim().max(20).optional().nullable(),
-  }),
-  cambiarPassword: z.object({ actual: z.string().min(1), nueva: password }),
-  eliminar: z.object({ password: z.string().min(1, 'Confirma con tu contraseña') }),
+  login: z.object({ correo: correo(), password: passwordActual() }),
+  recuperar: z.object({ correo: correo() }),
+  restablecer: z.object({ token: texto('el código de recuperación'), password: passwordNueva() }),
+  perfil: z.object({ nombre, telefono }),
+  cambiarPassword: z.object({ actual: passwordActual('Escribe tu contraseña actual'), nueva: passwordNueva() }),
+  eliminar: z.object({ password: passwordActual('Confirma con tu contraseña') }),
 };
 
 const router = Router();

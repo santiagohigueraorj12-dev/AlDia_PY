@@ -1,26 +1,24 @@
 // Rutas de documentos:  /api/documentos/...
 // (Registrar un documento nuevo está en /api/vehiculos/:id/documentos)
 const { Router } = require('express');
-const { z } = require('zod');
 const validar = require('../../middlewares/validar');
 const { subirArchivo, urlDeArchivo } = require('../../middlewares/subirArchivo');
+const { z, entero, fecha } = require('../../utils/validaciones');
 const servicio = require('./documentos.service');
 
-const fecha = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Fecha no válida');
+// Datos comunes de registrar y renovar. Llegan como formulario (multipart) por el archivo adjunto.
+const datosDocumento = {
+  fecha_vencimiento: fecha('la fecha de vencimiento'),
+  valor: entero('el valor pagado', { opcional: true }).transform((v) => v ?? 0),  // vacío = $0
+  fecha_pago: fecha('la fecha de pago', { opcional: true, noFutura: true }),
+};
 
-// Llegan como formulario (multipart) por el archivo adjunto: z.coerce convierte texto a número.
 const esquemas = {
   registrar: z.object({
-    tipo: z.enum(['soat', 'rtm', 'impuesto'], { message: 'Elige el tipo de documento' }),
-    fecha_vencimiento: fecha,
-    valor: z.coerce.number().min(0, 'El valor no puede ser negativo').default(0),
-    fecha_pago: fecha.optional().or(z.literal('').transform(() => undefined)),
+    tipo: z.enum(['soat', 'rtm', 'impuesto'], { errorMap: () => ({ message: 'Elige el tipo de documento' }) }),
+    ...datosDocumento,
   }),
-  renovar: z.object({
-    fecha_vencimiento: fecha,
-    valor: z.coerce.number().min(0, 'El valor no puede ser negativo').default(0),
-    fecha_pago: fecha.optional().or(z.literal('').transform(() => undefined)),
-  }),
+  renovar: z.object(datosDocumento),
 };
 
 const router = Router();

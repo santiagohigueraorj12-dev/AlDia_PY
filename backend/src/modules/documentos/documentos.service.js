@@ -34,10 +34,10 @@ async function registrar(usuarioId, vehiculoId, { tipo, fecha_vencimiento, valor
 async function renovar(usuarioId, id, { fecha_vencimiento, valor = 0, fecha_pago }, archivoUrl) {
   const documento = await documentoDelUsuario(usuarioId, id);
   const validacion = validarRenovacion(documento.fecha_vencimiento, fecha_vencimiento);
-  if (!validacion.valido) throw new AppError(validacion.mensaje);
+  if (!validacion.valido) throw AppError.campo('fecha_vencimiento', validacion.mensaje);
 
   const fechaPago = fecha_pago || hoy();
-  if (fechaPago > hoy()) throw new AppError('La fecha de pago no puede ser futura');
+  if (fechaPago > hoy()) throw AppError.campo('fecha_pago', 'La fecha de pago no puede ser futura');
 
   await transaccion(async (conn) => {  // RNF-07
     await repo.actualizarVencimiento(conn, id, fecha_vencimiento, archivoUrl);

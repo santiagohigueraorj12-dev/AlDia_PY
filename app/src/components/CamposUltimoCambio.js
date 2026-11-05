@@ -8,7 +8,7 @@ import { Boton, Campo, Fila } from './ui';
 import CampoFecha from './CampoFecha';
 import { hoyISO } from '../utils/formato';
 
-export default function CamposUltimoCambio({ valor, onCambio, kmActual, fechaMatricula }) {
+export default function CamposUltimoCambio({ valor, onCambio, kmActual, fechaMatricula, errores = {} }) {
   const cambiar = (campo) => (nuevo) => onCambio({ ...valor, [campo]: nuevo });
 
   return (
@@ -20,11 +20,12 @@ export default function CamposUltimoCambio({ valor, onCambio, kmActual, fechaMat
       {valor.sabe && (
         <Fila estilo={{ flexWrap: 'nowrap', alignItems: 'flex-start' }}>
           <View style={{ flex: 1 }}>
-            <Campo etiqueta="A los (km)" value={valor.km} onChangeText={cambiar('km')} keyboardType="number-pad"
-              ayuda={`Máximo ${Number(kmActual).toLocaleString('es-CO')}`} />
+            <Campo etiqueta="A los (km)" obligatorio placeholder="Ej.: 28.500" value={valor.km} onChangeText={cambiar('km')} keyboardType="number-pad"
+              ayuda={`Máximo ${Number(kmActual).toLocaleString('es-CO')}`} error={errores.km} />
           </View>
           <View style={{ flex: 1 }}>
-            <CampoFecha etiqueta="El día" valor={valor.fecha} onCambio={cambiar('fecha')} minima={fechaMatricula} maxima={hoyISO()} />
+            <CampoFecha etiqueta="El día" obligatorio valor={valor.fecha} onCambio={cambiar('fecha')} minima={fechaMatricula} maxima={hoyISO()}
+              error={errores.fecha} />
           </View>
         </Fila>
       )}

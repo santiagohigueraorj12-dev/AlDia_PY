@@ -100,7 +100,7 @@ async function detalle(usuarioId, id) {
  * se registra el documento con la fecha calculada.
  */
 async function crear(usuarioId, datos, fotoUrl) {
-  if (await repo.placaEnUso(datos.placa)) throw new AppError('Ya existe un vehículo con esa placa', 409);  // RN-02
+  if (await repo.placaEnUso(datos.placa)) throw AppError.campo('placa', 'Ya hay un vehículo registrado con esa placa', 409);  // RN-02
 
   const fechaHoy = hoy();
   const regla = await repo.reglaRtm(datos.tipo_vehiculo_id);
@@ -124,7 +124,7 @@ async function crear(usuarioId, datos, fotoUrl) {
 
 async function actualizar(usuarioId, id, datos, fotoUrl) {
   await vehiculoDelUsuario(usuarioId, id);
-  if (await repo.placaEnUso(datos.placa, id)) throw new AppError('Ya existe un vehículo con esa placa', 409);
+  if (await repo.placaEnUso(datos.placa, id)) throw AppError.campo('placa', 'Ya hay un vehículo registrado con esa placa', 409);
   await repo.actualizar(id, { ...datos, foto_url: fotoUrl });
   return detalle(usuarioId, id);
 }
@@ -150,7 +150,8 @@ async function actualizarKm(usuarioId, id, { km, confirmado }) {
     // Si requiere confirmación respondemos 409: la pantalla pregunta "¿Es correcto?"
     // y, si el usuario acepta, reenvía la petición con confirmado = true.
     const status = validacion.requiereConfirmacion ? 409 : 400;
-    throw new AppError(validacion.mensaje, status, { requiereConfirmacion: Boolean(validacion.requiereConfirmacion) });
+    if (validacion.requiereConfirmacion) throw new AppError(validacion.mensaje, status, { requiereConfirmacion: true });
+    throw AppError.campo('km', validacion.mensaje, status);
   }
 
   await transaccion((conn) => repo.registrarLectura(conn, id, km));
@@ -208,7 +209,7 @@ async function fijarUltimosCambios(usuarioId, vehiculoId, partes) {
   const actuales = await repo.partesActivas(vehiculoId);
   const fechaHoy = hoy();
 
-  const cambios = partes.map((dato) => {
+  const cambios = partes.map((dato, i) => {
     const parte = actuales.find((p) => p.id === dato.parte_id);
     if (!parte) throw new AppError('Una de las partes no pertenece a este vehículo');
     if (parte.cambios_registrados > 0) {
@@ -221,7 +222,11 @@ async function fijarUltimosCambios(usuarioId, vehiculoId, partes) {
     const validacion = validarUltimoCambio({
       km: dato.km, fecha: dato.fecha, kmActual: vehiculo.km_actual, fechaMatricula: vehiculo.fecha_matricula, hoy: fechaHoy,
     });
-    if (!validacion.valido) throw new AppError(`"${parte.nombre}": ${validacion.mensaje}`);
+    if (!validacion.valido) {
+      // El error se marca en el campo exacto (km o fecha) de esa parte
+      const campo = validacion.mensaje.includes('kilometraje') ? 'km' : 'fecha';
+      throw AppError.campo(`partes.${i}.${campo}`, validacion.mensaje);
+    }
     return { parteId: parte.id, km: dato.km, fecha: dato.fecha, conocido: true };
   });
 
@@ -248,9 +253,9 @@ async function registrarServicio(usuarioId, vehiculoId, { fecha, km, lugar, camb
   const partes = await repo.partesActivas(vehiculoId);
 
   // --- Validaciones de RN-09 ---
-  if (fecha > hoy()) throw new AppError('La fecha del servicio no puede ser futura');
+  if (fecha > hoy()) throw AppError.campo('fecha', 'La fecha del servicio no puede ser futura');
   if (km > vehiculo.km_actual) {
-    throw new AppError(`El kilometraje del cambio no puede ser mayor al actual del vehículo (${vehiculo.km_actual.toLocaleString('es-CO')} km). Actualiza primero el kilometraje.`);
+    throw AppError.campo('km', `No puede ser mayor al kilometraje actual del vehículo (${vehiculo.km_actual.toLocaleString('es-CO')} km). Si ya recorrió más, actualiza primero el kilometraje.`);
   }
   const vistas = new Set();
   for (const cambio of cambios) {
@@ -259,10 +264,10 @@ async function registrarServicio(usuarioId, vehiculoId, { fecha, km, lugar, camb
     if (vistas.has(parte.id)) throw new AppError(`La parte "${parte.nombre}" está repetida`);
     vistas.add(parte.id);
     if (km < parte.ultimo_cambio_km) {
-      throw new AppError(`"${parte.nombre}": el kilometraje no puede ser menor al del cambio anterior (${parte.ultimo_cambio_km.toLocaleString('es-CO')} km)`);
+      throw AppError.campo('km', `"${parte.nombre}" se cambió por última vez a los ${parte.ultimo_cambio_km.toLocaleString('es-CO')} km: el kilometraje no puede ser menor.`);
     }
     if (fecha < parte.ultimo_cambio_fecha) {
-      throw new AppError(`"${parte.nombre}": la fecha no puede ser anterior a la del cambio anterior`);
+      throw AppError.campo('fecha', `"${parte.nombre}" se cambió por última vez el ${parte.ultimo_cambio_fecha.split('-').reverse().join('/')}: la fecha no puede ser anterior.`);
     }
   }
 

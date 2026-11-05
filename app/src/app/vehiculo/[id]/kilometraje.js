@@ -7,6 +7,7 @@ import { volver } from '../../../utils/navegacion';
 import { useLocalSearchParams } from 'expo-router';
 import { api } from '../../../api/cliente';
 import { useDatos } from '../../../api/useDatos';
+import { useErrores } from '../../../api/useErrores';
 import { Aviso, Boton, Campo, Cargando, Fila, Pantalla, Separador, Tarjeta, Texto } from '../../../components/ui';
 import { fecha, km as formatoKm } from '../../../utils/formato';
 
@@ -14,19 +15,20 @@ export default function Kilometraje() {
   const { id } = useLocalSearchParams();
   const { datos: lecturas } = useDatos(`/vehiculos/${id}/kilometraje`);
   const [km, setKm] = useState('');
-  const [error, setError] = useState('');
+  const { errores, general, mostrar, limpiar, reiniciar } = useErrores();
   const [pregunta, setPregunta] = useState('');  // mensaje de confirmación
   const [enviando, setEnviando] = useState(false);
 
   async function guardar(confirmado = false) {
-    setError('');
+    reiniciar();
     setEnviando(true);
     try {
-      await api(`/vehiculos/${id}/kilometraje`, { metodo: 'POST', datos: { km: Number(km), confirmado } });
+      // Se envía tal como se escribió ("15.400"): el backend lo entiende
+      await api(`/vehiculos/${id}/kilometraje`, { metodo: 'POST', datos: { km, confirmado } });
       volver(`/vehiculo/${id}`);
     } catch (e) {
       if (e.datos.requiereConfirmacion) setPregunta(e.message);
-      else setError(e.message);
+      else mostrar(e);
       setEnviando(false);
     }
   }
@@ -38,7 +40,7 @@ export default function Kilometraje() {
     <Pantalla>
       <Tarjeta estilo={{ gap: 12 }}>
         <Texto variante="suave">Último registrado: <Texto variante="negrita">{formatoKm(ultimo.km)}</Texto> ({fecha(ultimo.fecha)})</Texto>
-        <Aviso>{error}</Aviso>
+        <Aviso>{general}</Aviso>
         {pregunta ? (
           <>
             <Aviso tipo="aviso">{pregunta}</Aviso>
@@ -49,8 +51,9 @@ export default function Kilometraje() {
           </>
         ) : (
           <>
-            <Campo etiqueta="Kilometraje actual del odómetro" value={km} onChangeText={setKm} keyboardType="number-pad" autoFocus />
-            <Boton titulo="Guardar" tipo="primario" onPress={() => guardar()} deshabilitado={!km || enviando} />
+            <Campo etiqueta="Kilometraje actual del odómetro" obligatorio placeholder="Ej.: 15.800" value={km}
+              onChangeText={(t) => { setKm(t); limpiar('km'); }} keyboardType="number-pad" autoFocus error={errores.km} />
+            <Boton titulo={enviando ? 'Guardando…' : 'Guardar'} tipo="primario" onPress={() => guardar()} deshabilitado={enviando} />
           </>
         )}
       </Tarjeta>

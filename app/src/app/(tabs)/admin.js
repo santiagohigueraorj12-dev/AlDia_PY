@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Switch, View } from 'react-native';
 import { api } from '../../api/cliente';
 import { useDatos } from '../../api/useDatos';
+import { mensajeCompleto } from '../../api/useErrores';
 import { useSesion } from '../../context/SesionContext';
 import { Aviso, Boton, Campo, Cargando, Fila, Pantalla, Separador, Tarjeta, Texto } from '../../components/ui';
 import { useColores } from '../../tema';
@@ -29,7 +30,7 @@ function PlanBase() {
   // Ejecuta una acción y muestra el error si el backend la rechaza
   const ejecutar = async (accion) => {
     setError('');
-    try { setTipos(await accion()); } catch (e) { setError(e.message); }
+    try { setTipos(await accion()); } catch (e) { setError(mensajeCompleto(e)); }
   };
 
   if (!tipos) return errorCarga ? <Aviso>{errorCarga}</Aviso> : <Cargando />;
@@ -115,7 +116,7 @@ function Usuarios() {
     setError('');
     try {
       setUsuarios(await api(`/admin/usuarios/${u.id}/activo`, { metodo: 'PUT', datos: { activo: !u.activo } }));
-    } catch (e) { setError(e.message); }
+    } catch (e) { setError(mensajeCompleto(e)); }
   }
 
   if (!usuarios) return <Cargando />;

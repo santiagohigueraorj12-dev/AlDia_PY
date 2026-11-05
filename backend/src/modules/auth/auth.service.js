@@ -21,7 +21,7 @@ function datosPublicos(u) {
 /** RF-01: registro. Exige la autorización de tratamiento de datos (Ley 1581). */
 async function registrar({ nombre, correo, telefono, password, aceptaDatos }) {
   if (!aceptaDatos) throw new AppError('Debes autorizar el tratamiento de tus datos personales');
-  if (await repo.buscarPorCorreo(correo)) throw new AppError('Ya existe una cuenta con ese correo', 409);
+  if (await repo.buscarPorCorreo(correo)) throw AppError.campo('correo', 'Ya existe una cuenta con ese correo. ¿Quieres iniciar sesión?', 409);
 
   const passwordHash = await bcrypt.hash(password, RONDAS_BCRYPT);
   const id = await repo.crear({ nombre, correo, telefono, passwordHash });
@@ -58,7 +58,7 @@ async function solicitarRecuperacion(correo) {
 
 async function restablecerPassword({ token, password }) {
   const usuario = await repo.buscarPorTokenVigente(token);
-  if (!usuario) throw new AppError('El código de recuperación no es válido o ya expiró');
+  if (!usuario) throw AppError.campo('token', 'El código de recuperación no es válido o ya expiró');
   await repo.cambiarPassword(usuario.id, await bcrypt.hash(password, RONDAS_BCRYPT));
   return { mensaje: 'Contraseña actualizada. Ya puedes iniciar sesión.' };
 }
@@ -74,15 +74,16 @@ async function actualizarPerfil(id, datos) {
   return perfil(id);
 }
 
-async function verificarPassword(id, password) {
+/** Comprueba la contraseña; si no coincide, el error se marca en el campo indicado. */
+async function verificarPassword(id, password, campo = 'password') {
   const usuario = await repo.buscarPorId(id);
   if (!(await bcrypt.compare(password, usuario.password_hash))) {
-    throw new AppError('La contraseña no es correcta');
+    throw AppError.campo(campo, 'La contraseña no es correcta');
   }
 }
 
 async function cambiarPassword(id, { actual, nueva }) {
-  await verificarPassword(id, actual);
+  await verificarPassword(id, actual, 'actual');
   await repo.cambiarPassword(id, await bcrypt.hash(nueva, RONDAS_BCRYPT));
   return { mensaje: 'Contraseña actualizada' };
 }
