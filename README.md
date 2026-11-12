@@ -17,6 +17,8 @@ Integrantes: Simon Higuera y Santiago Higuera.
 
 - **Alcance, reglas de negocio y requisitos:** [docs/ALCANCE.md](docs/ALCANCE.md)
 - **Cómo está organizado el código:** [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md)
+- **Manual de usuario:** [docs/manuales/AlDia_Manual_de_Usuario.pdf](docs/manuales/AlDia_Manual_de_Usuario.pdf) (también en Word)
+- **Manual técnico:** [docs/manuales/AlDia_Manual_Tecnico.pdf](docs/manuales/AlDia_Manual_Tecnico.pdf) (también en Word)
 
 ---
 
@@ -105,7 +107,7 @@ AlDia_PY/
 ├── database/
 │   ├── migraciones/     Un archivo SQL por tabla (se ejecutan solos, en orden)
 │   └── semillas/        Datos iniciales: catálogos, administrador y demo
-├── docs/                Alcance, arquitectura, documento de análisis y pruebas (docs/pruebas/, ISO/IEC/IEEE 29119-3)
+├── docs/                Alcance, arquitectura, análisis, manuales (docs/manuales/) y pruebas (docs/pruebas/, ISO/IEC/IEEE 29119-3)
 ├── app/                 ⭐ App para celular y computador (Expo)
 │   └── src/
 │       ├── app/         Pantallas: cada archivo es una pantalla (Expo Router)
