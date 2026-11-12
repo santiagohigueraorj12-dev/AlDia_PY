@@ -1,4 +1,5 @@
-// RF-01: registro, con la autorización de datos de la Ley 1581 (RNF-09).
+// RF-01: registro corto (nombre, correo y contraseña), con la autorización de datos de la Ley 1581 (RNF-09).
+// Los demás datos (teléfono, documento, dirección...) se llenan después en "Mi perfil".
 import { useState } from 'react';
 import { Text } from 'react-native';
 import { Link } from 'expo-router';
@@ -11,7 +12,7 @@ import { useColores } from '../tema';
 export default function Registro() {
   const { registrarse } = useSesion();
   const c = useColores();
-  const [datos, setDatos] = useState({ nombre: '', correo: '', telefono: '', password: '' });
+  const [datos, setDatos] = useState({ nombre: '', correo: '', password: '' });
   const [aceptaDatos, setAceptaDatos] = useState(false);
   const { errores, general, mostrar, limpiar, reiniciar } = useErrores();
   const [enviando, setEnviando] = useState(false);
@@ -36,7 +37,7 @@ export default function Registro() {
   return (
     <PantallaAutenticacion
       titulo="Crear cuenta"
-      subtitulo="Es gratis y toma menos de un minuto."
+      subtitulo="Es gratis y solo te pedimos tres datos. El resto lo completas después, en tu perfil."
       ocultar="registro"
       pie={(
         <Text style={{ textAlign: 'center', color: c.textoSuave, fontSize: 15 }}>
@@ -50,8 +51,6 @@ export default function Registro() {
         onChangeText={cambiar('nombre')} error={errores.nombre} autoComplete="name" />
       <Campo etiqueta="Correo" obligatorio placeholder="nombre@correo.com" value={datos.correo} onChangeText={cambiar('correo')}
         keyboardType="email-address" autoCapitalize="none" autoComplete="email" error={errores.correo} />
-      <Campo etiqueta="Teléfono" placeholder="Ej.: 3001234567" value={datos.telefono} onChangeText={cambiar('telefono')}
-        keyboardType="phone-pad" error={errores.telefono} />
       <CampoPassword etiqueta="Contraseña" obligatorio ayuda="Mínimo 8 caracteres." value={datos.password}
         onChangeText={cambiar('password')} error={errores.password} autoComplete="new-password" />
       <Casilla marcada={aceptaDatos} onCambio={(v) => { setAceptaDatos(v); limpiar('aceptaDatos'); }} error={errores.aceptaDatos}>

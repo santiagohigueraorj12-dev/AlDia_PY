@@ -1,15 +1,17 @@
-// RF-03: datos personales, contraseña, cerrar sesión y eliminar la cuenta (RNF-09).
+// RF-03: resumen del perfil, contraseña, cerrar sesión y eliminar la cuenta (RNF-09).
+// Los datos personales se editan en la pantalla "Mi perfil" (app/perfil.js).
 import { useState } from 'react';
 import { api } from '../../api/cliente';
 import { useErrores } from '../../api/useErrores';
 import { useSesion } from '../../context/SesionContext';
 import { Text, View } from 'react-native';
-import { Aviso, Boton, Campo, CampoPassword, Pantalla, Tarjeta, Texto, TituloSeccion } from '../../components/ui';
+import { router } from 'expo-router';
+import { Aviso, BarraDesgaste, Boton, CampoPassword, Pantalla, Tarjeta, Texto, TituloSeccion } from '../../components/ui';
 import { useColores } from '../../tema';
 import { confirmar } from '../../utils/dialogos';
 
 export default function Cuenta() {
-  const { usuario, setUsuario, cerrarSesion } = useSesion();
+  const { usuario, cerrarSesion } = useSesion();
   const c = useColores();
   // Iniciales del nombre para el círculo: "Santiago Higuera" -> "SH"
   const iniciales = usuario.nombre.split(' ').filter(Boolean).slice(0, 2).map((p) => p[0].toUpperCase()).join('');
@@ -25,38 +27,28 @@ export default function Cuenta() {
         </View>
         <Boton titulo="Cerrar sesión" icono="log-out-outline" pequeno onPress={cerrarSesion} />
       </Tarjeta>
-      <DatosPersonales usuario={usuario} onGuardado={setUsuario} />
+      <ResumenPerfil usuario={usuario} />
       <CambiarPassword />
       <EliminarCuenta onEliminada={cerrarSesion} />
     </Pantalla>
   );
 }
 
-function DatosPersonales({ usuario, onGuardado }) {
-  const [nombre, setNombre] = useState(usuario.nombre);
-  const [telefono, setTelefono] = useState(usuario.telefono || '');
-  const [mensaje, setMensaje] = useState('');
-  const { errores, general, mostrar, limpiar, reiniciar } = useErrores();
-
-  async function guardar() {
-    setMensaje('');
-    reiniciar();
-    try {
-      onGuardado(await api('/auth/perfil', { metodo: 'PUT', datos: { nombre, telefono } }));
-      setMensaje('Datos actualizados');
-    } catch (e) { mostrar(e); }
-  }
-
+/** Resumen de "Mi perfil": cuánto está completo y botón para llenarlo. */
+function ResumenPerfil({ usuario }) {
+  const { porcentaje, faltan } = usuario.perfil;
   return (
-    <Tarjeta estilo={{ gap: 12 }}>
-      <TituloSeccion titulo="Datos personales" icono="person-outline" />
-      <Aviso>{general}</Aviso>
-      <Aviso tipo="ok">{mensaje}</Aviso>
-      <Campo etiqueta="Nombre" obligatorio value={nombre} error={errores.nombre}
-        onChangeText={(t) => { setNombre(t); limpiar('nombre'); }} />
-      <Campo etiqueta="Teléfono" placeholder="Ej.: 3001234567" value={telefono} keyboardType="phone-pad"
-        error={errores.telefono} onChangeText={(t) => { setTelefono(t); limpiar('telefono'); }} />
-      <Boton titulo="Guardar cambios" icono="save-outline" tipo="primario" onPress={guardar} />
+    <Tarjeta estilo={{ gap: 10 }}>
+      <TituloSeccion titulo="Mi perfil" icono="person-outline"
+        accion={<Texto variante="pequeno">{porcentaje} % completo</Texto>} />
+      <BarraDesgaste porcentaje={porcentaje} estado={porcentaje === 100 ? 'bien' : 'proxima'} />
+      <Texto variante="suave">
+        {faltan.length === 0
+          ? 'Tus datos personales, tu dirección y tu licencia están al día.'
+          : `Completa tus datos: ${faltan.join(', ').toLowerCase()}.`}
+      </Texto>
+      <Boton titulo={faltan.length === 0 ? 'Ver o cambiar mis datos' : 'Completar mi perfil'} icono="create-outline"
+        tipo={faltan.length === 0 ? 'normal' : 'primario'} onPress={() => router.push('/perfil')} />
     </Tarjeta>
   );
 }

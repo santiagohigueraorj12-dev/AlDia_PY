@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useColores } from '../tema';
 
 /**
@@ -104,17 +103,6 @@ export function Icono({ nombre, tono = 'primario', tamano = 40 }) {
   );
 }
 
-/** Ícono de moto o carro dentro de un círculo, con el color del estado del vehículo. */
-export function IconoVehiculo({ tipo, tono = 'primario', tamano = 48 }) {
-  const c = useColores();
-  const colores = { primario: [c.primarioSuave, c.primario], bien: [c.bienFondo, c.bien], proxima: [c.proximaFondo, c.proxima], vencida: [c.vencidaFondo, c.vencida] }[tono];
-  return (
-    <View style={{ width: tamano, height: tamano, borderRadius: tamano / 2, backgroundColor: colores[0], alignItems: 'center', justifyContent: 'center' }}>
-      <MaterialCommunityIcons name={tipo === 'Moto' ? 'motorbike' : 'car-side'} size={tamano * 0.55} color={colores[1]} />
-    </View>
-  );
-}
-
 /** Título de una sección con ícono y, a la derecha, una acción opcional (ej.: "+ Agregar"). */
 export function TituloSeccion({ titulo, icono, accion }) {
   const c = useColores();
@@ -179,11 +167,11 @@ export function Segmentos({ opciones, valor, onCambio }) {
   );
 }
 
-/** Mensaje para cuando una lista está vacía: ícono, explicación y un botón opcional. */
-export function Vacio({ icono = 'information-circle-outline', titulo, texto, boton }) {
+/** Mensaje para cuando una lista está vacía: ícono (o ilustración), explicación y un botón opcional. */
+export function Vacio({ icono = 'information-circle-outline', ilustracion, titulo, texto, boton }) {
   return (
     <Tarjeta estilo={{ alignItems: 'center', paddingVertical: 26, gap: 10 }}>
-      <Icono nombre={icono} tono="neutro" tamano={56} />
+      {ilustracion || <Icono nombre={icono} tono="neutro" tamano={56} />}
       {titulo && <Texto variante="subtitulo" estilo={{ textAlign: 'center' }}>{titulo}</Texto>}
       {texto && <Texto variante="suave" estilo={{ textAlign: 'center', maxWidth: 420 }}>{texto}</Texto>}
       {boton}

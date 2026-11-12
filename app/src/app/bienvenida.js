@@ -8,6 +8,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useColores } from '../tema';
 import { BarraDesgaste, Boton, Etiqueta } from '../components/ui';
 import EncabezadoPublico, { Logo } from '../components/EncabezadoPublico';
+import { EscenaCarretera, IlustracionCarro, IlustracionMoto } from '../components/Ilustraciones';
 import { ESTADO_PARTE, ESTADO_VEHICULO } from '../utils/formato';
 
 const PROBLEMAS = [
@@ -29,6 +30,12 @@ const FUNCIONES = [
   { icono: 'cash', titulo: 'Costo de mantenimiento', texto: 'Cuánto has gastado en tu vehículo y cuánto te cuesta cada kilómetro.' },
   { icono: 'calendar', titulo: 'Calendario', texto: 'Los cambios estimados y los vencimientos del mes, en un solo lugar.' },
   { icono: 'document-attach', titulo: 'Hoja de vida en PDF', texto: 'Todo el historial del vehículo, listo para compartir o para cuando lo vendas.' },
+];
+
+// Partes que AlDía controla en cada tipo de vehículo (las mismas del plan base)
+const VEHICULOS = [
+  { tipo: 'Moto', titulo: 'Para tu moto', partes: ['Aceite y filtro', 'Kit de arrastre', 'Pastillas de freno', 'Llantas', 'Bujía', 'Batería'] },
+  { tipo: 'Carro', titulo: 'Para tu carro', partes: ['Aceite y filtros', 'Correa de distribución', 'Alineación y balanceo', 'Frenos', 'Refrigerante', 'Llantas'] },
 ];
 
 const ESTADOS = [
@@ -68,7 +75,7 @@ export default function Bienvenida() {
           <View style={[contenedor, { flexDirection: ancha ? 'row' : 'column', gap: 36, alignItems: 'center' }]}>
             <View style={{ flex: ancha ? 1.1 : undefined, gap: 16 }}>
               <View style={{ alignSelf: 'flex-start', backgroundColor: c.superficie, borderRadius: 99, paddingHorizontal: 12, paddingVertical: 4 }}>
-                <Text style={{ color: c.primario, fontWeight: '700', fontSize: 13 }}>🏍️ Para motos y carros 🚗</Text>
+                <Text style={{ color: c.primario, fontWeight: '700', fontSize: 13 }}>Para motos y carros</Text>
               </View>
               <Text style={{ fontSize: ancha ? 44 : 32, fontWeight: '800', color: c.texto, lineHeight: ancha ? 52 : 38 }}>
                 Que no se te pase ningún cambio de tu vehículo.
@@ -85,9 +92,9 @@ export default function Bienvenida() {
               <Text style={{ color: c.textoSuave, fontSize: 13 }}>Funciona en el celular y en el computador.</Text>
             </View>
 
-            {/* Vista previa ilustrativa de cómo se ve un vehículo dentro de la app */}
-            <View style={{ flex: ancha ? 0.9 : undefined, width: ancha ? undefined : '100%', maxWidth: 440 }}>
-              <VistaPrevia />
+            {/* Ilustración: una moto y un carro en la carretera, con avisos de AlDía */}
+            <View style={{ flex: ancha ? 1 : undefined, width: ancha ? undefined : '100%', maxWidth: 560 }}>
+              <EscenaCarretera />
             </View>
           </View>
         </View>
@@ -106,8 +113,34 @@ export default function Bienvenida() {
           </View>
         </View>
 
+        {/* ---------------- Para motos y carros ---------------- */}
+        <View style={{ backgroundColor: c.superficie, paddingVertical: 48 }}>
+          <View style={[contenedor, { gap: 24 }]}>
+            <Text style={titulo}>Hecho para motos y carros</Text>
+            <Text style={subtitulo}>AlDía ya sabe qué partes tiene cada vehículo y cada cuánto se cambian. Tú solo ajustas lo que diga tu manual.</Text>
+            <View style={[rejilla, { alignItems: 'stretch' }]}>
+              {VEHICULOS.map((v) => (
+                <View key={v.tipo} style={[tarjeta, ancha ? { flexBasis: '48%', flexGrow: 1 } : {}, { backgroundColor: c.fondo, alignItems: 'center', gap: 14 }]}>
+                  <View style={{ width: '80%', maxWidth: 320 }}>
+                    {v.tipo === 'Moto' ? <IlustracionMoto /> : <IlustracionCarro color="#d9534f" />}
+                  </View>
+                  <Text style={{ fontSize: 20, fontWeight: '800', color: c.texto }}>{v.titulo}</Text>
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
+                    {v.partes.map((p) => (
+                      <View key={p} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: c.superficie, borderColor: c.borde, borderWidth: 1, borderRadius: 99, paddingHorizontal: 12, paddingVertical: 6 }}>
+                        <Ionicons name="checkmark-circle" size={16} color={c.bien} />
+                        <Text style={{ color: c.texto, fontSize: 14 }}>{p}</Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              ))}
+            </View>
+          </View>
+        </View>
+
         {/* ---------------- Cómo funciona ---------------- */}
-        <View onLayout={guardarPosicion('pasos')} style={{ backgroundColor: c.superficie, paddingVertical: 48 }}>
+        <View onLayout={guardarPosicion('pasos')} style={{ paddingVertical: 48 }}>
           <View style={[contenedor, { gap: 24 }]}>
             <Text style={titulo}>Cómo funciona</Text>
             <Text style={subtitulo}>En tres pasos tienes el mantenimiento de tu vehículo bajo control.</Text>
@@ -126,7 +159,8 @@ export default function Bienvenida() {
         </View>
 
         {/* ---------------- Funciones ---------------- */}
-        <View onLayout={guardarPosicion('funciones')} style={[contenedor, { paddingVertical: 48, gap: 24 }]}>
+        <View onLayout={guardarPosicion('funciones')} style={{ backgroundColor: c.superficie, paddingVertical: 48 }}>
+          <View style={[contenedor, { gap: 24 }]}>
           <Text style={titulo}>Todo lo que hace por ti</Text>
           <View style={rejilla}>
             {FUNCIONES.map((f) => (
@@ -141,16 +175,17 @@ export default function Bienvenida() {
               </View>
             ))}
           </View>
+          </View>
         </View>
 
         {/* ---------------- Estados con colores ---------------- */}
-        <View style={{ backgroundColor: c.superficie, paddingVertical: 48 }}>
+        <View style={{ paddingVertical: 48 }}>
           <View style={[contenedor, { gap: 24 }]}>
             <Text style={titulo}>Los colores te dicen qué hacer</Text>
             <Text style={subtitulo}>Cada parte muestra su desgaste con una barra y un color.</Text>
             <View style={rejilla}>
               {ESTADOS.map((e) => (
-                <View key={e.estado} style={[tarjeta, columna, { backgroundColor: c.fondo }]}>
+                <View key={e.estado} style={[tarjeta, columna]}>
                   <Etiqueta estado={ESTADO_PARTE[e.estado]} />
                   <BarraDesgaste porcentaje={e.porcentaje} estado={e.estado} />
                   <Text style={{ fontSize: 15, fontWeight: '700', color: c.texto }}>{e.rango}</Text>
@@ -158,12 +193,21 @@ export default function Bienvenida() {
                 </View>
               ))}
             </View>
+            {/* Vista previa de cómo se ve un vehículo dentro de la app */}
+            <Text style={[subtitulo, { marginTop: 8 }]}>Así se ve tu vehículo dentro de AlDía:</Text>
+            <View style={{ width: '100%', maxWidth: 440, alignSelf: 'center' }}>
+              <VistaPrevia />
+            </View>
           </View>
         </View>
 
         {/* ---------------- Llamado final ---------------- */}
         <View style={[contenedor, { paddingVertical: 48 }]}>
           <View style={{ backgroundColor: c.primario, borderRadius: 18, padding: ancha ? 40 : 24, alignItems: 'center', gap: 14 }}>
+            <View style={{ flexDirection: 'row', gap: 16, alignItems: 'flex-end' }}>
+              <IlustracionMoto ancho={ancha ? 150 : 110} color="#ffffff" />
+              <IlustracionCarro ancho={ancha ? 170 : 120} color="#e0a100" />
+            </View>
             <Text style={{ fontSize: ancha ? 28 : 22, fontWeight: '800', color: c.primarioTexto, textAlign: 'center' }}>
               Empieza hoy a llevar el mantenimiento al día
             </Text>

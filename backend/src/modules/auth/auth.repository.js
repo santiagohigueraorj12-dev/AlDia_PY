@@ -9,17 +9,23 @@ function buscarPorId(id) {
   return queryUno('SELECT * FROM usuarios WHERE id = ?', [id]);
 }
 
-async function crear({ nombre, correo, telefono, passwordHash }) {
+async function crear({ nombre, correo, passwordHash }) {
   const r = await query(
-    `INSERT INTO usuarios (nombre, correo, telefono, password_hash, acepta_datos_en)
-     VALUES (?, ?, ?, ?, NOW())`,
-    [nombre, correo, telefono || null, passwordHash],
+    `INSERT INTO usuarios (nombre, correo, password_hash, acepta_datos_en)
+     VALUES (?, ?, ?, NOW())`,
+    [nombre, correo, passwordHash],
   );
   return r.insertId;
 }
 
-function actualizarPerfil(id, { nombre, telefono }) {
-  return query('UPDATE usuarios SET nombre = ?, telefono = ? WHERE id = ?', [nombre, telefono || null, id]);
+/** Columnas del perfil que el usuario puede cambiar (RF-03). */
+const CAMPOS_PERFIL = ['nombre', 'telefono', 'tipo_documento', 'numero_documento', 'fecha_nacimiento',
+  'departamento', 'ciudad', 'direccion', 'licencia_categoria', 'licencia_vence'];
+
+function actualizarPerfil(id, datos) {
+  const asignaciones = CAMPOS_PERFIL.map((c) => `${c} = ?`).join(', ');
+  const valores = CAMPOS_PERFIL.map((c) => datos[c] ?? null);  // lo que no venga queda vacío (NULL)
+  return query(`UPDATE usuarios SET ${asignaciones} WHERE id = ?`, [...valores, id]);
 }
 
 function guardarTokenRecuperacion(id, token) {

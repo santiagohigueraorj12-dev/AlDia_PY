@@ -8,10 +8,11 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { api, descargarYCompartir } from '../../../api/cliente';
 import { useDatos } from '../../../api/useDatos';
 import {
-  Aviso, BarraDesgaste, Boton, Cargando, Cifra, ElementoLista, Etiqueta, Fila, IconoVehiculo,
+  Aviso, BarraDesgaste, Boton, Cargando, Cifra, ElementoLista, Etiqueta, Fila,
   Pantalla, Segmentos, Separador, Tarjeta, Texto, TituloSeccion, Vacio,
 } from '../../../components/ui';
 import { useColores } from '../../../tema';
+import { IlustracionTaller, IlustracionVehiculo } from '../../../components/Ilustraciones';
 import { avisar, confirmar } from '../../../utils/dialogos';
 import {
   ESTADO_DOCUMENTO, ESTADO_PARTE, ESTADO_VEHICULO, EXPLICACION_VEHICULO, NOMBRE_DOCUMENTO,
@@ -27,6 +28,7 @@ const SECCIONES = [
 export default function DetalleVehiculo() {
   const { id } = useLocalSearchParams();
   const { width } = useWindowDimensions();
+  const c = useColores();
   const { datos: vehiculo, error, refrescar, refrescando } = useDatos(`/vehiculos/${id}`);
   const [seccion, setSeccion] = useState('partes');
 
@@ -56,8 +58,10 @@ export default function DetalleVehiculo() {
       <Stack.Screen options={{ title: vehiculo.placa }} />
 
       {/* Encabezado: qué vehículo es y cómo está, en una frase */}
-      <Tarjeta estilo={{ flexDirection: 'row', gap: 14, alignItems: 'center' }}>
-        <IconoVehiculo tipo={vehiculo.tipo} tono={estado.clase} tamano={60} />
+      <Tarjeta estilo={{ flexDirection: 'row', flexWrap: 'wrap', gap: 14, alignItems: 'center' }}>
+        <View style={{ width: 130, height: 86, borderRadius: 14, backgroundColor: c[`${estado.clase}Fondo`], alignItems: 'center', justifyContent: 'center' }}>
+          <IlustracionVehiculo tipo={vehiculo.tipo} ancho={112} color={c[estado.clase]} />
+        </View>
         <View style={{ flex: 1, gap: 4 }}>
           <Fila estilo={{ justifyContent: 'space-between' }}>
             <Texto variante="titulo">{vehiculo.placa}</Texto>
@@ -192,7 +196,7 @@ function Servicios({ vehiculoId }) {
   if (!servicios) return <Cargando />;
   if (servicios.length === 0) {
     return (
-      <Vacio icono="time-outline" titulo="Aún no hay cambios registrados"
+      <Vacio ilustracion={<IlustracionTaller />} titulo="Aún no hay cambios registrados"
         texto="Cada vez que cambies una parte, regístralo aquí. Así AlDía sabe cuándo te toca el próximo cambio."
         boton={<Boton titulo="Registrar un cambio" icono="construct" tipo="primario" onPress={() => router.push(`/vehiculo/${vehiculoId}/servicio`)} />} />
     );

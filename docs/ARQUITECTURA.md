@@ -23,7 +23,21 @@ El backend está organizado **por capas** (RNF-10). Cada capa tiene una sola res
 | Dominio | `domain/*.js` | Fórmulas y reglas **puras** (sin BD), fáciles de probar | Acceder a la BD |
 
 > **¿Por qué `domain/` aparte?** Porque las reglas importantes (desgaste, estados, alertas) se pueden probar
-> sin base de datos ni servidor. Por eso las pruebas unitarias (`backend/tests/`) solo prueban `domain/`.
+> sin base de datos ni servidor. Por eso las pruebas unitarias (`backend/tests/`) prueban `domain/` y `utils/`,
+> y las de la app (`app/tests/`) prueban las funciones puras de `src/utils/` (formatos y lista de tareas).
+
+## Base de datos: migraciones y semillas
+
+Las tablas no se crean a mano. Al encender el backend, `src/config/prepararBD.js`:
+
+1. Busca MariaDB (puerto del `.env` y, si no responde, 3306 y 3320).
+2. Crea la base `aldia` si no existe.
+3. Ejecuta, en orden, los archivos de `database/migraciones/` que aún no estén anotados en la tabla `migraciones`
+   (un archivo por tabla: `001_crear_usuarios.sql`, `002_crear_tipos_vehiculo.sql`, …).
+4. Si la base es nueva, ejecuta `database/semillas/` (catálogos, administrador y datos demo).
+
+Para cambiar una tabla se **agrega** una migración nueva (como `013_agregar_perfil_a_usuarios.sql`), nunca se
+edita una vieja: así todos los computadores quedan con la misma base. A mano: `npm run bd:migrar`.
 
 ## Ejemplo: ¿qué pasa al registrar un cambio de aceite?
 
@@ -87,7 +101,7 @@ con `AppError.campo('km', 'mensaje')`.
 | Método | Ruta | Para qué |
 |---|---|---|
 | POST | `/api/auth/registro` · `/login` · `/recuperar` · `/restablecer` | Cuenta (públicas) |
-| GET/PUT/DELETE | `/api/auth/perfil` · `/password` · `/cuenta` | Mi cuenta |
+| GET/PUT/DELETE | `/api/auth/perfil` · `/password` · `/cuenta` | Mi perfil (datos, % completo, estado de la licencia) y cuenta |
 | GET/POST | `/api/vehiculos` | Listar / registrar |
 | GET/PUT/DELETE | `/api/vehiculos/:id` | Detalle / editar / eliminar |
 | POST/GET | `/api/vehiculos/:id/kilometraje` | Actualizar km / historial |
@@ -115,7 +129,8 @@ Usa **Expo Router**: cada archivo dentro de `src/app/` es una pantalla y su ruta
 |---|---|
 | `src/app/_layout.js` | Raíz: sesión y qué pantallas se ven con o sin sesión (`Stack.Protected`) |
 | `src/app/bienvenida.js` | Página de inicio pública: qué es AlDía, cómo funciona y funciones. Es lo primero que ve quien no ha iniciado sesión |
-| `src/app/login.js`, `registro.js`, `recuperar.js` | Cuenta (usan `components/PantallaAutenticacion.js`) |
+| `src/app/login.js`, `registro.js`, `recuperar.js` | Cuenta (usan `components/PantallaAutenticacion.js`). El registro solo pide nombre, correo y contraseña |
+| `src/app/perfil.js` | Mi perfil: documento, fecha de nacimiento, teléfono, dirección y licencia (RF-03, RN-18) |
 | `src/app/(tabs)/_layout.js` | Pestañas de abajo: Inicio, Vehículos, Calendario, Alertas, Cuenta (y Admin) |
 | `src/app/(tabs)/index.js` | Inicio (panel) |
 | `src/app/vehiculo/[id]/index.js` | Detalle del vehículo (`[id]` = número del vehículo) |
@@ -130,10 +145,14 @@ Piezas clave:
   cerrar "Registrar cambio", el detalle del vehículo ya aparece actualizado sin código extra.
 - `src/components/ui.js` — botones (con ícono), campos (con `*` de obligatorio y error en rojo), contraseña con botón para verla,
   tarjetas, etiquetas de estado, barra de desgaste y las piezas que hacen la interfaz intuitiva: `Icono` (ícono en círculo
-  de color), `IconoVehiculo`, `ElementoLista` (fila tocable con flecha), `Segmentos` (pestañas dentro de una pantalla),
+  de color), `ElementoLista` (fila tocable con flecha), `Segmentos` (pestañas dentro de una pantalla),
   `Vacio` (lista vacía que explica qué hacer), `Paso` (pasos numerados de un formulario) y `Aviso` con botón de acción.
 - `src/utils/tareas.js` — arma la lista "Lo que debes hacer" del Inicio: documentos vencidos, partes vencidas,
   kilometraje sin actualizar y lo que está próximo, cada uno con el botón que lleva a resolverlo.
+- `src/components/Ilustraciones.js` — dibujos propios en SVG (moto, carro, escena de carretera y taller) que toman
+  los colores del tema. Se usan en la página pública, el login, el inicio, los vehículos y las listas vacías.
+- `src/components/Selector.js` — campo para elegir de una lista (tipo de documento, departamento, categoría de
+  licencia); si la lista es larga trae buscador. Las listas están en `src/utils/colombia.js`.
 - `src/components/EncabezadoPublico.js` — barra superior de las pantallas públicas: logo a la izquierda, "Iniciar sesión" y "Crear cuenta" a la derecha.
 - `src/components/AsistenteFlotante.js` — botón redondo abajo a la derecha (solo con sesión, en las pestañas y en el
   detalle del vehículo) que abre el chat del asistente. Las respuestas las arma el backend en `domain/asistente.js`

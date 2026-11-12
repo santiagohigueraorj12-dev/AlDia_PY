@@ -22,25 +22,25 @@ Integrantes: Simon Higuera y Santiago Higuera.
 
 ## Cómo ponerlo a funcionar
 
-### 1. Base de datos (HeidiSQL)
-1. Abre **HeidiSQL** y crea una conexión: host `127.0.0.1`, usuario `root`, contraseña vacía, **puerto `3320`**.
-2. Menú **Archivo → Cargar archivo SQL…**, elige `database/01_schema.sql` y presiona **F9**.
-3. Haz lo mismo con `database/02_datos_iniciales.sql` (catálogos y usuario administrador).
-4. *(Opcional)* Haz lo mismo con `database/03_datos_demo.sql` (datos de ejemplo para la presentación).
-5. Presiona **F5**: debe aparecer la base `aldia` con 12 tablas.
+**Necesitas:** [Node.js](https://nodejs.org) (versión LTS) y **MariaDB** encendido (el de HeidiSQL, XAMPP o Laragon).
+No hay que crear la base de datos a mano: **el backend la crea sola** la primera vez que se enciende.
 
-> ⚠️ `01_schema.sql` **borra y vuelve a crear** la base `aldia`. Úsalo solo para empezar de cero.
+### Opción rápida (Windows): doble clic en `iniciar.bat`
+Instala las librerías la primera vez, enciende el backend en otra ventana y abre la app en el navegador
+(http://localhost:8081). Para apagar todo, cierra las dos ventanas.
 
-### 2. Backend (API)
+### Opción manual
+**1. Backend (API)** — en una terminal:
 ```bash
 cd backend
 npm install
-copy .env.example .env      # en Git Bash: cp .env.example .env  (revisa el puerto de la BD)
 npm run dev                 # queda en http://localhost:4000
 ```
+Al encenderse busca MariaDB (en el puerto del archivo `.env` y, si no responde, en el 3306 y el 3320), crea la base
+`aldia`, ejecuta las **migraciones** que falten y, si la base es nueva, carga los datos iniciales y de demostración.
+Si tu MariaDB usa otro usuario, contraseña o puerto, copia `backend/.env.example` como `backend/.env` y ajústalo.
 
-### 3. App (celular y computador)
-Es **un solo proyecto** que se abre en el celular y en el navegador del computador. En **otra** terminal:
+**2. App (celular y computador)** — en **otra** terminal:
 ```bash
 cd app
 npm install
@@ -60,11 +60,23 @@ La app encuentra sola el backend (puerto 4000) usando la dirección del computad
   (o abre el puerto 4000 en el Firewall de Windows).
 - Puedes fijar la dirección a mano creando `app/.env` con `EXPO_PUBLIC_API_URL=http://TU-IP:4000`.
 
+### Base de datos: migraciones y semillas
+La carpeta `database/` tiene **un archivo SQL por tabla**:
+
+| Carpeta | Qué tiene |
+|---|---|
+| `database/migraciones/` | `001_crear_usuarios.sql` … `012_crear_notificaciones.sql`: crean cada tabla. `013_agregar_perfil_a_usuarios.sql`: agrega columnas a una tabla que ya existía. |
+| `database/semillas/` | Datos iniciales: catálogos (tipos de vehículo, plan base de partes, reglas RTM), el usuario administrador y los datos de demostración. |
+
+La tabla **`migraciones`** anota cuáles ya se ejecutaron, así cada archivo corre una sola vez. Para cambiar la base
+**no se edita una migración vieja**: se agrega una nueva con el número siguiente (`014_...sql`) y se ejecuta con
+`npm run bd:migrar` (o al encender el backend). En HeidiSQL se ve el resultado: la base `aldia` con sus tablas.
+
 ### Usuarios de prueba
 | Rol | Correo | Contraseña |
 |---|---|---|
 | Administrador | `admin@aldia.co` | `Admin123*` |
-| Usuario demo (si cargaste `03_datos_demo.sql`) | `demo@aldia.co` | `Demo123*` |
+| Usuario demo (se crea con la base nueva) | `demo@aldia.co` | `Demo123*` |
 
 El usuario demo tiene una **moto** que "Requiere atención" (pastillas de freno vencidas) y un **carro** "No apto
 para circular" (revisión técnico-mecánica vencida, SOAT por vencer y kilometraje estimado).
@@ -72,35 +84,48 @@ para circular" (revisión técnico-mecánica vencida, SOAT por vencer y kilometr
 ### Pruebas unitarias
 ```bash
 cd backend
-npm test                    # 82 pruebas: reglas de negocio, validaciones y asistente
+npm test                    # 127 pruebas: reglas de negocio, perfil, fechas, errores, validaciones y asistente
 npm run test:cobertura      # con porcentaje de cobertura
+
+cd ../app
+npm test                    # 23 pruebas: formatos y lista "Lo que debes hacer"
 ```
+Cada prueba tiene un identificador fijo (por ejemplo `CP-DES-02`). La documentación de pruebas sigue la norma
+**ISO/IEC/IEEE 29119-3** y está en `docs/pruebas/`:
+- `AlDia_Documentacion_de_Pruebas.docx` (y PDF): política y estrategia, plan de pruebas con registro de riesgos,
+  diseño (conjuntos y condiciones), procedimientos, datos y entorno, registro de ejecución, incidentes e informes.
+- `AlDia_Especificacion_Casos_de_Prueba.xlsx`: los 150 casos con entradas, resultado esperado y resultado real,
+  la matriz de trazabilidad con los requisitos, el registro de ejecución y los incidentes.
 
 ---
 
 ## Estructura de carpetas
 ```
 AlDia_PY/
-├── database/            Scripts SQL para HeidiSQL (esquema, catálogos, demo)
-├── docs/                Alcance (reglas y requisitos) y arquitectura
+├── database/
+│   ├── migraciones/     Un archivo SQL por tabla (se ejecutan solos, en orden)
+│   └── semillas/        Datos iniciales: catálogos, administrador y demo
+├── docs/                Alcance, arquitectura, documento de análisis y pruebas (docs/pruebas/, ISO/IEC/IEEE 29119-3)
 ├── app/                 ⭐ App para celular y computador (Expo)
 │   └── src/
 │       ├── app/         Pantallas: cada archivo es una pantalla (Expo Router)
-│       ├── components/  Piezas reutilizables (botones, campos, barra de desgaste…)
+│       ├── components/  Piezas reutilizables (botones, campos, ilustraciones…)
 │       ├── api/         Cliente que llama al backend + hook useDatos
 │       ├── context/     Sesión del usuario
-│       └── utils/       Formatos colombianos y diálogos
+│       └── utils/       Formatos colombianos, listas de Colombia y tareas del inicio
+│   └── tests/           Pruebas unitarias de la app
 ├── backend/
 │   ├── src/
 │   │   ├── domain/      ⭐ Reglas de negocio puras (desgaste, km, documentos…)
 │   │   ├── modules/     Un módulo por funcionalidad: rutas → controlador → servicio → repositorio
 │   │   ├── middlewares/ Sesión (JWT), validación, archivos, errores
 │   │   ├── jobs/        Tarea automática diaria (alertas)
-│   │   ├── config/      Conexión a la BD y variables de entorno
+│   │   ├── config/      Conexión a la BD, variables de entorno y migraciones
 │   │   ├── utils/       Fechas, PDF, errores
 │   │   ├── app.js       Todas las rutas de la API
 │   │   └── server.js    Arranque
-│   └── tests/           Pruebas unitarias de domain/
+│   └── tests/           Pruebas unitarias de domain/ y utils/
+└── iniciar.bat          Enciende todo con doble clic (Windows)
 ```
 
 ## Notas

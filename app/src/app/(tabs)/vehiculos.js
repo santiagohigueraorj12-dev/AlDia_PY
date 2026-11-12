@@ -4,8 +4,9 @@ import { router } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useDatos } from '../../api/useDatos';
 import { urlArchivo } from '../../api/cliente';
-import { Aviso, Boton, Cargando, Etiqueta, Fila, IconoVehiculo, Pantalla, Tarjeta, Texto, Vacio } from '../../components/ui';
+import { Aviso, Boton, Cargando, Etiqueta, Fila, Pantalla, Tarjeta, Texto, Vacio } from '../../components/ui';
 import { useColores } from '../../tema';
+import { EscenaCarretera, IlustracionVehiculo } from '../../components/Ilustraciones';
 import { ESTADO_VEHICULO, EXPLICACION_VEHICULO, km, pesos } from '../../utils/formato';
 
 export default function Vehiculos() {
@@ -18,7 +19,7 @@ export default function Vehiculos() {
   if (vehiculos.length === 0) {
     return (
       <Pantalla>
-        <Vacio icono="car-sport-outline" titulo="Aún no tienes vehículos"
+        <Vacio ilustracion={<View style={{ width: '100%', maxWidth: 380 }}><EscenaCarretera /></View>} titulo="Aún no tienes vehículos"
           texto="Registra tu moto o carro. Solo necesitas la placa, la marca, el modelo y el kilometraje."
           boton={<Boton titulo="Registrar mi vehículo" icono="add-circle-outline" tipo="primario" onPress={() => router.push('/vehiculo/nuevo')} />} />
       </Pantalla>
@@ -36,8 +37,12 @@ export default function Vehiculos() {
             <Pressable onPress={() => router.push(`/vehiculo/${v.id}`)} accessibilityRole="button" accessibilityLabel={`Ver ${v.placa}`}
               style={({ pressed }) => ({ flexDirection: 'row', gap: 12, alignItems: 'center', opacity: pressed ? 0.75 : 1 })}>
               {v.foto_url
-                ? <Image source={{ uri: urlArchivo(v.foto_url) }} style={{ width: 64, height: 64, borderRadius: 12 }} accessibilityLabel={`Foto de ${v.placa}`} />
-                : <IconoVehiculo tipo={v.tipo} tono={estado.clase} tamano={64} />}
+                ? <Image source={{ uri: urlArchivo(v.foto_url) }} style={{ width: 96, height: 64, borderRadius: 12 }} accessibilityLabel={`Foto de ${v.placa}`} />
+                : (
+                  <View style={{ width: 96, height: 64, borderRadius: 12, backgroundColor: c[`${estado.clase}Fondo`], alignItems: 'center', justifyContent: 'center' }}>
+                    <IlustracionVehiculo tipo={v.tipo} ancho={82} color={c[estado.clase]} />
+                  </View>
+                )}
               <View style={{ flex: 1, gap: 3 }}>
                 <Fila estilo={{ justifyContent: 'space-between' }}>
                   <Texto variante="negrita" estilo={{ fontSize: 17 }}>{v.placa}</Texto>

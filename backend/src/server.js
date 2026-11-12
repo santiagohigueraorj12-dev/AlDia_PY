@@ -1,19 +1,20 @@
 // Punto de entrada del backend:  npm run dev
-const app = require('./app');
 const config = require('./config/env');
-const { pool } = require('./config/db');
-const tareaDiaria = require('./jobs/tareaDiaria');
+const { prepararBaseDeDatos } = require('./config/prepararBD');
 
 async function iniciar() {
-  // Verifica la conexión a MariaDB antes de aceptar peticiones
+  // Antes de aceptar peticiones: buscar MariaDB y crear la base si hace falta
   try {
-    const conn = await pool.getConnection();
-    conn.release();
+    await prepararBaseDeDatos();
   } catch (error) {
-    console.error('No se pudo conectar a MariaDB. Revisa el archivo .env y que la base "aldia" exista.');
     console.error(error.message);
     process.exit(1);
   }
+
+  // Se cargan después, porque al cargarse crean el pool de conexiones
+  // con el puerto que encontró prepararBaseDeDatos()
+  const app = require('./app');
+  const tareaDiaria = require('./jobs/tareaDiaria');
 
   app.listen(config.puerto, () => {
     console.log(`API de AlDía escuchando en http://localhost:${config.puerto}`);

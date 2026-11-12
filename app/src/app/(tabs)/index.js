@@ -7,9 +7,10 @@ import { router } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useDatos } from '../../api/useDatos';
 import { useSesion } from '../../context/SesionContext';
-import { Aviso, Boton, Cargando, Cifra, ElementoLista, Etiqueta, Fila, IconoVehiculo, Pantalla, Separador, Tarjeta, Texto, TituloSeccion, Vacio } from '../../components/ui';
+import { Aviso, BarraDesgaste, Boton, Cargando, Cifra, ElementoLista, Etiqueta, Fila, Icono, Pantalla, Separador, Tarjeta, Texto, TituloSeccion, Vacio } from '../../components/ui';
 import { useColores } from '../../tema';
 import { armarTareas } from '../../utils/tareas';
+import { EscenaCarretera, IlustracionVehiculo } from '../../components/Ilustraciones';
 import { ESTADO_VEHICULO, km, pesos } from '../../utils/formato';
 
 const TAREAS_VISIBLES = 4;
@@ -31,7 +32,7 @@ export default function Inicio() {
       <Pantalla>
         <Texto variante="titulo">¡Hola, {nombre}! 👋</Texto>
         <Vacio
-          icono="car-sport-outline"
+          ilustracion={<View style={{ width: '100%', maxWidth: 380 }}><EscenaCarretera /></View>}
           titulo="Empieza registrando tu vehículo"
           texto="Registra tu moto o carro y AlDía te dirá qué partes cambiar, cuándo vencen tus documentos y cuánto gastas."
           boton={<Boton titulo="Registrar mi vehículo" icono="add-circle-outline" tipo="primario" onPress={() => router.push('/vehiculo/nuevo')} />}
@@ -40,7 +41,7 @@ export default function Inicio() {
     );
   }
 
-  const tareas = armarTareas(panel);
+  const tareas = armarTareas(panel, usuario);
   const visibles = verTodas ? tareas : tareas.slice(0, TAREAS_VISIBLES);
   const vencidas = panel.partesUrgentes.filter((p) => p.desgaste.estado === 'vencida').length;
   const proximas = panel.partesUrgentes.filter((p) => p.desgaste.estado === 'proxima').length;
@@ -48,7 +49,9 @@ export default function Inicio() {
 
   return (
     <Pantalla onRefrescar={refrescar} refrescando={refrescando}>
-      <Resumen nombre={nombre} pendientes={tareas.length} />
+      <Resumen nombre={nombre} pendientes={tareas.length} tipo={panel.vehiculos[0].tipo} />
+
+      {usuario.perfil.porcentaje < 100 && <CompletarPerfil perfil={usuario.perfil} />}
 
       {/* 1. Lo que debe hacer el usuario, con el botón para hacerlo */}
       {tareas.length > 0 && (
@@ -90,7 +93,7 @@ export default function Inicio() {
 }
 
 /** Saludo con una frase que resume todo: "Tienes 5 cosas pendientes" o "Todo está al día". */
-function Resumen({ nombre, pendientes }) {
+function Resumen({ nombre, pendientes, tipo }) {
   const c = useColores();
   const alDia = pendientes === 0;
   return (
@@ -103,8 +106,24 @@ function Resumen({ nombre, pendientes }) {
             : `Tienes ${pendientes} ${pendientes === 1 ? 'cosa pendiente' : 'cosas pendientes'}. Empieza por la primera de la lista.`}
         </Text>
       </View>
-      <Ionicons name={alDia ? 'shield-checkmark' : 'construct'} size={44} color={c.primarioTexto} style={{ opacity: 0.85 }} />
+      {/* Ilustración del primer vehículo del usuario, en blanco sobre el azul */}
+      <IlustracionVehiculo tipo={tipo} ancho={110} color="#ffffff" />
     </View>
+  );
+}
+
+/** Invita a llenar los datos que faltan del perfil (RF-03). */
+function CompletarPerfil({ perfil }) {
+  return (
+    <Tarjeta estilo={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+      <Icono nombre="person-circle-outline" tono="primario" tamano={44} />
+      <View style={{ flex: 1, gap: 6 }}>
+        <Texto variante="negrita">Completa tu perfil ({perfil.porcentaje} %)</Texto>
+        <BarraDesgaste porcentaje={perfil.porcentaje} estado="proxima" />
+        <Texto variante="pequeno">Te falta: {perfil.faltan.join(', ').toLowerCase()}.</Texto>
+      </View>
+      <Boton titulo="Completar" icono="create-outline" pequeno onPress={() => router.push('/perfil')} />
+    </Tarjeta>
   );
 }
 
@@ -117,7 +136,9 @@ function TarjetaVehiculo({ vehiculo: v }) {
     <Pressable onPress={() => router.push(`/vehiculo/${v.id}`)} accessibilityRole="button" accessibilityLabel={`Ver ${v.placa}`}
       style={({ pressed }) => ({ opacity: pressed ? 0.75 : 1 })}>
       <Tarjeta estilo={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-        <IconoVehiculo tipo={v.tipo} tono={estado.clase} />
+        <View style={{ width: 76, height: 52, borderRadius: 10, backgroundColor: c[`${estado.clase}Fondo`], alignItems: 'center', justifyContent: 'center' }}>
+          <IlustracionVehiculo tipo={v.tipo} ancho={64} color={c[estado.clase]} />
+        </View>
         <View style={{ flex: 1, gap: 4 }}>
           <Fila estilo={{ justifyContent: 'space-between' }}>
             <Texto variante="negrita" estilo={{ fontSize: 16 }}>{v.placa}</Texto>

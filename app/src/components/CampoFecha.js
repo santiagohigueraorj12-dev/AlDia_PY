@@ -20,7 +20,8 @@ function aTexto(date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
 
-export default function CampoFecha({ etiqueta, valor, onCambio, minima, maxima, error, ayuda, obligatorio = false }) {
+// borrable: muestra "Quitar fecha" en el celular (para fechas opcionales, como la de nacimiento)
+export default function CampoFecha({ etiqueta, valor, onCambio, minima, maxima, error, ayuda, obligatorio = false, borrable = false }) {
   const c = useColores();
   const [mostrarIos, setMostrarIos] = useState(false);
   const actual = valor ? aDate(valor) : new Date();
@@ -75,6 +76,11 @@ export default function CampoFecha({ etiqueta, valor, onCambio, minima, maxima, 
       <Pressable onPress={abrir} style={estiloCaja} accessibilityRole="button">
         <Text style={{ color: valor ? c.texto : c.textoSuave, fontSize: 15 }}>{valor ? formatoFecha(valor) : 'Elegir fecha'}</Text>
       </Pressable>
+      {borrable && valor ? (
+        <Pressable onPress={() => onCambio('')} accessibilityRole="button" style={{ alignSelf: 'flex-start' }}>
+          <Text style={{ color: c.primario, fontSize: 13, fontWeight: '600' }}>Quitar fecha</Text>
+        </Pressable>
+      ) : null}
       {mostrarIos && (
         <DateTimePicker
           value={actual}

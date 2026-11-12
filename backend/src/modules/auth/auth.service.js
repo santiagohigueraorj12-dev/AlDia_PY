@@ -5,6 +5,8 @@ const jwt = require('jsonwebtoken');
 const config = require('../../config/env');
 const AppError = require('../../utils/AppError');
 const repo = require('./auth.repository');
+const { hoy } = require('../../utils/fechas');
+const { validarPerfil, completitudPerfil, estadoLicencia } = require('../../domain/perfil');
 
 const RONDAS_BCRYPT = 10;
 
@@ -13,18 +15,24 @@ function firmarToken(usuario) {
   return jwt.sign({ id: usuario.id }, config.jwt.secreto, { expiresIn: config.jwt.expira });
 }
 
-/** Quita los campos sensibles antes de enviar el usuario al cliente. */
+/** Quita los campos sensibles antes de enviar el usuario al cliente, y agrega cómo va su perfil. */
 function datosPublicos(u) {
-  return { id: u.id, nombre: u.nombre, correo: u.correo, telefono: u.telefono, rol: u.rol };
+  const datos = {
+    id: u.id, nombre: u.nombre, correo: u.correo, rol: u.rol,
+    telefono: u.telefono, tipo_documento: u.tipo_documento, numero_documento: u.numero_documento,
+    fecha_nacimiento: u.fecha_nacimiento, departamento: u.departamento, ciudad: u.ciudad, direccion: u.direccion,
+    licencia_categoria: u.licencia_categoria, licencia_vence: u.licencia_vence,
+  };
+  return { ...datos, perfil: completitudPerfil(datos), estadoLicencia: estadoLicencia(u.licencia_vence, hoy()) };
 }
 
 /** RF-01: registro. Exige la autorización de tratamiento de datos (Ley 1581). */
-async function registrar({ nombre, correo, telefono, password, aceptaDatos }) {
+async function registrar({ nombre, correo, password, aceptaDatos }) {
   if (!aceptaDatos) throw new AppError('Debes autorizar el tratamiento de tus datos personales');
   if (await repo.buscarPorCorreo(correo)) throw AppError.campo('correo', 'Ya existe una cuenta con ese correo. ¿Quieres iniciar sesión?', 409);
 
   const passwordHash = await bcrypt.hash(password, RONDAS_BCRYPT);
-  const id = await repo.crear({ nombre, correo, telefono, passwordHash });
+  const id = await repo.crear({ nombre, correo, passwordHash });
   const usuario = await repo.buscarPorId(id);
   return { token: firmarToken(usuario), usuario: datosPublicos(usuario) };
 }
@@ -70,6 +78,12 @@ async function perfil(id) {
 }
 
 async function actualizarPerfil(id, datos) {
+  // RN-18: reglas entre campos (edad mínima, documento y licencia completos)
+  const errores = validarPerfil(datos, hoy());
+  const campos = Object.keys(errores);
+  if (campos.length) {
+    throw new AppError(campos.length === 1 ? errores[campos[0]] : 'Revisa los campos marcados.', 400, { campo: campos[0], errores });
+  }
   await repo.actualizarPerfil(id, datos);
   return perfil(id);
 }

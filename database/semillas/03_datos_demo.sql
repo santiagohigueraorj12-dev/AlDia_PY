@@ -1,12 +1,9 @@
 -- =====================================================================
---  AlDía - Datos de DEMOSTRACIÓN (opcional, útil para la sustentación)
---  Ejecutar en HeidiSQL después de 02_datos_iniciales.sql.
+--  Semilla 03: datos de demostración (útiles para la sustentación)
+-- =====================================================================
 --  Las fechas se calculan desde HOY (CURDATE()), así siempre hay partes
 --  y documentos en distintos estados.
---
 --  Usuario: demo@aldia.co   Contraseña: Demo123*
--- =====================================================================
-USE aldia;
 
 SET @hace6meses = CURDATE() - INTERVAL 6 MONTH;
 

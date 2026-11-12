@@ -8,7 +8,8 @@
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
     "test": "node --test \"tests/**/*.test.js\"",
-    "test:cobertura": "node --test --experimental-test-coverage \"tests/**/*.test.js\""
+    "test:cobertura": "node --test --experimental-test-coverage \"tests/**/*.test.js\"",
+    "bd:migrar": "node src/config/prepararBD.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

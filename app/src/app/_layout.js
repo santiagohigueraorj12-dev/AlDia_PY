@@ -31,6 +31,7 @@ function Navegacion() {
         {/* Solo con sesión iniciada */}
         <Stack.Protected guard={Boolean(usuario)}>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="perfil" options={{ title: 'Mi perfil' }} />
           <Stack.Screen name="vehiculo/nuevo" options={{ title: 'Registrar vehículo', presentation: 'modal' }} />
           <Stack.Screen name="vehiculo/[id]/index" options={{ title: 'Vehículo' }} />
           <Stack.Screen name="vehiculo/[id]/editar" options={{ title: 'Editar vehículo', presentation: 'modal' }} />

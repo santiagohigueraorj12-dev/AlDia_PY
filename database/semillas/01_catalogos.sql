@@ -1,8 +1,6 @@
 -- =====================================================================
---  AlDía - Datos iniciales (catálogos + usuario administrador)
---  Ejecutar en HeidiSQL DESPUÉS de 01_schema.sql  (Archivo > Cargar archivo SQL > F9)
+--  Semilla 01: catálogos: tipos de vehículo, plan base de partes y reglas RTM
 -- =====================================================================
-USE aldia;
 
 INSERT INTO tipos_vehiculo (id, nombre) VALUES
   (1, 'Moto'),
@@ -45,13 +43,3 @@ INSERT INTO plan_base_partes (tipo_vehiculo_id, codigo, nombre, intervalo_km, in
 INSERT INTO reglas_rtm (tipo_vehiculo_id, anios_primera) VALUES
   (1, 2),
   (2, 5);
-
--- ---------------------------------------------------------------------
--- Usuario administrador
---   Correo:     admin@aldia.co
---   Contraseña: Admin123*
--- (se guarda el hash de bcrypt, nunca la contraseña real)
--- ---------------------------------------------------------------------
-INSERT INTO usuarios (nombre, correo, password_hash, rol, acepta_datos_en)
-VALUES ('Administrador', 'admin@aldia.co',
-        '$2b$10$kimQsnr7RI6J874nhii5Qek.ZsDhPE0dC2mtcAsgMT7HkIxuwaBRu', 'admin', NOW());

@@ -1,7 +1,7 @@
 // Arma la lista "Lo que debes hacer" del Inicio a partir del panel (RF-14).
 // Cada tarea dice qué hacer en palabras simples y a qué pantalla lleva su botón.
 // Orden: lo que impide circular, luego lo vencido, luego lo próximo.
-import { fecha } from './formato';
+import { fecha } from './formato.js';
 
 /** Días entre hoy y una fecha 'AAAA-MM-DD' (negativo si ya pasó). */
 function diasHasta(texto) {
@@ -10,8 +10,29 @@ function diasHasta(texto) {
   return Math.round((new Date(a, m - 1, d) - hoy) / 86400000);
 }
 
-export function armarTareas(panel) {
+/**
+ * panel:   lo que devuelve GET /api/panel
+ * usuario: el usuario con sesión (opcional), para avisar de su licencia de conducción
+ */
+export function armarTareas(panel, usuario = null) {
   const tareas = [];
+
+  // Licencia de conducción vencida o por vencer (RN-18)
+  if (usuario && ['vencido', 'por_vencer'].includes(usuario.estadoLicencia)) {
+    const vencida = usuario.estadoLicencia === 'vencido';
+    const dias = diasHasta(usuario.licencia_vence);
+    tareas.push({
+      clave: 'licencia',
+      prioridad: vencida ? 0 : 3,
+      icono: 'card', tono: vencida ? 'vencida' : 'proxima',
+      titulo: 'Renovar tu licencia de conducción',
+      detalle: vencida
+        ? `Venció el ${fecha(usuario.licencia_vence)}. Conducir con la licencia vencida tiene multa.`
+        : `Vence el ${fecha(usuario.licencia_vence)} (${dias === 0 ? 'hoy' : `en ${dias} día${dias === 1 ? '' : 's'}`}).`,
+      boton: 'Actualizar fecha', iconoBoton: 'create-outline',
+      ruta: '/perfil',
+    });
+  }
 
   // Documentos vencidos y por vencer
   for (const d of panel.documentosPorVencer) {

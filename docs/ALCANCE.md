@@ -47,12 +47,13 @@ gasta en mantenimiento y controla el vencimiento de los documentos del vehículo
 | RN-15 | Al renovar un documento se conserva el historial. La nueva fecha de vencimiento debe ser posterior a la anterior. | `domain/documentos.js` |
 | RN-16 | Al registrar un vehículo, cada parte se cuenta desde la matrícula (0 km y fecha de matrícula), como si nunca se hubiera cambiado. El usuario puede indicar el km y la fecha de su último cambio real: el km no puede pasar del actual y la fecha no puede ser futura ni anterior a la matrícula. Solo se puede indicar mientras la parte no tenga cambios registrados en la app. | `domain/desgaste.js` → `validarUltimoCambio()` |
 | RN-17 | El asistente no es una inteligencia artificial: sus preguntas son fijas y cada respuesta se arma solo con los datos registrados del vehículo elegido (desgaste, documentos, costos y kilometraje), uno a la vez. Si falta un dato, lo dice en vez de inventarlo. No usa internet ni servicios externos. | `domain/asistente.js` |
+| RN-18 | Datos del perfil: todos son opcionales. El usuario debe tener al menos 16 años; el tipo y el número de documento van juntos (la cédula y la tarjeta de identidad solo tienen números); la categoría y el vencimiento de la licencia van juntos y la licencia no puede vencer en más de 10 años. La licencia muestra su estado igual que un documento (vigente, por vencer a 30 días o vencida) y aparece en "Lo que debes hacer" cuando está por vencer o vencida. | `domain/perfil.js` |
 
 ## Requisitos funcionales
 **Usuarios**
-- RF-01: Registrarse con nombre, correo, teléfono, contraseña y autorización de tratamiento de datos.
+- RF-01: Registrarse con nombre, correo, contraseña y autorización de tratamiento de datos (los demás datos se completan después en el perfil).
 - RF-02: Iniciar sesión, cerrar sesión y recuperar la contraseña.
-- RF-03: Editar el perfil, cambiar la contraseña y eliminar la cuenta.
+- RF-03: Completar y editar el perfil (teléfono, documento de identidad, fecha de nacimiento, departamento, ciudad, dirección y licencia de conducción), cambiar la contraseña y eliminar la cuenta.
 
 **Vehículos y partes**
 - RF-04: Registrar, editar y eliminar vehículos (tipo, marca, modelo, año, placa, fecha de matrícula, km inicial y foto).
@@ -97,10 +98,11 @@ gasta en mantenimiento y controla el vencimiento de los documentos del vehículo
 | RNF-08 | Localización | Español, pesos colombianos, zona horaria de Bogotá, fechas dd/mm/aaaa. |
 | RNF-09 | Privacidad | Ley 1581 de 2012: autorización de datos y opción de eliminar la cuenta. |
 | RNF-10 | Mantenibilidad | Backend por capas con las reglas de negocio en funciones independientes; código en Git. |
-| RNF-11 | Calidad | Pruebas unitarias de las reglas de desgaste, kilometraje, último cambio, estado del vehículo y documentos. |
+| RNF-11 | Calidad | Pruebas unitarias de las reglas de desgaste, kilometraje, último cambio, estado del vehículo, documentos, perfil y asistente, y de las funciones de la app. |
+| RNF-12 | Instalación | La base de datos se crea y actualiza sola con migraciones (un archivo SQL por tabla) al encender el backend; no hay que ejecutar scripts a mano. |
 
 ## Tecnologías
 - **App (celular y computador):** Expo (React Native + React Native Web) con Expo Router
 - **Backend:** Node.js + Express (API REST)
-- **Base de datos:** MariaDB (administrada con HeidiSQL)
+- **Base de datos:** MariaDB (administrada con HeidiSQL), con migraciones y semillas en SQL
 - **Control de versiones:** Git y GitHub
