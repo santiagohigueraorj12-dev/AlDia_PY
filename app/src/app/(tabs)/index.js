@@ -12,6 +12,7 @@ import { useColores } from '../../tema';
 import { armarTareas } from '../../utils/tareas';
 import { EscenaCarretera, IlustracionVehiculo } from '../../components/Ilustraciones';
 import { ESTADO_VEHICULO, km, pesos } from '../../utils/formato';
+import { Degradado } from '../../components/Decoracion';
 
 const TAREAS_VISIBLES = 4;
 
@@ -97,18 +98,24 @@ function Resumen({ nombre, pendientes, tipo }) {
   const c = useColores();
   const alDia = pendientes === 0;
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: c.primario, borderRadius: 14, padding: 18 }}>
-      <View style={{ flex: 1, gap: 4 }}>
-        <Text style={{ color: c.primarioTexto, fontSize: 22, fontWeight: '700' }}>¡Hola, {nombre}!</Text>
-        <Text style={{ color: c.primarioTexto, fontSize: 15, opacity: 0.92 }}>
+    <Degradado circulos estilo={{ borderRadius: 20, boxShadow: `0 10px 24px ${c.sombra}` }}>
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, padding: 20 }}>
+      <View style={{ flex: 1, gap: 6 }}>
+        <Text style={{ color: '#ffffff', fontSize: 24, fontWeight: '800' }}>¡Hola, {nombre}! 👋</Text>
+        <Text style={{ color: '#ffffff', fontSize: 15, opacity: 0.95 }}>
           {alDia
             ? 'Todos tus vehículos están al día. ¡Buen trabajo!'
             : `Tienes ${pendientes} ${pendientes === 1 ? 'cosa pendiente' : 'cosas pendientes'}. Empieza por la primera de la lista.`}
         </Text>
       </View>
       {/* Ilustración del primer vehículo del usuario, en blanco sobre el azul */}
-      <IlustracionVehiculo tipo={tipo} ancho={110} color="#ffffff" />
+      <IlustracionVehiculo tipo={tipo} ancho={120} color="#ffffff" />
     </View>
+    {/* Franja de carretera al pie del saludo */}
+    <View style={{ height: 10, backgroundColor: 'rgba(10,20,45,0.35)', justifyContent: 'center' }}>
+      <View style={{ height: 2, marginHorizontal: 12, borderStyle: 'dashed', borderTopWidth: 2, borderColor: 'rgba(255,255,255,0.7)' }} />
+    </View>
+    </Degradado>
   );
 }
 
@@ -135,7 +142,7 @@ function TarjetaVehiculo({ vehiculo: v }) {
   return (
     <Pressable onPress={() => router.push(`/vehiculo/${v.id}`)} accessibilityRole="button" accessibilityLabel={`Ver ${v.placa}`}
       style={({ pressed }) => ({ opacity: pressed ? 0.75 : 1 })}>
-      <Tarjeta estilo={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+      <Tarjeta estilo={{ flexDirection: 'row', alignItems: 'center', gap: 12, borderLeftWidth: 6, borderLeftColor: c[`${estado.clase}Barra`] }}>
         <View style={{ width: 76, height: 52, borderRadius: 10, backgroundColor: c[`${estado.clase}Fondo`], alignItems: 'center', justifyContent: 'center' }}>
           <IlustracionVehiculo tipo={v.tipo} ancho={64} color={c[estado.clase]} />
         </View>

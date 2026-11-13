@@ -10,6 +10,7 @@ import { BarraDesgaste, Boton, Etiqueta } from '../components/ui';
 import EncabezadoPublico, { Logo } from '../components/EncabezadoPublico';
 import { EscenaCarretera, IlustracionCarro, IlustracionMoto } from '../components/Ilustraciones';
 import { ESTADO_PARTE, ESTADO_VEHICULO } from '../utils/formato';
+import { Degradado, FondoDecorado } from '../components/Decoracion';
 
 const PROBLEMAS = [
   { icono: 'water', titulo: 'Se te pasó el cambio de aceite', texto: 'Llevar el mantenimiento de memoria o en el sticker del taller termina en motores, frenos y llantas dañados.' },
@@ -71,7 +72,8 @@ export default function Bienvenida() {
 
       <ScrollView ref={scroll}>
         {/* ---------------- Portada ---------------- */}
-        <View style={{ backgroundColor: c.primarioSuave, paddingVertical: ancha ? 64 : 36 }}>
+        <View style={{ backgroundColor: c.primarioSuave, paddingVertical: ancha ? 64 : 36, overflow: 'hidden' }}>
+          <FondoDecorado />
           <View style={[contenedor, { flexDirection: ancha ? 'row' : 'column', gap: 36, alignItems: 'center' }]}>
             <View style={{ flex: ancha ? 1.1 : undefined, gap: 16 }}>
               <View style={{ alignSelf: 'flex-start', backgroundColor: c.superficie, borderRadius: 99, paddingHorizontal: 12, paddingVertical: 4 }}>
@@ -203,19 +205,21 @@ export default function Bienvenida() {
 
         {/* ---------------- Llamado final ---------------- */}
         <View style={[contenedor, { paddingVertical: 48 }]}>
-          <View style={{ backgroundColor: c.primario, borderRadius: 18, padding: ancha ? 40 : 24, alignItems: 'center', gap: 14 }}>
+          <Degradado circulos estilo={{ borderRadius: 22, boxShadow: `0 12px 30px ${c.sombra}` }}>
+          <View style={{ padding: ancha ? 40 : 24, alignItems: 'center', gap: 14 }}>
             <View style={{ flexDirection: 'row', gap: 16, alignItems: 'flex-end' }}>
               <IlustracionMoto ancho={ancha ? 150 : 110} color="#ffffff" />
               <IlustracionCarro ancho={ancha ? 170 : 120} color="#e0a100" />
             </View>
-            <Text style={{ fontSize: ancha ? 28 : 22, fontWeight: '800', color: c.primarioTexto, textAlign: 'center' }}>
+            <Text style={{ fontSize: ancha ? 28 : 22, fontWeight: '800', color: '#ffffff', textAlign: 'center' }}>
               Empieza hoy a llevar el mantenimiento al día
             </Text>
-            <Text style={{ fontSize: 16, color: c.primarioTexto, opacity: 0.9, textAlign: 'center' }}>
+            <Text style={{ fontSize: 16, color: '#ffffff', opacity: 0.9, textAlign: 'center' }}>
               Crear tu cuenta toma menos de un minuto.
             </Text>
             <Boton titulo="Crear cuenta gratis" onPress={() => router.push('/registro')} />
           </View>
+          </Degradado>
         </View>
 
         {/* ---------------- Pie de página ---------------- */}

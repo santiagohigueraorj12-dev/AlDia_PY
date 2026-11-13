@@ -33,7 +33,7 @@ export default function Vehiculos() {
       {vehiculos.map((v) => {
         const estado = ESTADO_VEHICULO[v.estado];
         return (
-          <Tarjeta key={v.id} estilo={{ gap: 12 }}>
+          <Tarjeta key={v.id} estilo={{ gap: 12, borderLeftWidth: 6, borderLeftColor: c[`${estado.clase}Barra`] }}>
             <Pressable onPress={() => router.push(`/vehiculo/${v.id}`)} accessibilityRole="button" accessibilityLabel={`Ver ${v.placa}`}
               style={({ pressed }) => ({ flexDirection: 'row', gap: 12, alignItems: 'center', opacity: pressed ? 0.75 : 1 })}>
               {v.foto_url

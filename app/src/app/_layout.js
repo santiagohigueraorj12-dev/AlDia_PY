@@ -12,6 +12,7 @@ import { SesionProvider, useSesion } from '../context/SesionContext';
 import { Cargando } from '../components/ui';
 import AsistenteFlotante from '../components/AsistenteFlotante';
 import { useColores } from '../tema';
+import { FondoEncabezado } from '../components/Decoracion';
 
 function Navegacion() {
   const { usuario, cargando } = useSesion();
@@ -19,9 +20,9 @@ function Navegacion() {
   if (cargando) return <Cargando />;
 
   const opciones = {
-    headerStyle: { backgroundColor: c.superficie },
-    headerTintColor: c.texto,
-    headerTitleStyle: { fontWeight: '700' },
+    headerBackground: () => <FondoEncabezado />,
+    headerTintColor: '#ffffff',
+    headerTitleStyle: { fontWeight: '800' },
     contentStyle: { backgroundColor: c.fondo },
   };
 

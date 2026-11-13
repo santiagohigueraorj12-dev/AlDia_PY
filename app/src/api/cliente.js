@@ -18,10 +18,13 @@ const ES_WEB = Platform.OS === 'web';
  *  - En el navegador: el mismo computador desde el que se abrió la página.
  *  - En el celular: "localhost" sería el propio celular, así que se usa la IP
  *    del computador donde corre Expo (misma red Wi-Fi).
+ *  - En producción (versión compilada con "npm run build:web"): el backend entrega
+ *    la página y la API desde la misma dirección, así que se usa esa misma.
  * Se puede forzar otra dirección con EXPO_PUBLIC_API_URL en el archivo app/.env
  */
 function calcularServidor() {
   if (process.env.EXPO_PUBLIC_API_URL) return process.env.EXPO_PUBLIC_API_URL;
+  if (ES_WEB && process.env.NODE_ENV === 'production') return window.location.origin;
   if (ES_WEB) return `http://${window.location.hostname}:4000`;
   const ipComputador = Constants.expoConfig?.hostUri?.split(':')[0];
   return `http://${ipComputador || 'localhost'}:4000`;

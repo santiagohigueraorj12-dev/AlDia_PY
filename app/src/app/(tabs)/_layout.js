@@ -5,6 +5,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { api } from '../../api/cliente';
 import { useSesion } from '../../context/SesionContext';
 import { useColores } from '../../tema';
+import { FondoEncabezado } from '../../components/Decoracion';
 
 /** Ícono de una pestaña. */
 const icono = (nombre) => ({ color, size }) => <Ionicons name={nombre} color={color} size={size} />;
@@ -28,10 +29,12 @@ export default function PestanasLayout() {
       screenOptions={{
         tabBarActiveTintColor: c.primario,
         tabBarInactiveTintColor: c.textoSuave,
-        tabBarStyle: { backgroundColor: c.superficie, borderTopColor: c.borde },
-        headerStyle: { backgroundColor: c.superficie },
-        headerTintColor: c.texto,
-        headerTitleStyle: { fontWeight: '700' },
+        tabBarStyle: { backgroundColor: c.superficie, borderTopColor: c.borde, boxShadow: `0 -4px 16px ${c.sombra}` },
+        tabBarLabelStyle: { fontWeight: '700' },
+        // Barra de arriba en degradado azul con letras blancas
+        headerBackground: () => <FondoEncabezado />,
+        headerTintColor: '#ffffff',
+        headerTitleStyle: { fontWeight: '800' },
         sceneStyle: { backgroundColor: c.fondo },
       }}
     >

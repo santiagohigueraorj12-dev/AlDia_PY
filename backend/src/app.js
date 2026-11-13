@@ -2,6 +2,8 @@
 // Configuración de Express: middlewares globales y TODAS las rutas.
 // Si quieres saber qué URL atiende cada módulo, mira este archivo.
 // =====================================================================
+const fs = require('fs');
+const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const { query } = require('./config/db');
@@ -40,6 +42,20 @@ app.use('/api/panel', panelRoutes);
 app.use('/api/notificaciones', notificacionesRoutes);
 app.use('/api/asistente', asistenteRoutes);
 app.use('/api/admin', requiereAdmin, adminRoutes);
+
+// --- App web compilada (producción) ---
+// Si existe app/dist (se crea con "npm run build:web" en la carpeta app), este mismo
+// servidor entrega la página. Así la app y la API quedan en una sola dirección.
+const CARPETA_WEB = process.env.CARPETA_WEB || path.join(__dirname, '..', '..', 'app', 'dist');
+const PAGINA = path.join(CARPETA_WEB, 'index.html');
+if (fs.existsSync(PAGINA)) {
+  app.use(express.static(CARPETA_WEB));
+  // Cualquier otra dirección (ej.: /vehiculo/5) la resuelve la app en el navegador
+  app.use((req, res, next) => {
+    if (req.method !== 'GET' || req.path.startsWith('/api') || req.path.startsWith('/uploads')) return next();
+    res.sendFile(PAGINA);
+  });
+}
 
 // --- Manejo de errores (siempre al final) ---
 app.use(rutaNoEncontrada);

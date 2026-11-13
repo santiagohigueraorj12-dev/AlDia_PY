@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useColores } from '../tema';
+import { Degradado, FondoDecorado } from './Decoracion';
 
 /**
  * Contenedor con scroll y márgenes para el contenido de una pantalla.
@@ -12,8 +13,11 @@ import { useColores } from '../tema';
 export function Pantalla({ children, onRefrescar, refrescando = false }) {
   const c = useColores();
   return (
+    <View style={{ flex: 1, backgroundColor: c.fondo }}>
+    {/* Fondo con figuras y dibujos suaves (queda quieto detrás del contenido) */}
+    <FondoDecorado />
     <ScrollView
-      style={{ flex: 1, backgroundColor: c.fondo }}
+      style={{ flex: 1 }}
       // En el computador el contenido no pasa de 820 px de ancho y queda centrado
       contentContainerStyle={{ padding: 16, paddingBottom: 40, gap: 14, width: '100%', maxWidth: 820, alignSelf: 'center' }}
       keyboardShouldPersistTaps="handled"
@@ -21,13 +25,14 @@ export function Pantalla({ children, onRefrescar, refrescando = false }) {
     >
       {children}
     </ScrollView>
+    </View>
   );
 }
 
 export function Tarjeta({ children, estilo }) {
   const c = useColores();
   return (
-    <View style={[{ backgroundColor: c.superficie, borderColor: c.borde, borderWidth: 1, borderRadius: 12, padding: 14, gap: 8 }, estilo]}>
+    <View style={[{ backgroundColor: c.superficie, borderColor: c.borde, borderWidth: 1, borderRadius: 16, padding: 14, gap: 8, boxShadow: `0 6px 18px ${c.sombra}` }, estilo]}>
       {children}
     </View>
   );
@@ -69,7 +74,8 @@ export function Boton({ titulo, onPress, tipo = 'normal', icono, pequeno = false
       accessibilityLabel={titulo}
       style={({ pressed }) => [
         {
-          backgroundColor: colores.fondo, borderColor: colores.borde, borderWidth: 1, borderRadius: 10,
+          backgroundColor: colores.fondo, borderColor: colores.borde, borderWidth: 1, borderRadius: 12,
+          boxShadow: tipo === 'primario' ? `0 4px 12px ${c.primario}55` : undefined,
           paddingVertical: vertical, paddingHorizontal: tipo === 'enlace' ? 2 : pequeno ? 12 : 16,
           flexDirection: 'row', gap: 7, alignItems: 'center', justifyContent: 'center',
           opacity: deshabilitado ? 0.5 : pressed ? 0.75 : 1,
@@ -108,7 +114,11 @@ export function TituloSeccion({ titulo, icono, accion }) {
   const c = useColores();
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6 }}>
-      {icono && <Ionicons name={icono} size={20} color={c.primario} />}
+      {icono && (
+        <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: c.primario, alignItems: 'center', justifyContent: 'center' }}>
+          <Ionicons name={icono} size={18} color={c.primarioTexto} />
+        </View>
+      )}
       <Text style={{ flex: 1, fontSize: 17, fontWeight: '700', color: c.texto }} accessibilityRole="header">{titulo}</Text>
       {accion}
     </View>
@@ -151,15 +161,15 @@ export function Segmentos({ opciones, valor, onCambio }) {
   // En pantallas angostas (celular) se quitan los íconos para que quepan los textos
   const conIconos = useWindowDimensions().width >= 440;
   return (
-    <View style={{ flexDirection: 'row', backgroundColor: c.superficie2, borderRadius: 12, padding: 4, gap: 4 }} accessibilityRole="tablist">
+    <View style={{ flexDirection: 'row', backgroundColor: c.superficie, borderColor: c.borde, borderWidth: 1, borderRadius: 14, padding: 4, gap: 4 }} accessibilityRole="tablist">
       {opciones.map((o) => {
         const activo = o.id === valor;
         return (
           <Pressable key={o.id} onPress={() => onCambio(o.id)} accessibilityRole="tab" accessibilityState={{ selected: activo }}
             style={{ flex: 1, flexDirection: 'row', gap: 6, alignItems: 'center', justifyContent: 'center', paddingVertical: 9, borderRadius: 9,
-              backgroundColor: activo ? c.superficie : 'transparent', borderWidth: activo ? 1 : 0, borderColor: c.borde }}>
-            {conIconos && o.icono && <Ionicons name={o.icono} size={17} color={activo ? c.primario : c.textoSuave} />}
-            <Text style={{ color: activo ? c.primario : c.textoSuave, fontWeight: '700', fontSize: 14 }}>{o.titulo}</Text>
+              backgroundColor: activo ? c.primario : 'transparent' }}>
+            {conIconos && o.icono && <Ionicons name={o.icono} size={17} color={activo ? c.primarioTexto : c.textoSuave} />}
+            <Text style={{ color: activo ? c.primarioTexto : c.textoSuave, fontWeight: '700', fontSize: 14 }}>{o.titulo}</Text>
           </Pressable>
         );
       })}
@@ -307,14 +317,29 @@ export function BarraDesgaste({ porcentaje, estado }) {
  */
 export function Cifra({ valor, texto, icono, tono = 'primario', ancho = '47%' }) {
   const c = useColores();
+  // Cada tono tiene su degradado: rojo, amarillo, verde o azul
+  const degradados = {
+    vencida: ['#c0262d', '#ef5350'],
+    proxima: ['#d97706', '#fbbf24'],
+    bien: ['#15803d', '#34c46f'],
+    primario: c.degradado.slice(1),
+    neutro: ['#475569', '#94a3b8'],
+  };
   return (
-    <View style={{ flexBasis: ancho, flexGrow: 1, flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: c.superficie, borderColor: c.borde, borderWidth: 1, borderRadius: 12, padding: 12 }}>
-      {icono && <Icono nombre={icono} tono={tono} tamano={36} />}
-      <View style={{ flexShrink: 1 }}>
-        <Text style={{ color: c.texto, fontSize: 20, fontWeight: '700' }}>{valor}</Text>
-        <Text style={{ color: c.textoSuave, fontSize: 12.5 }}>{texto}</Text>
+    <Degradado colores={degradados[tono]} circulos
+      estilo={{ flexBasis: ancho, flexGrow: 1, alignSelf: 'stretch', borderRadius: 16, boxShadow: `0 6px 16px ${c.sombra}` }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, padding: 13 }}>
+        {icono && (
+          <View style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: 'rgba(255,255,255,0.25)', alignItems: 'center', justifyContent: 'center' }}>
+            <Ionicons name={icono} size={20} color="#ffffff" />
+          </View>
+        )}
+        <View style={{ flexShrink: 1 }}>
+          <Text style={{ color: '#ffffff', fontSize: 20, fontWeight: '800' }}>{valor}</Text>
+          <Text style={{ color: '#ffffff', opacity: 0.92, fontSize: 12.5 }}>{texto}</Text>
+        </View>
       </View>
-    </View>
+    </Degradado>
   );
 }
 

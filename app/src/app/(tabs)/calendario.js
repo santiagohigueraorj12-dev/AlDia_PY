@@ -7,6 +7,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useDatos } from '../../api/useDatos';
 import { Aviso, Boton, Cargando, ElementoLista, Etiqueta, Fila, Pantalla, Separador, Tarjeta, Texto, Vacio } from '../../components/ui';
 import { useColores } from '../../tema';
+import { Degradado } from '../../components/Decoracion';
 import { ESTADO_DOCUMENTO, ESTADO_PARTE, hoyISO, nombreMes } from '../../utils/formato';
 
 const DIAS_SEMANA = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
@@ -29,8 +30,8 @@ function Flecha({ icono, etiqueta, onPress }) {
   const c = useColores();
   return (
     <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={etiqueta}
-      style={({ pressed }) => ({ width: 44, height: 44, borderRadius: 22, borderWidth: 1, borderColor: c.borde, backgroundColor: c.superficie, alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.7 : 1 })}>
-      <Ionicons name={icono} size={22} color={c.primario} />
+      style={({ pressed }) => ({ width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.22)', alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.7 : 1 })}>
+      <Ionicons name={icono} size={22} color="#ffffff" />
     </Pressable>
   );
 }
@@ -50,16 +51,20 @@ export default function Calendario() {
 
   return (
     <Pantalla onRefrescar={refrescar} refrescando={refrescando}>
-      <Fila estilo={{ justifyContent: 'space-between', flexWrap: 'nowrap' }}>
+      {/* Mes en una franja de color, con flechas para cambiarlo */}
+      <Degradado circulos estilo={{ borderRadius: 20, boxShadow: `0 8px 20px ${c.sombra}` }}>
+      <Fila estilo={{ justifyContent: 'space-between', flexWrap: 'nowrap', padding: 14 }}>
         <Flecha icono="chevron-back" etiqueta="Mes anterior" onPress={() => setMes(moverMes(mes, -1))} />
         <View style={{ alignItems: 'center', flex: 1 }}>
-          <Texto variante="subtitulo">{nombreMes(mes)}</Texto>
+          <Ionicons name="calendar" size={22} color="#ffffff" />
+          <Texto variante="subtitulo" estilo={{ color: '#ffffff', fontSize: 19 }}>{nombreMes(mes)}</Texto>
           {mes !== mesActual
-            ? <Boton titulo="Volver a este mes" tipo="enlace" onPress={() => setMes(mesActual)} />
-            : <Texto variante="pequeno">Este mes</Texto>}
+            ? <Boton titulo="Volver a este mes" pequeno onPress={() => setMes(mesActual)} estilo={{ marginTop: 4 }} />
+            : <Texto variante="pequeno" estilo={{ color: '#ffffff', opacity: 0.9 }}>Este mes</Texto>}
         </View>
         <Flecha icono="chevron-forward" etiqueta="Mes siguiente" onPress={() => setMes(moverMes(mes, 1))} />
       </Fila>
+      </Degradado>
 
       {eventos && eventos.length > 0 && (
         <Aviso tipo="info">

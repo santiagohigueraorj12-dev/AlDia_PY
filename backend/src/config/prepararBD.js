@@ -129,4 +129,4 @@ if (require.main === module) {
     .catch((error) => { console.error(error.message); process.exit(1); });
 }
 
-module.exports = { prepararBaseDeDatos };
+module.exports = { prepararBaseDeDatos, buscarMariaDB };
