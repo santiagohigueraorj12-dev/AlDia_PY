@@ -15,10 +15,18 @@ Integrantes: Simon Higuera y Santiago Higuera.
 | Backend | Node.js + Express 5 (API REST) |
 | Base de datos | MariaDB (administrada con HeidiSQL) |
 
-- **Alcance, reglas de negocio y requisitos:** [docs/ALCANCE.md](docs/ALCANCE.md)
-- **Cómo está organizado el código:** [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md)
-- **Manual de usuario:** [docs/manuales/AlDia_Manual_de_Usuario.pdf](docs/manuales/AlDia_Manual_de_Usuario.pdf) (también en Word)
-- **Manual técnico:** [docs/manuales/AlDia_Manual_Tecnico.pdf](docs/manuales/AlDia_Manual_Tecnico.pdf) (también en Word)
+### Entregables del proyecto
+Todos están en Word y PDF. La lista completa está en [docs/ENTREGABLES.md](docs/ENTREGABLES.md).
+
+| Entregable | Documento |
+|---|---|
+| Despliegue de la aplicación | `desplegar.bat` + [Manual de instalación y despliegue](docs/manuales/AlDia_Manual_de_Instalacion_y_Despliegue.pdf) |
+| Requisitos corregidos | [Especificación de requisitos v2.0](docs/requisitos/AlDia_Especificacion_de_Requisitos.pdf) (resumen en [docs/ALCANCE.md](docs/ALCANCE.md)) |
+| Plan de pruebas | [Documentación de pruebas ISO/IEC/IEEE 29119-3](docs/pruebas/AlDia_Documentacion_de_Pruebas.pdf) + [casos en Excel](docs/pruebas/AlDia_Especificacion_Casos_de_Prueba.xlsx) |
+| Plan de respaldo | [Plan de respaldo](docs/respaldo/AlDia_Plan_de_Respaldo.pdf) + `respaldar.bat` / `restaurar.bat` |
+| Manual de usuario | [Manual de usuario](docs/manuales/AlDia_Manual_de_Usuario.pdf) |
+| Manual de instalación | [Manual de instalación y despliegue](docs/manuales/AlDia_Manual_de_Instalacion_y_Despliegue.pdf) |
+| Otros | [Manual técnico](docs/manuales/AlDia_Manual_Tecnico.pdf), [Documento de análisis](docs/AlDia_Documento_de_analisis.pdf), [arquitectura](docs/ARQUITECTURA.md) |
 
 ---
 
@@ -26,6 +34,13 @@ Integrantes: Simon Higuera y Santiago Higuera.
 
 **Necesitas:** [Node.js](https://nodejs.org) (versión LTS) y **MariaDB** encendido (el de HeidiSQL, XAMPP o Laragon).
 No hay que crear la base de datos a mano: **el backend la crea sola** la primera vez que se enciende.
+
+### Producción (para usarlo de verdad): doble clic en `desplegar.bat`
+Compila la app y enciende **un solo servidor** en http://localhost:4000 (desde otros equipos o celulares de la misma red: `http://IP-del-computador:4000`).
+Antes pon una `JWT_SECRETO` propia en `backend/.env`. Detalles en el manual de instalación.
+
+### Respaldo
+`respaldar.bat` guarda la base de datos y los archivos subidos en `respaldos/`; `restaurar.bat` los recupera. Ver el plan de respaldo.
 
 ### Opción rápida (Windows): doble clic en `iniciar.bat`
 Instala las librerías la primera vez, enciende el backend en otra ventana y abre la app en el navegador
@@ -107,7 +122,7 @@ AlDia_PY/
 ├── database/
 │   ├── migraciones/     Un archivo SQL por tabla (se ejecutan solos, en orden)
 │   └── semillas/        Datos iniciales: catálogos, administrador y demo
-├── docs/                Alcance, arquitectura, análisis, manuales (docs/manuales/) y pruebas (docs/pruebas/, ISO/IEC/IEEE 29119-3)
+├── docs/                Entregables: requisitos/, manuales/, pruebas/ (ISO/IEC/IEEE 29119-3), respaldo/, alcance y arquitectura
 ├── app/                 ⭐ App para celular y computador (Expo)
 │   └── src/
 │       ├── app/         Pantallas: cada archivo es una pantalla (Expo Router)

@@ -16,7 +16,7 @@ const claro = {
   primarioSuave: '#e2ecfd',
   acento: '#ff8a1f',
   // Degradado de encabezados y tarjetas destacadas (azul -> celeste)
-  degradado: ['#173b8f', '#1d5bd8', '#13a8e0'],
+  degradado: ['#173b8f', '#1d4fc4', '#0b72b5'],  // blanco encima: contraste ≥ 4,5 (WCAG AA)
   // Figuras del fondo decorado
   decoracion: ['#bcd4f6', '#c9ecf7', '#ffe0bf'],
   sombra: 'rgba(23, 59, 143, 0.10)',

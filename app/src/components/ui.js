@@ -319,11 +319,12 @@ export function Cifra({ valor, texto, icono, tono = 'primario', ancho = '47%' })
   const c = useColores();
   // Cada tono tiene su degradado: rojo, amarillo, verde o azul
   const degradados = {
-    vencida: ['#c0262d', '#ef5350'],
-    proxima: ['#d97706', '#fbbf24'],
-    bien: ['#15803d', '#34c46f'],
+    // Tonos escogidos para que el texto blanco tenga contraste ≥ 4,5 (WCAG AA, RNF-05)
+    vencida: ['#b3202a', '#d63a3f'],
+    proxima: ['#a84f00', '#b85c00'],
+    bien: ['#13703a', '#16803f'],
     primario: c.degradado.slice(1),
-    neutro: ['#475569', '#94a3b8'],
+    neutro: ['#3f4b5e', '#56637a'],
   };
   return (
     <Degradado colores={degradados[tono]} circulos

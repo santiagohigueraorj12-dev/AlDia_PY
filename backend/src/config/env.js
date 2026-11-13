@@ -3,7 +3,8 @@
 require('dotenv').config();
 
 const config = {
-  puerto: Number(process.env.PUERTO || 4000),
+  // PORT es el nombre que usan los servicios en la nube para indicar el puerto
+  puerto: Number(process.env.PUERTO || process.env.PORT || 4000),
   db: {
     host: process.env.DB_HOST || '127.0.0.1',
     port: Number(process.env.DB_PUERTO || 3306),

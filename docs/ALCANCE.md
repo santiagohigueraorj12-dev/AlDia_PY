@@ -1,5 +1,7 @@
 # AlDía – Alcance del proyecto (versión enfocada)
 
+> Versión 2.0 (13/11/2026): corregida y ajustada a la aplicación real. La especificación completa, con la matriz de trazabilidad, está en `docs/requisitos/`.
+
 > **"Que no se te pase ningún cambio de tu vehículo."**
 
 AlDía es una aplicación para celular y computador que ayuda a las personas a llevar al día el **mantenimiento de sus motos y carros**:
@@ -52,7 +54,7 @@ gasta en mantenimiento y controla el vencimiento de los documentos del vehículo
 ## Requisitos funcionales
 **Usuarios**
 - RF-01: Registrarse con nombre, correo, contraseña y autorización de tratamiento de datos (los demás datos se completan después en el perfil).
-- RF-02: Iniciar sesión, cerrar sesión y recuperar la contraseña.
+- RF-02: Iniciar sesión, cerrar sesión y recuperar la contraseña con un código de un solo uso que vence en 1 hora. Como el sistema no envía correos, el código queda en la consola del backend (el administrador se lo entrega al usuario); en desarrollo la pantalla lo muestra directamente.
 - RF-03: Completar y editar el perfil (teléfono, documento de identidad, fecha de nacimiento, departamento, ciudad, dirección y licencia de conducción), cambiar la contraseña y eliminar la cuenta.
 
 **Vehículos y partes**
@@ -100,6 +102,13 @@ gasta en mantenimiento y controla el vencimiento de los documentos del vehículo
 | RNF-10 | Mantenibilidad | Backend por capas con las reglas de negocio en funciones independientes; código en Git. |
 | RNF-11 | Calidad | Pruebas unitarias de las reglas de desgaste, kilometraje, último cambio, estado del vehículo, documentos, perfil y asistente, y de las funciones de la app. |
 | RNF-12 | Instalación | La base de datos se crea y actualiza sola con migraciones (un archivo SQL por tabla) al encender el backend; no hay que ejecutar scripts a mano. |
+| RNF-13 | Respaldo | La base de datos y los archivos subidos se respaldan con un comando (`respaldar.bat`), se guardan los últimos 14 respaldos y se restauran con `restaurar.bat`, que antes guarda el estado actual. |
+| RNF-14 | Despliegue | En producción un solo servidor entrega la app web y la API (`desplegar.bat`); el servidor no arranca si la clave JWT es la de ejemplo. |
+
+## Restricciones conocidas
+- No se envían correos ni notificaciones push: las alertas se ven dentro de la aplicación y el código de recuperación de contraseña se lee en la consola del backend.
+- El kilometraje lo registra el usuario; si no lo actualiza, el sistema lo estima (RN-04).
+- La app del celular se usa con Expo Go en la misma red Wi-Fi del servidor; no se publica en las tiendas de aplicaciones.
 
 ## Tecnologías
 - **App (celular y computador):** Expo (React Native + React Native Web) con Expo Router
