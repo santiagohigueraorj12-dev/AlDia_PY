@@ -58,7 +58,7 @@ gasta en mantenimiento y controla el vencimiento de los documentos del vehículo
 - RF-03: Completar y editar el perfil (teléfono, documento de identidad, fecha de nacimiento, departamento, ciudad, dirección y licencia de conducción), cambiar la contraseña y eliminar la cuenta.
 
 **Vehículos y partes**
-- RF-04: Registrar, editar y eliminar vehículos (tipo, marca, modelo, año, placa, fecha de matrícula, km inicial y foto).
+- RF-04: Registrar, editar y eliminar vehículos (tipo, marca, línea y modelo —el año del vehículo—, placa, fecha de matrícula, km inicial y foto).
 - RF-05: Actualizar el kilometraje y ver su historial.
 - RF-06: Ver las partes con su % de desgaste y estado, de la más a la menos urgente.
 - RF-07: Agregar y quitar partes del plan, ajustar sus intervalos e indicar cuándo fue su último cambio.

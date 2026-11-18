@@ -82,11 +82,11 @@ La carpeta `database/` tiene **un archivo SQL por tabla**:
 
 | Carpeta | Qué tiene |
 |---|---|
-| `database/migraciones/` | `001_crear_usuarios.sql` … `012_crear_notificaciones.sql`: crean cada tabla. `013_agregar_perfil_a_usuarios.sql`: agrega columnas a una tabla que ya existía. |
+| `database/migraciones/` | `001_crear_usuarios.sql` … `012_crear_notificaciones.sql`: crean cada tabla. `013_agregar_perfil_a_usuarios.sql`: agrega columnas al perfil. `014_renombrar_campos_vehiculo.sql`: cambia modelo/año por línea/modelo, conservando los datos. |
 | `database/semillas/` | Datos iniciales: catálogos (tipos de vehículo, plan base de partes, reglas RTM), el usuario administrador y los datos de demostración. |
 
 La tabla **`migraciones`** anota cuáles ya se ejecutaron, así cada archivo corre una sola vez. Para cambiar la base
-**no se edita una migración vieja**: se agrega una nueva con el número siguiente (`014_...sql`) y se ejecuta con
+**no se edita una migración vieja**: se agrega una nueva con el número siguiente (`015_...sql`) y se ejecuta con
 `npm run bd:migrar` (o al encender el backend). En HeidiSQL se ve el resultado: la base `aldia` con sus tablas.
 
 ### Usuarios de prueba

@@ -15,7 +15,7 @@ SET @usuario = LAST_INSERT_ID();
 -- ---------------------------------------------------------------------
 -- MOTO: registrada hace 6 meses con 12.000 km; hoy tiene 15.400 km.
 -- ---------------------------------------------------------------------
-INSERT INTO vehiculos (usuario_id, tipo_vehiculo_id, marca, modelo, anio, placa, fecha_matricula,
+INSERT INTO vehiculos (usuario_id, tipo_vehiculo_id, marca, linea, modelo, placa, fecha_matricula,
                        km_inicial, km_actual, km_actualizado_en, creado_en)
 VALUES (@usuario, 1, 'Yamaha', 'NMAX 155', 2024, 'ABC12D', CURDATE() - INTERVAL 20 MONTH,
         12000, 15400, NOW() - INTERVAL 3 DAY, @hace6meses);
@@ -57,7 +57,7 @@ INSERT INTO documentos (vehiculo_id, tipo, fecha_vencimiento) VALUES (@moto, 'rt
 -- ---------------------------------------------------------------------
 -- CARRO: kilometraje sin actualizar hace 20 días -> se estima (RN-04)
 -- ---------------------------------------------------------------------
-INSERT INTO vehiculos (usuario_id, tipo_vehiculo_id, marca, modelo, anio, placa, fecha_matricula,
+INSERT INTO vehiculos (usuario_id, tipo_vehiculo_id, marca, linea, modelo, placa, fecha_matricula,
                        km_inicial, km_actual, km_actualizado_en, creado_en)
 VALUES (@usuario, 2, 'Renault', 'Logan', 2019, 'JKL345', '2019-03-15',
         68000, 74500, NOW() - INTERVAL 20 DAY, @hace6meses);

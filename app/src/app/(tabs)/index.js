@@ -151,7 +151,7 @@ function TarjetaVehiculo({ vehiculo: v }) {
             <Texto variante="negrita" estilo={{ fontSize: 16 }}>{v.placa}</Texto>
             <Etiqueta estado={estado} />
           </Fila>
-          <Texto variante="suave">{v.marca} {v.modelo} · {km(v.kmCalculo)}{v.kmEstimado ? ' (aprox.)' : ''}</Texto>
+          <Texto variante="suave">{v.marca} {v.linea} ({v.modelo}) · {km(v.kmCalculo)}{v.kmEstimado ? ' (aprox.)' : ''}</Texto>
           <Fila estilo={{ gap: 12 }}>
             {puntos.map(([clase, n, texto]) => (
               <View key={clase} style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>

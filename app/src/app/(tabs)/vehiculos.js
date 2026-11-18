@@ -20,7 +20,7 @@ export default function Vehiculos() {
     return (
       <Pantalla>
         <Vacio ilustracion={<View style={{ width: '100%', maxWidth: 380 }}><EscenaCarretera /></View>} titulo="Aún no tienes vehículos"
-          texto="Registra tu moto o carro. Solo necesitas la placa, la marca, el modelo y el kilometraje."
+          texto="Registra tu moto o carro. Solo necesitas la placa, la marca, la línea, el modelo y el kilometraje."
           boton={<Boton titulo="Registrar mi vehículo" icono="add-circle-outline" tipo="primario" onPress={() => router.push('/vehiculo/nuevo')} />} />
       </Pantalla>
     );
@@ -48,7 +48,7 @@ export default function Vehiculos() {
                   <Texto variante="negrita" estilo={{ fontSize: 17 }}>{v.placa}</Texto>
                   <Etiqueta estado={estado} />
                 </Fila>
-                <Texto>{v.marca} {v.modelo} {v.anio}</Texto>
+                <Texto>{v.marca} {v.linea} ({v.modelo})</Texto>
                 <Texto variante="pequeno">
                   {km(v.kmCalculo)}{v.kmEstimado ? ' (aprox.)' : ''} · Mantenimiento: {pesos(v.costos.mantenimiento)}
                 </Texto>

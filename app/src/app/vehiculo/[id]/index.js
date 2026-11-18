@@ -67,7 +67,7 @@ export default function DetalleVehiculo() {
             <Texto variante="titulo">{vehiculo.placa}</Texto>
             <Etiqueta estado={estado} />
           </Fila>
-          <Texto variante="suave">{vehiculo.marca} {vehiculo.modelo} {vehiculo.anio} · {km(vehiculo.kmCalculo)}{vehiculo.kmEstimado ? ' (aprox.)' : ''}</Texto>
+          <Texto variante="suave">{vehiculo.marca} {vehiculo.linea} ({vehiculo.modelo}) · {km(vehiculo.kmCalculo)}{vehiculo.kmEstimado ? ' (aprox.)' : ''}</Texto>
           <Texto estilo={{ fontSize: 14 }}>{EXPLICACION_VEHICULO[vehiculo.estado]}</Texto>
         </View>
       </Tarjeta>
@@ -110,7 +110,7 @@ export default function DetalleVehiculo() {
       {/* Opciones menos usadas, al final para no confundir */}
       <TituloSeccion titulo="Opciones del vehículo" icono="settings-outline" />
       <Tarjeta estilo={{ gap: 2 }}>
-        <ElementoLista icono="create-outline" tono="neutro" titulo="Editar datos" detalle="Marca, modelo, placa, foto…" onPress={() => router.push(`/vehiculo/${id}/editar`)} />
+        <ElementoLista icono="create-outline" tono="neutro" titulo="Editar datos" detalle="Marca, línea, modelo, placa, foto…" onPress={() => router.push(`/vehiculo/${id}/editar`)} />
         <Separador />
         <ElementoLista icono="add-circle-outline" tono="neutro" titulo="Agregar una parte" detalle="Si tu vehículo tiene una parte que no está en la lista" onPress={() => router.push(`/vehiculo/${id}/parte`)} />
         {vehiculo.partes.some((p) => p.cambios_registrados === 0) && (

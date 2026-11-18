@@ -20,8 +20,8 @@ const placa = z.preprocess(
 
 const datosVehiculo = {
   marca: texto('la marca', { max: 50 }),
-  modelo: texto('el modelo', { max: 50 }),
-  anio: entero('el año', { min: 1950, max: anioActual + 1 }),
+  linea: texto('la línea', { max: 50 }),
+  modelo: entero('el modelo', { min: 1950, max: anioActual + 1 }),
   placa,
   fecha_matricula: fecha('la fecha de matrícula', { noFutura: true }),
 };

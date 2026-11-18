@@ -16,8 +16,8 @@ export default function FormularioVehiculo({ vehiculo, onGuardado }) {
   const [datos, setDatos] = useState({
     tipo_vehiculo_id: vehiculo?.tipo_vehiculo_id ?? null,
     marca: vehiculo?.marca ?? '',
-    modelo: vehiculo?.modelo ?? '',
-    anio: vehiculo ? String(vehiculo.anio) : '',
+    linea: vehiculo?.linea ?? '',
+    modelo: vehiculo ? String(vehiculo.modelo) : '',
     placa: vehiculo?.placa ?? '',
     fecha_matricula: vehiculo?.fecha_matricula ?? '',
     km_inicial: '',
@@ -50,7 +50,7 @@ export default function FormularioVehiculo({ vehiculo, onGuardado }) {
     setEnviando(true);
     // Se envía como FormData porque puede llevar la foto
     const formulario = new FormData();
-    const campos = editando ? ['marca', 'modelo', 'anio', 'placa', 'fecha_matricula'] : Object.keys(datos);
+    const campos = editando ? ['marca', 'linea', 'modelo', 'placa', 'fecha_matricula'] : Object.keys(datos);
     campos.forEach((campo) => formulario.append(campo, String(datos[campo] ?? '')));
     if (foto) formulario.append('foto', archivoParaFormulario(foto));
 
@@ -89,12 +89,12 @@ export default function FormularioVehiculo({ vehiculo, onGuardado }) {
 
         <Campo etiqueta="Marca" obligatorio placeholder="Ej.: Yamaha" value={datos.marca}
           onChangeText={cambiar('marca')} error={errores.marca} />
-        <Campo etiqueta="Modelo" obligatorio placeholder="Ej.: NMAX 155" value={datos.modelo}
-          onChangeText={cambiar('modelo')} error={errores.modelo} />
+        <Campo etiqueta="Línea" obligatorio placeholder="Ej.: NMAX 155" value={datos.linea}
+          onChangeText={cambiar('linea')} error={errores.linea} />
         <Fila estilo={{ flexWrap: 'nowrap', alignItems: 'flex-start' }}>
           <View style={{ flex: 1 }}>
-            <Campo etiqueta="Año" obligatorio placeholder="Ej.: 2024" value={datos.anio} onChangeText={cambiar('anio')}
-              keyboardType="number-pad" maxLength={4} error={errores.anio} />
+            <Campo etiqueta="Modelo" obligatorio placeholder="Ej.: 2024" value={datos.modelo} onChangeText={cambiar('modelo')}
+              keyboardType="number-pad" maxLength={4} error={errores.modelo} />
           </View>
           <View style={{ flex: 1 }}>
             <Campo etiqueta="Placa" obligatorio placeholder="Ej.: ABC12D" value={datos.placa}

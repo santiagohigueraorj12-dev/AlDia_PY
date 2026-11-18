@@ -36,7 +36,7 @@ Las tablas no se crean a mano. Al encender el backend, `src/config/prepararBD.js
    (un archivo por tabla: `001_crear_usuarios.sql`, `002_crear_tipos_vehiculo.sql`, …).
 4. Si la base es nueva, ejecuta `database/semillas/` (catálogos, administrador y datos demo).
 
-Para cambiar una tabla se **agrega** una migración nueva (como `013_agregar_perfil_a_usuarios.sql`), nunca se
+Para cambiar una tabla se **agrega** una migración nueva (la más reciente es `014_renombrar_campos_vehiculo.sql`), nunca se
 edita una vieja: así todos los computadores quedan con la misma base. A mano: `npm run bd:migrar`.
 
 ## Ejemplo: ¿qué pasa al registrar un cambio de aceite?

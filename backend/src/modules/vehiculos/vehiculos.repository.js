@@ -27,10 +27,10 @@ function placaEnUso(placa, exceptoId = 0) {
 
 async function crear(conn, d) {
   const r = await conn.query(
-    `INSERT INTO vehiculos (usuario_id, tipo_vehiculo_id, marca, modelo, anio, placa, fecha_matricula,
+    `INSERT INTO vehiculos (usuario_id, tipo_vehiculo_id, marca, linea, modelo, placa, fecha_matricula,
                             km_inicial, km_actual, km_actualizado_en, foto_url)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?)`,
-    [d.usuario_id, d.tipo_vehiculo_id, d.marca, d.modelo, d.anio, d.placa, d.fecha_matricula,
+    [d.usuario_id, d.tipo_vehiculo_id, d.marca, d.linea, d.modelo, d.placa, d.fecha_matricula,
       d.km_inicial, d.km_inicial, d.foto_url],
   );
   return r.insertId;
@@ -39,9 +39,9 @@ async function crear(conn, d) {
 function actualizar(id, d) {
   // COALESCE: si no se envía foto nueva, se conserva la anterior
   return query(
-    `UPDATE vehiculos SET marca = ?, modelo = ?, anio = ?, placa = ?, fecha_matricula = ?,
+    `UPDATE vehiculos SET marca = ?, linea = ?, modelo = ?, placa = ?, fecha_matricula = ?,
             foto_url = COALESCE(?, foto_url) WHERE id = ?`,
-    [d.marca, d.modelo, d.anio, d.placa, d.fecha_matricula, d.foto_url, id],
+    [d.marca, d.linea, d.modelo, d.placa, d.fecha_matricula, d.foto_url, id],
   );
 }
 

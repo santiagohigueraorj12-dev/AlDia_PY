@@ -58,7 +58,7 @@ async function resumen(usuarioId) {
 
   return {
     vehiculos: vehiculos.map((v) => ({
-      id: v.id, placa: v.placa, tipo: v.tipo, marca: v.marca, modelo: v.modelo, foto_url: v.foto_url,
+      id: v.id, placa: v.placa, tipo: v.tipo, marca: v.marca, linea: v.linea, modelo: v.modelo, foto_url: v.foto_url,
       estado: v.estado, kmCalculo: v.kmCalculo, kmEstimado: v.kmEstimado, resumenPartes: v.resumenPartes,
     })),
     partesUrgentes,

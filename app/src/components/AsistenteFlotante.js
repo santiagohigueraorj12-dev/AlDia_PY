@@ -181,7 +181,7 @@ function VentanaChat({ vehiculoInicial, onCerrar }) {
 
 /** "tu moto ABC12D (Yamaha NMAX 155)" */
 function descripcion(v) {
-  return `tu ${v.tipo.toLowerCase()} ${v.placa} (${v.marca} ${v.modelo})`;
+  return `tu ${v.tipo.toLowerCase()} ${v.placa} (${v.marca} ${v.linea} ${v.modelo})`;
 }
 
 /** Botón redondeado para vehículos y preguntas. */

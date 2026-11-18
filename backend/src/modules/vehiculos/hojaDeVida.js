@@ -13,13 +13,13 @@ const ESTADOS_DOCUMENTO = { vigente: 'Vigente', por_vencer: 'Por vencer', vencid
  */
 function generarHojaDeVida(res, vehiculo, servicios) {
   const doc = crearPdf(res, `hoja-de-vida-${vehiculo.placa}.pdf`);
-  encabezado(doc, `Hoja de vida del vehículo ${vehiculo.placa}`, `${vehiculo.tipo} ${vehiculo.marca} ${vehiculo.modelo} ${vehiculo.anio}`);
+  encabezado(doc, `Hoja de vida del vehículo ${vehiculo.placa}`, `${vehiculo.tipo} ${vehiculo.marca} ${vehiculo.linea} ${vehiculo.modelo}`);
 
   seccion(doc, 'Datos del vehículo');
   datos(doc, [
     ['Placa', vehiculo.placa],
     ['Tipo', vehiculo.tipo],
-    ['Marca y modelo', `${vehiculo.marca} ${vehiculo.modelo} (${vehiculo.anio})`],
+    ['Marca, línea y modelo', `${vehiculo.marca} ${vehiculo.linea} (${vehiculo.modelo})`],
     ['Fecha de matrícula', formatoColombia(vehiculo.fecha_matricula)],
     ['Kilometraje inicial', `${vehiculo.km_inicial.toLocaleString('es-CO')} km`],
     ['Kilometraje actual', `${vehiculo.km_actual.toLocaleString('es-CO')} km`],
