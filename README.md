@@ -122,12 +122,12 @@ Cada prueba tiene un identificador fijo (por ejemplo `CP-DES-02`). La documentac
 ```
 AlDia_PY/
 ├── database/
-│   ├── estructuraBD/    Creación y actualizaciones del esquema, organizadas por fase
+│   ├── estructuraBD/     Creación y actualizaciones del esquema, organizadas por fase
 │   └── semillas/        Datos iniciales: catálogos, administrador y demo
 ├── docs/                Entregables: requisitos/, manuales/, pruebas/ (ISO/IEC/IEEE 29119-3), respaldo/, alcance y arquitectura
 ├── app/                 ⭐ App para celular y computador (Expo)
 │   └── src/
-│       ├── app/         Pantallas: cada archivo es una pantalla (Expo Router)
+│       ├── app/         Pantallas: cada archivo es una pantalla (Expo Router), incluida Documentación por vehículo
 │       ├── components/  Piezas reutilizables (botones, campos, ilustraciones…)
 │       ├── api/         Cliente que llama al backend + hook useDatos
 │       ├── context/     Sesión del usuario
@@ -139,7 +139,7 @@ AlDia_PY/
 │   │   ├── modules/     Un módulo por funcionalidad: rutas → controlador → servicio → repositorio
 │   │   ├── middlewares/ Sesión (JWT), validación, archivos, errores
 │   │   ├── jobs/        Tarea automática diaria (alertas)
-│   │   ├── config/      Conexión a la BD, variables de entorno y migraciones
+│   │   ├── config/      Conexión a la BD, variables de entorno y estructura de la BD
 │   │   ├── utils/       Fechas, PDF, errores
 │   │   ├── app.js       Todas las rutas de la API
 │   │   └── server.js    Arranque

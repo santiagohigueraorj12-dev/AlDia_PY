@@ -40,6 +40,7 @@ export default function PestanasLayout() {
     >
       <Tabs.Screen name="index" options={{ title: 'Inicio', headerTitle: 'AlDía', tabBarIcon: icono('home') }} />
       <Tabs.Screen name="vehiculos" options={{ title: 'Vehículos', tabBarIcon: icono('car-sport') }} />
+      <Tabs.Screen name="documentos" options={{ title: 'Docs', headerTitle: 'Documentación', tabBarIcon: icono('document-text') }} />
       <Tabs.Screen name="calendario" options={{ title: 'Calendario', tabBarIcon: icono('calendar') }} />
       <Tabs.Screen
         name="notificaciones"

@@ -9,6 +9,23 @@ const NOMBRES = {
   impuesto: 'Impuesto vehicular',
 };
 
+/** Cuenta documentos faltantes, vencidos y próximos en el conjunto de vehículos. */
+function resumenDocumentacion(vehiculos) {
+  const documentos = vehiculos.flatMap((vehiculo) => {
+    const registrados = vehiculo.documentos;
+    const faltantes = Object.keys(NOMBRES)
+      .filter((tipo) => !registrados.some((documento) => documento.tipo === tipo))
+      .map((tipo) => ({ tipo, estado: 'faltante' }));
+    return [...registrados, ...faltantes];
+  });
+
+  return {
+    faltantes: documentos.filter((documento) => documento.estado === 'faltante').length,
+    vencidos: documentos.filter((documento) => documento.estado === 'vencido').length,
+    porVencer: documentos.filter((documento) => documento.estado === 'por_vencer').length,
+  };
+}
+
 /** RN-13: días antes del vencimiento en que se avisa (y el mismo día = 0). */
 const DIAS_ALERTA = [30, 7, 1, 0];
 
@@ -49,4 +66,4 @@ function validarRenovacion(fechaAnterior, fechaNueva) {
   return { valido: true };
 }
 
-module.exports = { NOMBRES, DIAS_ALERTA, estadoDocumento, umbralDeAlerta, validarRenovacion };
+module.exports = { NOMBRES, DIAS_ALERTA, estadoDocumento, umbralDeAlerta, validarRenovacion, resumenDocumentacion };

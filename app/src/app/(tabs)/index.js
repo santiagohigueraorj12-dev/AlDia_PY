@@ -46,6 +46,13 @@ export default function Inicio() {
   const visibles = verTodas ? tareas : tareas.slice(0, TAREAS_VISIBLES);
   const vencidas = panel.partesUrgentes.filter((p) => p.desgaste.estado === 'vencida').length;
   const proximas = panel.partesUrgentes.filter((p) => p.desgaste.estado === 'proxima').length;
+  const docs = panel.documentacion;
+  const alertasDocs = docs.faltantes + docs.vencidos;
+  const estadoDocs = alertasDocs > 0
+    ? { texto: `${alertasDocs} requieren atención`, clase: 'vencida' }
+    : docs.porVencer > 0
+      ? { texto: `${docs.porVencer} por vencer`, clase: 'proxima' }
+      : { texto: 'Al día', clase: 'bien' };
   const anchoCifra = width >= 700 ? '22%' : '47%';
 
   return (
@@ -76,6 +83,19 @@ export default function Inicio() {
           )}
         </Tarjeta>
       )}
+
+      {/* Resumen de documentación con acceso al módulo completo */}
+      <Tarjeta>
+        <TituloSeccion titulo="Documentación" icono="document-text" />
+        <ElementoLista
+          icono="shield-checkmark-outline"
+          tono={estadoDocs.clase}
+          titulo={estadoDocs.texto}
+          detalle={`${docs.faltantes} faltantes · ${docs.vencidos} vencidos · ${docs.porVencer} próximos`}
+          derecha={<Etiqueta estado={estadoDocs} />}
+          onPress={() => router.push('/documentos')}
+        />
+      </Tarjeta>
 
       {/* 2. Cifras del mes */}
       <Fila>

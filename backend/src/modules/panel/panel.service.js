@@ -5,7 +5,7 @@
 // =====================================================================
 const { queryUno } = require('../../config/db');
 const { hoy, inicioMes, finMes } = require('../../utils/fechas');
-const { NOMBRES } = require('../../domain/documentos');
+const { NOMBRES, resumenDocumentacion } = require('../../domain/documentos');
 const vehiculosService = require('../vehiculos/vehiculos.service');
 
 /** Lo gastado en el mes: cambios de partes + pagos de documentos. */
@@ -48,6 +48,7 @@ async function resumen(usuarioId) {
       .filter((d) => d.estado !== 'vigente')
       .map((d) => ({ id: d.id, tipo: d.tipo, nombre: NOMBRES[d.tipo], fecha_vencimiento: d.fecha_vencimiento, estado: d.estado, vehiculoId: v.id, placa: v.placa })))
     .sort((a, b) => a.fecha_vencimiento.localeCompare(b.fecha_vencimiento));
+  const documentacion = resumenDocumentacion(vehiculos);
 
   // Costo estimado de las partes que tocaría cambiar este mes
   const finDeMes = finMes(fechaHoy);
@@ -63,6 +64,7 @@ async function resumen(usuarioId) {
     })),
     partesUrgentes,
     documentosPorVencer,
+    documentacion,
     gastoMes: await gastoDelMes(usuarioId, fechaHoy),
     estimadoMes,
   };

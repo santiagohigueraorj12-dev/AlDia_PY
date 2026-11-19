@@ -13,6 +13,7 @@ gasta en mantenimiento y controla el vencimiento de los documentos del vehículo
 - Plan de partes por vehículo, cálculo de desgaste, alertas y registro de cambios.
 - Costo de mantenimiento y costo por kilómetro.
 - Documentos del vehículo con fecha de vencimiento: SOAT, revisión técnico-mecánica (RTM) e impuesto.
+- Módulo de documentación que agrupa SOAT, RTM e impuesto por vehículo y resalta documentos faltantes, vencidos o próximos a vencer.
 - Panel, calendario mensual, notificaciones y hoja de vida del vehículo en PDF.
 - Administración del plan base de partes, de las reglas de la RTM y de los usuarios.
 
@@ -72,7 +73,7 @@ gasta en mantenimiento y controla el vencimiento de los documentos del vehículo
 - RF-13: Renovar un documento y consultar su historial.
 
 **Panel y notificaciones**
-- RF-14: Panel de inicio con el estado de cada vehículo, las partes próximas o vencidas, los documentos por vencer y el gasto del mes.
+- RF-14: Panel de inicio con el estado de cada vehículo, las partes próximas o vencidas, un resumen de documentos faltantes, vencidos o próximos (con acceso al módulo de documentación) y el gasto del mes.
 - RF-15: Calendario mensual con los cambios de partes estimados y los vencimientos de documentos.
 - RF-16: Notificaciones dentro de la aplicación, que se pueden marcar como leídas.
 

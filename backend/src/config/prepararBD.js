@@ -1,5 +1,5 @@
 // =====================================================================
-// MIGRACIONES: crea y actualiza las tablas de la base de datos.
+// estructuraBD: crea y actualiza las tablas de la base de datos.
 //
 // El esquema se organiza en dos archivos ordenados:
 // 001_crear_tablas.sql crea las tablas y 002_actualizar_tablas.sql las modifica.
@@ -24,7 +24,7 @@ const mariadb = require('mariadb');
 const config = require('./env');
 
 const CARPETA_BD = path.join(__dirname, '..', '..', '..', 'database');
-const CARPETA_ESTRUCTURA_BD = path.join(CARPETA_BD, 'estructuraBD');
+const CARPETA_MIGRACIONES = path.join(CARPETA_BD, 'estructuraBD');
 const CARPETA_SEMILLAS = path.join(CARPETA_BD, 'semillas');
 const PUERTOS_COMUNES = [3306, 3320];
 
@@ -94,7 +94,7 @@ async function prepararBaseDeDatos() {
     const yaEjecutadas = new Set((await conn.query('SELECT archivo FROM migraciones')).map((f) => f.archivo));
 
     // 3. Crear las tablas y luego aplicar sus modificaciones, en orden numérico
-    for (const archivo of archivosSql(CARPETA_ESTRUCTURA_BD)) {
+    for (const archivo of archivosSql(CARPETA_MIGRACIONES)) {
       if (yaEjecutadas.has(archivo)) continue;
 
       // Bases creadas antes de las migraciones: si la tabla ya existe, solo se anota
@@ -104,7 +104,7 @@ async function prepararBaseDeDatos() {
         continue;
       }
 
-      await conn.query(fs.readFileSync(path.join(CARPETA_ESTRUCTURA_BD, archivo), 'utf8'));
+      await conn.query(fs.readFileSync(path.join(CARPETA_MIGRACIONES, archivo), 'utf8'));
       await conn.query('INSERT INTO migraciones (archivo) VALUES (?)', [archivo]);
       console.log(`  ✔ Migración ${archivo}`);
     }

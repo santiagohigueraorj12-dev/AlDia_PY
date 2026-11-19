@@ -16,7 +16,7 @@ import { api } from '../api/cliente';
 import { useSesion } from '../context/SesionContext';
 import { useColores } from '../tema';
 
-const RUTAS_CON_PESTANAS = ['/', '/vehiculos', '/calendario', '/notificaciones', '/cuenta', '/admin'];
+const RUTAS_CON_PESTANAS = ['/', '/vehiculos', '/documentos', '/calendario', '/notificaciones', '/cuenta', '/admin'];
 
 export default function AsistenteFlotante() {
   const c = useColores();

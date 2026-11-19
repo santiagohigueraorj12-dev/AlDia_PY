@@ -26,13 +26,13 @@ El backend está organizado **por capas** (RNF-10). Cada capa tiene una sola res
 > sin base de datos ni servidor. Por eso las pruebas unitarias (`backend/tests/`) prueban `domain/` y `utils/`,
 > y las de la app (`app/tests/`) prueban las funciones puras de `src/utils/` (formatos y lista de tareas).
 
-## Base de datos: migraciones y semillas
+## Base de datos: estructuraBD y semillas
 
 Las tablas no se crean a mano. Al encender el backend, `src/config/prepararBD.js`:
 
 1. Busca MariaDB (puerto del `.env` y, si no responde, 3306 y 3320).
 2. Crea la base `aldia` si no existe.
-3. Ejecuta, en orden, los archivos de `database/estructuraBD/` que aún no estén anotados en la tabla `migraciones`:
+3. Ejecuta, en orden, los archivos de `database/estructuraDB/` que aún no estén anotados en la tabla `migraciones`:
    `001_crear_tablas.sql` agrupa las tablas por función y dependencias, y `002_actualizar_tablas.sql` agrupa las
    modificaciones al esquema.
 4. Si la base es nueva, ejecuta `database/semillas/` (catálogos, administrador y datos demo).
@@ -134,6 +134,7 @@ Usa **Expo Router**: cada archivo dentro de `src/app/` es una pantalla y su ruta
 | `src/app/login.js`, `registro.js`, `recuperar.js` | Cuenta (usan `components/PantallaAutenticacion.js`). El registro solo pide nombre, correo y contraseña |
 | `src/app/perfil.js` | Mi perfil: documento, fecha de nacimiento, teléfono, dirección y licencia (RF-03, RN-18) |
 | `src/app/(tabs)/_layout.js` | Pestañas de abajo: Inicio, Vehículos, Calendario, Alertas, Cuenta (y Admin) |
+| `src/app/(tabs)/documentos.js` | Documentación de todos los vehículos, incluidos estados faltantes, vencidos y próximos a vencer |
 | `src/app/(tabs)/index.js` | Inicio (panel) |
 | `src/app/vehiculo/[id]/index.js` | Detalle del vehículo (`[id]` = número del vehículo) |
 | `src/app/vehiculo/[id]/servicio.js` | Registrar cambio |
