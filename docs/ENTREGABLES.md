@@ -6,8 +6,8 @@ Sustentación: 26 de noviembre de 2026.
 | # | Entregable | Archivos | Código del documento |
 |---|---|---|---|
 | 1 | Despliegue de la aplicación | `desplegar.bat` (producción, un solo servidor en el puerto 4000) · [Manual de instalación y despliegue](manuales/AlDia_Manual_de_Instalacion_y_Despliegue.pdf), secciones 5 y 6 | ALD-MI-01 |
-| 2 | Documentación de requisitos corregida | [Especificación de requisitos v2.0](requisitos/AlDia_Especificacion_de_Requisitos.pdf) (control de cambios y matriz de trazabilidad) · resumen en [ALCANCE.md](ALCANCE.md) | ALD-ERS-02 |
-| 3 | Plan de pruebas | [Documentación de pruebas](pruebas/AlDia_Documentacion_de_Pruebas.pdf) según ISO/IEC/IEEE 29119-3 · [Especificación de casos (Excel)](pruebas/AlDia_Especificacion_Casos_de_Prueba.xlsx) · 150 pruebas automáticas | — |
+| 2 | Documentación de requisitos corregida | [Especificación de requisitos v2.1](requisitos/AlDia_Especificacion_de_Requisitos.pdf) (control de cambios y matriz de trazabilidad) · resumen en [ALCANCE.md](ALCANCE.md) | ALD-ERS-02 |
+| 3 | Plan de pruebas | [Documentación de pruebas](pruebas/AlDia_Documentacion_de_Pruebas.pdf) según ISO/IEC/IEEE 29119-3 · [Especificación de casos (Excel)](pruebas/AlDia_Especificacion_Casos_de_Prueba.xlsx) · 155 pruebas automáticas | — |
 | 4 | Plan de respaldo | [Plan de respaldo](respaldo/AlDia_Plan_de_Respaldo.pdf) · `respaldar.bat` y `restaurar.bat` | ALD-PR-01 |
 | 5 | Manual de usuario | [Manual de usuario](manuales/AlDia_Manual_de_Usuario.pdf) (con capturas de la app) | ALD-MU-01 |
 | 6 | Manual de instalación | [Manual de instalación y despliegue](manuales/AlDia_Manual_de_Instalacion_y_Despliegue.pdf) | ALD-MI-01 |
@@ -20,5 +20,5 @@ Todos los documentos están en Word (.docx) y PDF en la misma carpeta.
 | Entregable | Prueba rápida |
 |---|---|
 | Despliegue | Doble clic en `desplegar.bat` → abrir http://localhost:4000 e iniciar sesión con `demo@aldia.co` / `Demo123*` |
-| Pruebas | `cd backend && npm test` (127) y `cd app && npm test` (23): todas deben pasar |
+| Pruebas | `cd backend && npm test` (129) y `cd app && npm test` (26): todas deben pasar |
 | Respaldo | Doble clic en `respaldar.bat` → aparece una carpeta nueva en `respaldos/` con `aldia.sql` y `uploads/` |

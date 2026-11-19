@@ -21,7 +21,7 @@ Todos están en Word y PDF. La lista completa está en [docs/ENTREGABLES.md](doc
 | Entregable | Documento |
 |---|---|
 | Despliegue de la aplicación | `desplegar.bat` + [Manual de instalación y despliegue](docs/manuales/AlDia_Manual_de_Instalacion_y_Despliegue.pdf) |
-| Requisitos corregidos | [Especificación de requisitos v2.0](docs/requisitos/AlDia_Especificacion_de_Requisitos.pdf) (resumen en [docs/ALCANCE.md](docs/ALCANCE.md)) |
+| Requisitos corregidos | [Especificación de requisitos v2.1](docs/requisitos/AlDia_Especificacion_de_Requisitos.pdf) (resumen en [docs/ALCANCE.md](docs/ALCANCE.md)) |
 | Plan de pruebas | [Documentación de pruebas ISO/IEC/IEEE 29119-3](docs/pruebas/AlDia_Documentacion_de_Pruebas.pdf) + [casos en Excel](docs/pruebas/AlDia_Especificacion_Casos_de_Prueba.xlsx) |
 | Plan de respaldo | [Plan de respaldo](docs/respaldo/AlDia_Plan_de_Respaldo.pdf) + `respaldar.bat` / `restaurar.bat` |
 | Manual de usuario | [Manual de usuario](docs/manuales/AlDia_Manual_de_Usuario.pdf) |
@@ -103,17 +103,17 @@ para circular" (revisión técnico-mecánica vencida, SOAT por vencer y kilometr
 ### Pruebas unitarias
 ```bash
 cd backend
-npm test                    # 127 pruebas: reglas de negocio, perfil, fechas, errores, validaciones y asistente
+npm test                    # 129 pruebas: reglas de negocio, perfil, fechas, errores, validaciones, asistente y documentación
 npm run test:cobertura      # con porcentaje de cobertura
 
 cd ../app
-npm test                    # 23 pruebas: formatos y lista "Lo que debes hacer"
+npm test                    # 26 pruebas: formatos, lista "Lo que debes hacer" y documentación por vehículo
 ```
 Cada prueba tiene un identificador fijo (por ejemplo `CP-DES-02`). La documentación de pruebas sigue la norma
 **ISO/IEC/IEEE 29119-3** y está en `docs/pruebas/`:
 - `AlDia_Documentacion_de_Pruebas.docx` (y PDF): política y estrategia, plan de pruebas con registro de riesgos,
   diseño (conjuntos y condiciones), procedimientos, datos y entorno, registro de ejecución, incidentes e informes.
-- `AlDia_Especificacion_Casos_de_Prueba.xlsx`: los 150 casos con entradas, resultado esperado y resultado real,
+- `AlDia_Especificacion_Casos_de_Prueba.xlsx`: los 155 casos con entradas, resultado esperado y resultado real,
   la matriz de trazabilidad con los requisitos, el registro de ejecución y los incidentes.
 
 ---
