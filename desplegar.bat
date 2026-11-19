@@ -43,7 +43,8 @@ popd
 echo.
 echo Direcciones para abrir AlDia:
 echo   En este computador: http://localhost:4000
-for /f "tokens=2 delims=:" %%i in ('ipconfig ^| findstr /c:"IPv4"') do echo   En la red local:   http:%%i:4000 ^(quita el espacio despues de http:^)
+rem tokens=* quita el espacio que ipconfig deja antes de la IP
+for /f "tokens=2 delims=:" %%i in ('ipconfig ^| findstr /c:"IPv4"') do for /f "tokens=*" %%j in ("%%i") do echo   En la red local:   http://%%j:4000
 echo.
 echo Para apagar el servidor cierra esta ventana o presiona Ctrl+C.
 cd backend

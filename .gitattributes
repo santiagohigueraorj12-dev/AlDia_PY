@@ -1,0 +1,4 @@
+# Los archivos .bat de Windows deben tener saltos de linea CRLF.
+# Con LF, "chcp 65001" hace que cmd lea mal el archivo y los comandos fallan.
+*.bat text eol=crlf
+*.cmd text eol=crlf
