@@ -78,16 +78,18 @@ La app encuentra sola el backend (puerto 4000) usando la dirección del computad
 - Puedes fijar la dirección a mano creando `app/.env` con `EXPO_PUBLIC_API_URL=http://TU-IP:4000`.
 
 ### Base de datos: migraciones y semillas
-La carpeta `database/` tiene **un archivo SQL por tabla**:
+La carpeta `database/` separa la creación del esquema y sus modificaciones:
 
 | Carpeta | Qué tiene |
 |---|---|
-| `database/migraciones/` | `001_crear_usuarios.sql` … `012_crear_notificaciones.sql`: crean cada tabla. `013_agregar_perfil_a_usuarios.sql`: agrega columnas al perfil. `014_renombrar_campos_vehiculo.sql`: cambia modelo/año por línea/modelo, conservando los datos. |
+| `database/estructuraBD/` | `001_crear_tablas.sql`: crea las tablas, agrupadas por función y orden de dependencias. `002_actualizar_tablas.sql`: aplica los cambios de esquema después de crear las tablas; es compatible con bases existentes. |
 | `database/semillas/` | Datos iniciales: catálogos (tipos de vehículo, plan base de partes, reglas RTM), el usuario administrador y los datos de demostración. |
 
-La tabla **`migraciones`** anota cuáles ya se ejecutaron, así cada archivo corre una sola vez. Para cambiar la base
-**no se edita una migración vieja**: se agrega una nueva con el número siguiente (`015_...sql`) y se ejecuta con
-`npm run bd:migrar` (o al encender el backend). En HeidiSQL se ve el resultado: la base `aldia` con sus tablas.
+La tabla **`migraciones`** anota cuáles ya se ejecutaron. El backend procesa los archivos en orden alfabético:
+primero crea las tablas y después las actualiza. Los scripts agrupados reconocen tablas y cambios existentes para
+no borrar ni duplicar datos. Para futuros cambios, **no se editan migraciones ya aplicadas**: se agrega una nueva
+con el número siguiente (`003_...sql`) y se ejecuta con `npm run bd:migrar` (o al encender el backend). En HeidiSQL
+se ve el resultado: la base `aldia` con sus tablas.
 
 ### Usuarios de prueba
 | Rol | Correo | Contraseña |
@@ -120,7 +122,7 @@ Cada prueba tiene un identificador fijo (por ejemplo `CP-DES-02`). La documentac
 ```
 AlDia_PY/
 ├── database/
-│   ├── migraciones/     Un archivo SQL por tabla (se ejecutan solos, en orden)
+│   ├── estructuraBD/    Creación y actualizaciones del esquema, organizadas por fase
 │   └── semillas/        Datos iniciales: catálogos, administrador y demo
 ├── docs/                Entregables: requisitos/, manuales/, pruebas/ (ISO/IEC/IEEE 29119-3), respaldo/, alcance y arquitectura
 ├── app/                 ⭐ App para celular y computador (Expo)

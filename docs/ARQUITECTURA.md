@@ -32,12 +32,14 @@ Las tablas no se crean a mano. Al encender el backend, `src/config/prepararBD.js
 
 1. Busca MariaDB (puerto del `.env` y, si no responde, 3306 y 3320).
 2. Crea la base `aldia` si no existe.
-3. Ejecuta, en orden, los archivos de `database/migraciones/` que aún no estén anotados en la tabla `migraciones`
-   (un archivo por tabla: `001_crear_usuarios.sql`, `002_crear_tipos_vehiculo.sql`, …).
+3. Ejecuta, en orden, los archivos de `database/estructuraBD/` que aún no estén anotados en la tabla `migraciones`:
+   `001_crear_tablas.sql` agrupa las tablas por función y dependencias, y `002_actualizar_tablas.sql` agrupa las
+   modificaciones al esquema.
 4. Si la base es nueva, ejecuta `database/semillas/` (catálogos, administrador y datos demo).
 
-Para cambiar una tabla se **agrega** una migración nueva (la más reciente es `014_renombrar_campos_vehiculo.sql`), nunca se
-edita una vieja: así todos los computadores quedan con la misma base. A mano: `npm run bd:migrar`.
+Los scripts iniciales son compatibles con bases existentes: las tablas se crean solo cuando faltan y las columnas
+del perfil o el cambio de modelo/año se aplican solo cuando hacen falta. Para futuros cambios se **agrega** una
+migración nueva numerada desde `003_...sql`, nunca se editan migraciones ya aplicadas. A mano: `npm run bd:migrar`.
 
 ## Ejemplo: ¿qué pasa al registrar un cambio de aceite?
 

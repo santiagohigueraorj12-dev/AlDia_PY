@@ -101,7 +101,7 @@ gasta en mantenimiento y controla el vencimiento de los documentos del vehículo
 | RNF-09 | Privacidad | Ley 1581 de 2012: autorización de datos y opción de eliminar la cuenta. |
 | RNF-10 | Mantenibilidad | Backend por capas con las reglas de negocio en funciones independientes; código en Git. |
 | RNF-11 | Calidad | Pruebas unitarias de las reglas de desgaste, kilometraje, último cambio, estado del vehículo, documentos, perfil y asistente, y de las funciones de la app. |
-| RNF-12 | Instalación | La base de datos se crea y actualiza sola con migraciones (un archivo SQL por tabla) al encender el backend; no hay que ejecutar scripts a mano. |
+| RNF-12 | Instalación | La base de datos se crea y actualiza sola al encender el backend: primero se crean las tablas y luego se aplican las modificaciones del esquema. |
 | RNF-13 | Respaldo | La base de datos y los archivos subidos se respaldan con un comando (`respaldar.bat`), se guardan los últimos 14 respaldos y se restauran con `restaurar.bat`, que antes guarda el estado actual. |
 | RNF-14 | Despliegue | En producción un solo servidor entrega la app web y la API (`desplegar.bat`); el servidor no arranca si la clave JWT es la de ejemplo. |
 

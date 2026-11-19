@@ -1,11 +1,11 @@
 // =====================================================================
 // MIGRACIONES: crea y actualiza las tablas de la base de datos.
 //
-// Cada tabla tiene su propio archivo SQL en database/migraciones/
-// (001_crear_usuarios.sql, 002_crear_tipos_vehiculo.sql, ...).
-// La tabla "migraciones" anota cuáles ya se ejecutaron, así cada archivo
-// se ejecuta UNA sola vez. Para cambiar una tabla no se edita su archivo:
-// se agrega una migración nueva (ej.: 013_agregar_perfil_a_usuarios.sql).
+// El esquema se organiza en dos archivos ordenados:
+// 001_crear_tablas.sql crea las tablas y 002_actualizar_tablas.sql las modifica.
+// La tabla "migraciones" anota cuáles ya se ejecutaron. Los CREATE usan
+// IF NOT EXISTS y los cambios de 002 son repetibles para bases existentes.
+// Las futuras modificaciones se agregan en nuevas migraciones numeradas.
 //
 // Se ejecuta solo al encender el backend (npm run dev), o a mano con:
 //   npm run bd:migrar
@@ -24,7 +24,7 @@ const mariadb = require('mariadb');
 const config = require('./env');
 
 const CARPETA_BD = path.join(__dirname, '..', '..', '..', 'database');
-const CARPETA_MIGRACIONES = path.join(CARPETA_BD, 'migraciones');
+const CARPETA_ESTRUCTURA_BD = path.join(CARPETA_BD, 'estructuraBD');
 const CARPETA_SEMILLAS = path.join(CARPETA_BD, 'semillas');
 const PUERTOS_COMUNES = [3306, 3320];
 
@@ -93,8 +93,8 @@ async function prepararBaseDeDatos() {
     const esNueva = !(await existeTabla(conn, 'usuarios'));
     const yaEjecutadas = new Set((await conn.query('SELECT archivo FROM migraciones')).map((f) => f.archivo));
 
-    // 3. Migraciones pendientes, en orden
-    for (const archivo of archivosSql(CARPETA_MIGRACIONES)) {
+    // 3. Crear las tablas y luego aplicar sus modificaciones, en orden numérico
+    for (const archivo of archivosSql(CARPETA_ESTRUCTURA_BD)) {
       if (yaEjecutadas.has(archivo)) continue;
 
       // Bases creadas antes de las migraciones: si la tabla ya existe, solo se anota
@@ -104,7 +104,7 @@ async function prepararBaseDeDatos() {
         continue;
       }
 
-      await conn.query(fs.readFileSync(path.join(CARPETA_MIGRACIONES, archivo), 'utf8'));
+      await conn.query(fs.readFileSync(path.join(CARPETA_ESTRUCTURA_BD, archivo), 'utf8'));
       await conn.query('INSERT INTO migraciones (archivo) VALUES (?)', [archivo]);
       console.log(`  ✔ Migración ${archivo}`);
     }
