@@ -131,7 +131,7 @@ las migraciones ya ejecutadas se saltan y las semillas no se repiten.
 | `En producción debes poner una JWT_SECRETO propia` | Falta `JWT_SECRETO` | En **Environment**, crea `JWT_SECRETO` con **Generate** |
 | `No se pudo conectar a MariaDB ... ETIMEDOUT` | Host o puerto mal escritos | Cópialos otra vez de Aiven (el puerto **no** es 3306) |
 | `Access denied for user 'avnadmin'` | Contraseña mal copiada | Vuelve a copiar el Password de Aiven |
-| `self-signed certificate in certificate chain` | Falta o está incompleto `DB_SSL_CA` | Pega el CA certificate completo, con las líneas BEGIN y END |
+| `self-signed certificate in certificate chain` | El certificado no corresponde al servicio de Aiven | El backend usa `DB_SSL_CA` y, de respaldo, `backend/certificados/aiven-ca.pem` (el CA del servicio actual). Si creas otro servicio en Aiven, reemplaza ese archivo con su **CA certificate** |
 | `npm ci` falla en el Build | `package-lock.json` desactualizado | En tu PC: `npm install` en `app` y en `backend`, y sube los `package-lock.json` |
 | `JavaScript heap out of memory` al compilar | Poca memoria al compilar la web | **Manual Deploy** → **Clear build cache & deploy**. Si persiste, en **Environment** agrega `NODE_OPTIONS=--max-old-space-size=460` |
 | La página abre en blanco | La compilación de `app/dist` falló | Revisa la parte "Compilando la app web" de los Logs del Build |

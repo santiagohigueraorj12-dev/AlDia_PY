@@ -1,6 +1,8 @@
 // Lee las variables del archivo .env y las expone en un solo objeto.
 // Así el resto del código nunca usa process.env directamente.
 require('dotenv').config();
+const fs = require('fs');
+const path = require('path');
 
 /**
  * SSL para la base de datos. En el computador local MariaDB no lo usa;
@@ -11,8 +13,23 @@ require('dotenv').config();
  */
 function configurarSsl() {
   if (process.env.DB_SSL !== 'true') return undefined;
-  const ca = process.env.DB_SSL_CA;
-  return ca ? { ca: limpiarCertificado(ca), rejectUnauthorized: true } : { rejectUnauthorized: true };
+  const pegado = limpiarCertificado(process.env.DB_SSL_CA || '');
+  const archivo = leerCertificadoArchivo();
+  const cantidad = (texto) => (texto.match(/BEGIN CERTIFICATE/g) || []).length;
+  console.log(`Certificados CA: ${cantidad(pegado)} en DB_SSL_CA (${(process.env.DB_SSL_CA || '').length} caracteres), `
+    + `${cantidad(archivo)} en certificados/aiven-ca.pem`);
+  const ca = pegado + archivo;
+  return ca ? { ca, rejectUnauthorized: true } : { rejectUnauthorized: true };
+}
+
+/**
+ * Certificado CA del proyecto de Aiven guardado en backend/certificados/.
+ * Es público (no es una contraseña) y sirve de respaldo si DB_SSL_CA quedó mal pegado.
+ * Si se crea otro servicio en Aiven, se reemplaza con el que muestra Aiven en "CA certificate".
+ */
+function leerCertificadoArchivo() {
+  const ruta = path.join(__dirname, '..', '..', 'certificados', 'aiven-ca.pem');
+  return fs.existsSync(ruta) ? limpiarCertificado(fs.readFileSync(ruta, 'utf8')) : '';
 }
 
 /**
@@ -23,7 +40,7 @@ function configurarSsl() {
  */
 function limpiarCertificado(texto) {
   const bloques = texto.match(/-----BEGIN CERTIFICATE-----[\s\S]*?-----END CERTIFICATE-----/g);
-  if (!bloques) return texto;
+  if (!bloques) return '';  // no hay un certificado válido en el texto
   return bloques.map((bloque) => {
     const contenido = bloque
       .replace(/-----(BEGIN|END) CERTIFICATE-----/g, '')
