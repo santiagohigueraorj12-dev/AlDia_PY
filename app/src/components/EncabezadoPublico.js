@@ -9,18 +9,12 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useColores } from '../tema';
 import { Boton } from './ui';
 import BotonTema from './BotonTema';
+import LogoAlDia from './LogoAlDia';
 
-/** Logo de AlDía: ícono + nombre. */
+/** Logo oficial de AlDía (components/LogoAlDia.js): ícono + nombre. */
 export function Logo({ tamano = 22 }) {
   const c = useColores();
-  return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-      <View style={{ backgroundColor: c.primario, borderRadius: 10, padding: 6 }}>
-        <Ionicons name="speedometer" size={tamano} color={c.primarioTexto} />
-      </View>
-      <Text style={{ fontSize: tamano, fontWeight: '800', color: c.primario }}>AlDía</Text>
-    </View>
-  );
+  return <LogoAlDia tamano={tamano} color={c.texto} colorDia={c.primario} />;
 }
 
 /**

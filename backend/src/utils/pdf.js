@@ -1,8 +1,10 @@
 // Ayudas para generar PDF con pdfkit (hoja de vida RF-12 y reportes RF-25).
+const fs = require('fs');
+const path = require('path');
 const PDFDocument = require('pdfkit');
 const { formatoColombia, hoy } = require('./fechas');
 
-const AZUL = '#1F4E79';
+const AZUL = '#1d4ed8';  // azul del logo oficial
 const GRIS = '#555555';
 
 /** Crea el documento y lo envía directamente como respuesta HTTP (descarga). */
@@ -14,8 +16,20 @@ function crearPdf(res, nombreArchivo) {
   return doc;
 }
 
+// Logo oficial de AlDía (copia de app/assets/logo, en PNG porque pdfkit no dibuja SVG)
+const LOGO = path.join(__dirname, '..', '..', 'recursos', 'logo.png');
+
 function encabezado(doc, titulo, subtitulo) {
-  doc.fillColor(AZUL).fontSize(22).font('Helvetica-Bold').text('AlDía', { continued: false });
+  if (fs.existsSync(LOGO)) {
+    // Logo a la izquierda y el nombre a su lado, alineado al centro del logo
+    const y = doc.y;
+    doc.image(LOGO, 50, y, { width: 40, height: 40 });
+    doc.fillColor(AZUL).fontSize(22).font('Helvetica-Bold').text('AlDía', 98, y + 9);
+    doc.x = 50;
+    doc.y = y + 48;
+  } else {
+    doc.fillColor(AZUL).fontSize(22).font('Helvetica-Bold').text('AlDía', { continued: false });
+  }
   doc.fillColor('black').fontSize(16).text(titulo);
   if (subtitulo) doc.fillColor(GRIS).fontSize(10).font('Helvetica').text(subtitulo);
   doc.fillColor(GRIS).fontSize(9).font('Helvetica').text(`Generado el ${formatoColombia(hoy())}`);

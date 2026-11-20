@@ -164,9 +164,12 @@ function plantilla({ titulo, contenido, boton }) {
   return `<!doctype html><html><body style="margin:0;background:#eef4ff;font-family:Arial,Helvetica,sans-serif;color:#0f172a">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:24px 12px">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:16px;overflow:hidden">
-      <tr><td style="background:linear-gradient(135deg,#1e3a8a,#2563eb);background-color:#1e40af;padding:24px;color:#ffffff">
-        <div style="font-size:22px;font-weight:bold">AlDía</div>
-        <div style="font-size:14px;opacity:.9">Mantenimiento de tu vehículo, siempre al día</div>
+      <tr><td style="background:linear-gradient(135deg,#1e3a8a,#2563eb);background-color:#1e40af;padding:20px 24px;color:#ffffff">
+        <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+          <td style="padding-right:12px"><img src="${escapar(config.urlApp)}/logo.png" width="48" height="48" alt="AlDía" style="display:block;border-radius:12px"></td>
+          <td><div style="font-size:22px;font-weight:bold">AlDía</div>
+            <div style="font-size:14px;opacity:.9">Tu vehículo, siempre al día</div></td>
+        </tr></table>
       </td></tr>
       <tr><td style="padding:24px">
         <h1 style="font-size:20px;margin:0 0 16px">${escapar(titulo)}</h1>

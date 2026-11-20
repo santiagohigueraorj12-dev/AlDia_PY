@@ -1,6 +1,11 @@
+<p align="center"><img src="app/assets/logo/aldia-logo-horizontal.png" alt="AlDía" width="520"></p>
+
 # AlDía 🏍️🚗
 
 > **"Que no se te pase ningún cambio de tu vehículo."**
+
+**Logo oficial:** "Ruta al amanecer": la "A" es una carretera que sube hacia el sol, el día.
+Archivos en [`app/assets/logo/`](app/assets/logo/) (ícono SVG y PNG, versiones horizontal, vertical y blanca).
 
 Aplicación para controlar el **mantenimiento de motos y carros**, que funciona en el **celular y en el computador**. Calcula el desgaste de cada parte
 (aceite, frenos, llantas…) según los kilómetros y el tiempo, avisa cuándo toca cada cambio, lleva el costo

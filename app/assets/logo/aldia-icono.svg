@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <title>AlDía</title>
+  <!--
+    Logo de AlDía: "Ruta al amanecer".
+    La "A" es una carretera vista en perspectiva (sus dos bordes y la línea
+    central) que sube hacia un sol naranja: el día. Al + Día.
+    Colores: degradado azul de la app (tema.js) y naranja de acento.
+  -->
+  <defs>
+    <linearGradient id="fondo" x1="0" y1="0" x2="0.35" y2="1">
+      <stop offset="0" stop-color="#172e73"/>
+      <stop offset="0.6" stop-color="#2563eb"/>
+      <stop offset="1" stop-color="#0b6fb8"/>
+    </linearGradient>
+    <!-- Resplandor cálido del amanecer alrededor del sol -->
+    <radialGradient id="resplandor" cx="256" cy="200" r="190" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ff9a2e" stop-opacity="0.45"/>
+      <stop offset="0.55" stop-color="#ff9a2e" stop-opacity="0.12"/>
+      <stop offset="1" stop-color="#ff9a2e" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="sol" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffd166"/>
+      <stop offset="1" stop-color="#ff7a00"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Fondo -->
+  <rect width="512" height="512" rx="116" fill="url(#fondo)"/>
+  <rect width="512" height="512" rx="116" fill="url(#resplandor)"/>
+
+  <!-- Sol: la punta de la "A" llega a su centro -->
+  <circle cx="256" cy="186" r="86" fill="url(#sol)"/>
+
+  <!-- La "A": los dos bordes de la carretera, anchos abajo y delgados arriba (perspectiva) -->
+  <path d="M 104 430 L 160 430 L 264 146 L 248 146 Z M 352 430 L 408 430 L 264 146 L 248 146 Z"
+        fill="#ffffff" stroke="#ffffff" stroke-width="14" stroke-linejoin="round"/>
+
+  <!-- Línea central de la carretera: se achica hacia el horizonte -->
+  <g fill="#ffffff">
+    <rect x="244" y="378" width="24" height="54" rx="12"/>
+    <rect x="246.5" y="324" width="19" height="38" rx="9.5"/>
+    <rect x="249" y="281" width="14" height="27" rx="7"/>
+    <rect x="251" y="248" width="10" height="19" rx="5"/>
+  </g>
+</svg>

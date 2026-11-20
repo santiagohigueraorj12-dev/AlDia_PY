@@ -7,6 +7,7 @@ import { useSesion } from '../../context/SesionContext';
 import { useColores } from '../../tema';
 import { FondoEncabezado } from '../../components/Decoracion';
 import BotonTema from '../../components/BotonTema';
+import LogoAlDia from '../../components/LogoAlDia';
 
 /** Ícono de una pestaña. */
 const icono = (nombre) => ({ color, size }) => <Ionicons name={nombre} color={color} size={size} />;
@@ -40,7 +41,8 @@ export default function PestanasLayout() {
         sceneStyle: { backgroundColor: c.fondo },
       }}
     >
-      <Tabs.Screen name="index" options={{ title: 'Inicio', headerTitle: 'AlDía', tabBarIcon: icono('home') }} />
+      {/* En Inicio la barra azul muestra el logo oficial en vez del texto */}
+      <Tabs.Screen name="index" options={{ title: 'Inicio', headerTitle: () => <LogoAlDia tamano={20} color="#ffffff" colorDia="#ffd166" />, tabBarIcon: icono('home') }} />
       <Tabs.Screen name="vehiculos" options={{ title: 'Vehículos', tabBarIcon: icono('car-sport') }} />
       <Tabs.Screen name="documentos" options={{ title: 'Docs', headerTitle: 'Documentación', tabBarIcon: icono('document-text') }} />
       <Tabs.Screen name="calendario" options={{ title: 'Calendario', tabBarIcon: icono('calendar') }} />
