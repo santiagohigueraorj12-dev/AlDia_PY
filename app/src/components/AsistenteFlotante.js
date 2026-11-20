@@ -15,6 +15,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { api } from '../api/cliente';
 import { useSesion } from '../context/SesionContext';
 import { useColores } from '../tema';
+import { RellenoPrimario } from './Decoracion';
 
 const RUTAS_CON_PESTANAS = ['/', '/vehiculos', '/documentos', '/calendario', '/notificaciones', '/cuenta', '/admin'];
 
@@ -40,12 +41,13 @@ export default function AsistenteFlotante() {
         accessibilityLabel="Abrir el asistente de AlDía"
         style={({ pressed }) => ({
           position: 'absolute', right: 18, bottom: abajo,
-          width: 58, height: 58, borderRadius: 29, backgroundColor: c.primario,
+          width: 58, height: 58, borderRadius: 29, backgroundColor: c.rellenoDegradado ? 'transparent' : c.primario, overflow: 'hidden',
           alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.85 : 1,
           shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 6,
         })}
       >
-        <Ionicons name="chatbubble-ellipses" size={28} color={c.primarioTexto} />
+        <RellenoPrimario />
+        <Ionicons name="chatbubble-ellipses" size={28} color={c.rellenoDegradado ? c.sobrePrimario : c.primarioTexto} />
       </Pressable>
 
       {abierto && (
@@ -61,6 +63,7 @@ export default function AsistenteFlotante() {
 /** La ventana del chat. En el computador es una tarjeta en la esquina; en el celular ocupa toda la pantalla. */
 function VentanaChat({ vehiculoInicial, onCerrar }) {
   const c = useColores();
+  const sobre = c.rellenoDegradado ? c.sobrePrimario : c.primarioTexto;  // texto sobre el encabezado
   const { usuario } = useSesion();
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -127,14 +130,15 @@ function VentanaChat({ vehiculoInicial, onCerrar }) {
       <View style={{ flex: 1, backgroundColor: ancha ? 'rgba(10,15,25,0.25)' : c.fondo }}>
         <View style={[{ backgroundColor: c.fondo, overflow: 'hidden', borderColor: c.borde, borderWidth: ancha ? 1 : 0 }, tarjeta]}>
           {/* Encabezado */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, padding: 14, backgroundColor: c.primario }}>
-            <Ionicons name="chatbubble-ellipses" size={22} color={c.primarioTexto} />
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, padding: 14, backgroundColor: c.rellenoDegradado ? 'transparent' : c.primario, overflow: 'hidden' }}>
+            <RellenoPrimario />
+            <Ionicons name="chatbubble-ellipses" size={22} color={sobre} />
             <View style={{ flex: 1 }}>
-              <Text style={{ color: c.primarioTexto, fontWeight: '800', fontSize: 16 }}>Asistente AlDía</Text>
-              <Text style={{ color: c.primarioTexto, opacity: 0.85, fontSize: 12.5 }}>Responde con los datos de tus vehículos</Text>
+              <Text style={{ color: sobre, fontWeight: '800', fontSize: 16 }}>Asistente AlDía</Text>
+              <Text style={{ color: sobre, opacity: 0.85, fontSize: 12.5 }}>Responde con los datos de tus vehículos</Text>
             </View>
             <Pressable onPress={onCerrar} accessibilityRole="button" accessibilityLabel="Cerrar el asistente" style={{ padding: 4 }}>
-              <Ionicons name="close" size={26} color={c.primarioTexto} />
+              <Ionicons name="close" size={26} color={sobre} />
             </Pressable>
           </View>
 

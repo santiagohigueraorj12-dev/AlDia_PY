@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useColores } from '../tema';
 import { Boton } from './ui';
+import BotonTema from './BotonTema';
 
 /** Logo de AlDía: ícono + nombre. */
 export function Logo({ tamano = 22 }) {
@@ -54,7 +55,8 @@ export default function EncabezadoPublico({ ocultar, enlaces = [] }) {
         )}
 
         {/* Esquina superior derecha */}
-        <View style={{ marginLeft: 'auto', flexDirection: 'row', gap: 8 }}>
+        <View style={{ marginLeft: 'auto', flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+          <BotonTema sobreClaro />
           {ocultar !== 'login' && (
             <Boton titulo={angosta ? 'Entrar' : 'Iniciar sesión'} tipo="normal" onPress={() => router.push('/login')} />
           )}

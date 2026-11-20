@@ -11,7 +11,8 @@ import { StatusBar } from 'expo-status-bar';
 import { SesionProvider, useSesion } from '../context/SesionContext';
 import { Cargando } from '../components/ui';
 import AsistenteFlotante from '../components/AsistenteFlotante';
-import { useColores } from '../tema';
+import { TemaProvider, useColores } from '../tema';
+import BotonTema from '../components/BotonTema';
 import { FondoEncabezado } from '../components/Decoracion';
 
 function Navegacion() {
@@ -23,11 +24,13 @@ function Navegacion() {
     headerBackground: () => <FondoEncabezado />,
     headerTintColor: '#ffffff',
     headerTitleStyle: { fontWeight: '800' },
+    headerRight: () => <BotonTema />,  // botón de sol / luna en la esquina derecha
     contentStyle: { backgroundColor: c.fondo },
   };
 
   return (
     <View style={{ flex: 1 }}>
+      <StatusBar style={c.esOscuro ? 'light' : 'dark'} />
       <Stack screenOptions={opciones}>
         {/* Solo con sesión iniciada */}
         <Stack.Protected guard={Boolean(usuario)}>
@@ -60,9 +63,11 @@ function Navegacion() {
 
 export default function RaizApp() {
   return (
-    <SesionProvider>
-      <StatusBar style="auto" />
-      <Navegacion />
-    </SesionProvider>
+    // TemaProvider va por fuera: así todas las pantallas saben si se eligió claro u oscuro
+    <TemaProvider>
+      <SesionProvider>
+        <Navegacion />
+      </SesionProvider>
+    </TemaProvider>
   );
 }

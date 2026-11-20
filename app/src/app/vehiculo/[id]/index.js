@@ -13,6 +13,7 @@ import {
 } from '../../../components/ui';
 import { useColores } from '../../../tema';
 import { IlustracionTaller, IlustracionVehiculo } from '../../../components/Ilustraciones';
+import { RellenoPrimario } from '../../../components/Decoracion';
 import { avisar, confirmar } from '../../../utils/dialogos';
 import {
   ESTADO_DOCUMENTO, ESTADO_PARTE, ESTADO_VEHICULO, EXPLICACION_VEHICULO, NOMBRE_DOCUMENTO,
@@ -129,17 +130,20 @@ export default function DetalleVehiculo() {
 /** Botón grande con ícono y una explicación corta debajo. */
 function Accion({ icono, titulo, texto, onPress, principal = false }) {
   const c = useColores();
-  const fondo = principal ? c.primario : c.superficie;
-  const color = principal ? c.primarioTexto : c.texto;
+  const degradado = principal && c.rellenoDegradado;
+  const fondo = principal ? (degradado ? 'transparent' : c.primario) : c.superficie;
+  const sobre = degradado ? c.sobrePrimario : c.primarioTexto;  // texto sobre el azul
+  const color = principal ? sobre : c.texto;
   return (
     <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={titulo}
       style={({ pressed }) => ({
-        flexBasis: '22%', flexGrow: 1, minWidth: 140, backgroundColor: fondo, borderColor: principal ? c.primario : c.borde, borderWidth: 1,
+        flexBasis: '22%', flexGrow: 1, minWidth: 140, backgroundColor: fondo, borderColor: degradado ? 'transparent' : principal ? c.primario : c.borde, borderWidth: 1, overflow: 'hidden',
         borderRadius: 12, padding: 12, gap: 6, opacity: pressed ? 0.75 : 1,
       })}>
-      <Ionicons name={icono} size={24} color={principal ? c.primarioTexto : c.primario} />
+      {degradado && <RellenoPrimario />}
+      <Ionicons name={icono} size={24} color={principal ? sobre : c.primario} />
       <Text style={{ color, fontWeight: '700', fontSize: 15 }}>{titulo}</Text>
-      <Text style={{ color: principal ? c.primarioTexto : c.textoSuave, fontSize: 12.5, opacity: principal ? 0.9 : 1 }}>{texto}</Text>
+      <Text style={{ color: principal ? sobre : c.textoSuave, fontSize: 12.5, opacity: principal ? 0.9 : 1 }}>{texto}</Text>
     </Pressable>
   );
 }

@@ -6,6 +6,7 @@ import { api } from '../../api/cliente';
 import { useSesion } from '../../context/SesionContext';
 import { useColores } from '../../tema';
 import { FondoEncabezado } from '../../components/Decoracion';
+import BotonTema from '../../components/BotonTema';
 
 /** Ícono de una pestaña. */
 const icono = (nombre) => ({ color, size }) => <Ionicons name={nombre} color={color} size={size} />;
@@ -35,6 +36,7 @@ export default function PestanasLayout() {
         headerBackground: () => <FondoEncabezado />,
         headerTintColor: '#ffffff',
         headerTitleStyle: { fontWeight: '800' },
+        headerRight: () => <BotonTema />,  // botón de sol / luna en la esquina derecha
         sceneStyle: { backgroundColor: c.fondo },
       }}
     >

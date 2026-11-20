@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useColores } from '../tema';
-import { Degradado, FondoDecorado } from './Decoracion';
+import { Degradado, FondoDecorado, RellenoPrimario } from './Decoracion';
 
 /**
  * Contenedor con scroll y márgenes para el contenido de una pantalla.
@@ -66,6 +66,9 @@ export function Boton({ titulo, onPress, tipo = 'normal', icono, pequeno = false
     enlace: { fondo: 'transparent', texto: c.primario, borde: 'transparent' },
   }[tipo];
   const vertical = tipo === 'enlace' ? 4 : pequeno ? 7 : 11;
+  // En modo oscuro el botón principal lleva el degradado del tema con letras blancas
+  const conDegradado = tipo === 'primario' && c.rellenoDegradado;
+  if (conDegradado) Object.assign(colores, { fondo: 'transparent', texto: c.sobrePrimario, borde: 'transparent' });
   return (
     <Pressable
       onPress={onPress}
@@ -75,7 +78,8 @@ export function Boton({ titulo, onPress, tipo = 'normal', icono, pequeno = false
       style={({ pressed }) => [
         {
           backgroundColor: colores.fondo, borderColor: colores.borde, borderWidth: 1, borderRadius: 12,
-          boxShadow: tipo === 'primario' ? `0 4px 12px ${c.primario}55` : undefined,
+          boxShadow: tipo === 'primario' ? `0 4px 14px ${conDegradado ? 'rgba(99, 102, 241, 0.45)' : `${c.primario}55`}` : undefined,
+          overflow: conDegradado ? 'hidden' : undefined,
           paddingVertical: vertical, paddingHorizontal: tipo === 'enlace' ? 2 : pequeno ? 12 : 16,
           flexDirection: 'row', gap: 7, alignItems: 'center', justifyContent: 'center',
           opacity: deshabilitado ? 0.5 : pressed ? 0.75 : 1,
@@ -83,6 +87,7 @@ export function Boton({ titulo, onPress, tipo = 'normal', icono, pequeno = false
         estilo,
       ]}
     >
+      {conDegradado && <RellenoPrimario />}
       {icono && <Ionicons name={icono} size={pequeno ? 16 : 18} color={colores.texto} />}
       <Text style={{ color: colores.texto, fontWeight: '600', fontSize: pequeno ? 14 : 15 }}>{titulo}</Text>
     </Pressable>
@@ -167,9 +172,10 @@ export function Segmentos({ opciones, valor, onCambio }) {
         return (
           <Pressable key={o.id} onPress={() => onCambio(o.id)} accessibilityRole="tab" accessibilityState={{ selected: activo }}
             style={{ flex: 1, flexDirection: 'row', gap: 6, alignItems: 'center', justifyContent: 'center', paddingVertical: 9, borderRadius: 9,
-              backgroundColor: activo ? c.primario : 'transparent' }}>
-            {conIconos && o.icono && <Ionicons name={o.icono} size={17} color={activo ? c.primarioTexto : c.textoSuave} />}
-            <Text style={{ color: activo ? c.primarioTexto : c.textoSuave, fontWeight: '700', fontSize: 14 }}>{o.titulo}</Text>
+              backgroundColor: activo && !c.rellenoDegradado ? c.primario : 'transparent', overflow: 'hidden' }}>
+            {activo && <RellenoPrimario />}
+            {conIconos && o.icono && <Ionicons name={o.icono} size={17} color={activo ? (c.rellenoDegradado ? c.sobrePrimario : c.primarioTexto) : c.textoSuave} />}
+            <Text style={{ color: activo ? (c.rellenoDegradado ? c.sobrePrimario : c.primarioTexto) : c.textoSuave, fontWeight: '700', fontSize: 14 }}>{o.titulo}</Text>
           </Pressable>
         );
       })}

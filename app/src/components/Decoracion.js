@@ -7,7 +7,7 @@
 import { useId } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import Svg, { Circle, Defs, LinearGradient, Path, Rect, Stop } from 'react-native-svg';
+import Svg, { Circle, Defs, LinearGradient, Path, RadialGradient, Rect, Stop } from 'react-native-svg';
 import { useColores } from '../tema';
 
 /**
@@ -54,17 +54,30 @@ const DIBUJOS = [
 export function FondoDecorado() {
   const c = useColores();
   const [azul, celeste, naranja] = c.decoracion;
-  const opacidadDibujos = c.esOscuro ? 0.09 : 0.11;
+  const oscuro = c.esOscuro;
+  const opacidadDibujos = oscuro ? 0.16 : 0.11;
+  const id = `f${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
+  // En modo oscuro las manchas son brillos: intensos en el centro y transparentes en el borde
+  const mancha = (color) => (oscuro ? `url(#${id}${color.slice(1)})` : color);
+  const brillos = oscuro ? [azul, celeste, naranja, '#6d28d9'] : [];
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="none">
       <Svg style={StyleSheet.absoluteFill} width="100%" height="100%" preserveAspectRatio="xMidYMid slice" viewBox="0 0 400 800">
-        <Circle cx="380" cy="40" r="150" fill={azul} opacity={0.55} />
-        <Circle cx="-30" cy="330" r="130" fill={celeste} opacity={0.6} />
-        <Circle cx="420" cy="560" r="120" fill={naranja} opacity={0.45} />
-        <Circle cx="40" cy="790" r="140" fill={azul} opacity={0.45} />
+        <Defs>
+          {brillos.map((color) => (
+            <RadialGradient key={color} id={`${id}${color.slice(1)}`} cx="50%" cy="50%" r="50%">
+              <Stop offset="0" stopColor={color} stopOpacity={0.85} />
+              <Stop offset="1" stopColor={color} stopOpacity={0} />
+            </RadialGradient>
+          ))}
+        </Defs>
+        <Circle cx="380" cy="40" r={oscuro ? 210 : 150} fill={mancha(azul)} opacity={oscuro ? 1 : 0.55} />
+        <Circle cx="-30" cy="330" r={oscuro ? 180 : 130} fill={mancha(celeste)} opacity={oscuro ? 1 : 0.6} />
+        <Circle cx="420" cy="560" r={oscuro ? 170 : 120} fill={mancha(naranja)} opacity={oscuro ? 0.9 : 0.45} />
+        <Circle cx="40" cy="790" r={oscuro ? 200 : 140} fill={oscuro ? mancha('#6d28d9') : azul} opacity={oscuro ? 1 : 0.45} />
         {/* carretera curva con su línea punteada */}
-        <Path d="M-20 640 C 90 560, 170 700, 280 620 S 420 560, 440 600" stroke={azul} strokeWidth="34" fill="none" opacity={0.55} strokeLinecap="round" />
-        <Path d="M-20 640 C 90 560, 170 700, 280 620 S 420 560, 440 600" stroke="#ffffff" strokeWidth="3" fill="none" opacity={0.7} strokeDasharray="14 12" />
+        <Path d="M-20 640 C 90 560, 170 700, 280 620 S 420 560, 440 600" stroke={azul} strokeWidth="34" fill="none" opacity={oscuro ? 0.7 : 0.55} strokeLinecap="round" />
+        <Path d="M-20 640 C 90 560, 170 700, 280 620 S 420 560, 440 600" stroke={oscuro ? '#fbbf24' : '#ffffff'} strokeWidth="3" fill="none" opacity={0.7} strokeDasharray="14 12" />
       </Svg>
       {DIBUJOS.map(([icono, x, y, tam, giro], i) => (
         <Ionicons key={i} name={icono} size={tam} color={c.primario}
@@ -72,6 +85,17 @@ export function FondoDecorado() {
       ))}
     </View>
   );
+}
+
+/**
+ * Relleno de un elemento azul (botón, pestaña activa, botón del asistente...).
+ * En modo oscuro dibuja el degradado del tema detrás del contenido; en modo claro no
+ * dibuja nada y el elemento conserva su color sólido. El elemento debe tener
+ * overflow: 'hidden' y fondo c.rellenoDegradado ? 'transparent' : c.primario.
+ */
+export function RellenoPrimario() {
+  const c = useColores();
+  return c.rellenoDegradado ? <Degradado estilo={StyleSheet.absoluteFill} /> : null;
 }
 
 /** Fondo del encabezado de la app (barra de arriba) en degradado. */
