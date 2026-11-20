@@ -1,0 +1,44 @@
+# =====================================================================
+# Blueprint de Render para AlDía (plan gratuito).
+# Render lee este archivo al crear el servicio con "New > Blueprint".
+# Un solo servicio web: compila la app web (app/dist) y enciende el
+# backend, que entrega la página y la API en la misma dirección.
+# La base de datos NO está aquí: Render gratis solo ofrece PostgreSQL y
+# AlDía usa MySQL/MariaDB, así que se usa un MySQL gratuito externo (Aiven).
+# Guía completa: docs/despliegue/DESPLIEGUE_RENDER.md
+# =====================================================================
+services:
+  - type: web
+    name: aldia
+    runtime: node
+    plan: free
+    region: oregon
+    buildCommand: bash ./build.sh
+    startCommand: cd backend && npm start
+    healthCheckPath: /api/salud
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: 22.12.0
+      - key: JWT_SECRETO
+        generateValue: true      # Render crea una clave larga y aleatoria
+      - key: JWT_EXPIRA
+        value: 8h
+      - key: DB_SSL
+        value: "true"
+      # Estos se escriben a mano en el panel de Render (datos de Aiven)
+      - key: DB_HOST
+        sync: false
+      - key: DB_PUERTO
+        sync: false
+      - key: DB_USUARIO
+        sync: false
+      - key: DB_CLAVE
+        sync: false
+      - key: DB_NOMBRE
+        value: aldia
+      - key: DB_SSL_CA
+        sync: false
+      - key: ADMIN_CLAVE
+        sync: false

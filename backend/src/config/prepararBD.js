@@ -40,6 +40,7 @@ function conectar(puerto) {
     port: puerto,
     user: config.db.user,
     password: config.db.password,
+    ssl: config.db.ssl,        // solo en la nube (DB_SSL=true)
     multipleStatements: true,  // un archivo .sql puede traer varias instrucciones
     connectTimeout: 4000,
   });
@@ -116,6 +117,17 @@ async function prepararBaseDeDatos() {
         console.log(`  ✔ Semilla ${archivo}`);
       }
       console.log('Base de datos lista. Usuario demo: demo@aldia.co / Demo123*  ·  Administrador: admin@aldia.co / Admin123*');
+    }
+
+    // 5. Contraseña propia del administrador (ADMIN_CLAVE), para no dejar la pública en internet
+    if (config.admin.clave) {
+      const bcrypt = require('bcryptjs');
+      const hash = await bcrypt.hash(config.admin.clave, 10);
+      const r = await conn.query(
+        "UPDATE usuarios SET password_hash = ?, correo = ? WHERE rol = 'admin' AND (correo = ? OR correo = 'admin@aldia.co')",
+        [hash, config.admin.correo, config.admin.correo],
+      );
+      if (r.affectedRows) console.log(`  ✔ Contraseña del administrador (${config.admin.correo}) actualizada desde ADMIN_CLAVE`);
     }
   } finally {
     await conn.end();
