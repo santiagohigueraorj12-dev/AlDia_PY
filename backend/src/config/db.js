@@ -5,6 +5,7 @@ const config = require('./env');
 const pool = mariadb.createPool({
   ...config.db,
   connectionLimit: 10,
+  connectTimeout: config.db.ssl ? 15000 : 1000, // en la nube la conexión cifrada tarda más
   dateStrings: true,                 // las fechas llegan como texto 'AAAA-MM-DD' (evita líos de zona horaria)
   decimalAsNumber: true,             // los DECIMAL llegan como número de JavaScript
   bigIntAsNumber: true,              // los COUNT(*) e ids llegan como número

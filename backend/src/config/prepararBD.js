@@ -42,12 +42,37 @@ function conectar(puerto) {
     password: config.db.password,
     ssl: config.db.ssl,        // solo en la nube (DB_SSL=true)
     multipleStatements: true,  // un archivo .sql puede traer varias instrucciones
-    connectTimeout: 4000,
+    // en la nube la conexión cifrada tarda más que en el computador local
+    connectTimeout: config.db.ssl ? 15000 : 4000,
   });
+}
+
+const esperar = (ms) => new Promise((r) => setTimeout(r, ms));
+
+/** En la nube: solo el puerto configurado, con varios reintentos (la base puede estar despertando). */
+async function conectarEnLaNube() {
+  const INTENTOS = 5;
+  for (let intento = 1; ; intento += 1) {
+    try {
+      return await conectar(config.db.port);
+    } catch (error) {
+      console.log(`Intento ${intento}/${INTENTOS} de conexión a ${config.db.host}:${config.db.port} falló: ${error.message}`);
+      if (intento === INTENTOS) {
+        throw new Error(
+          `No se pudo conectar a la base de datos en la nube (${config.db.host}:${config.db.port}).\n`
+          + '  - Revisa que el servicio MySQL de Aiven esté encendido (Running).\n'
+          + '  - Revisa DB_HOST, DB_PUERTO, DB_USUARIO, DB_CLAVE y DB_SSL_CA en Environment.\n'
+          + `  Detalle: ${error.message}`,
+        );
+      }
+      await esperar(5000);
+    }
+  }
 }
 
 /** Paso 1: prueba los puertos hasta que MariaDB responda. */
 async function buscarMariaDB() {
+  if (config.db.ssl) return conectarEnLaNube();
   const puertos = [...new Set([config.db.port, ...PUERTOS_COMUNES])];
   let ultimoError = null;
   for (const puerto of puertos) {
