@@ -226,10 +226,14 @@ export default function Bienvenida() {
         <View style={{ borderTopWidth: 1, borderTopColor: c.borde, paddingVertical: 24 }}>
           <View style={[contenedor, { alignItems: 'center', gap: 8 }]}>
             <Logo tamano={18} />
+            <Text style={{ color: c.textoSuave, fontSize: 13, textAlign: 'center' }}>Tu vehículo, siempre al día.</Text>
             <Text style={{ color: c.textoSuave, fontSize: 13, textAlign: 'center' }}>
-              Proyecto formativo del SENA · Tecnólogo en Análisis y Desarrollo de Software (ADSO) · Ficha 3407177
+              © 2026 AlDía · Creado por Simon Higuera y Santiago Higuera
             </Text>
-            <Text style={{ color: c.textoSuave, fontSize: 13 }}>Simon Higuera y Santiago Higuera · 2026</Text>
+            <Text style={{ fontSize: 13, textAlign: 'center' }}>
+              <Text style={{ color: c.primario, fontWeight: '700' }} onPress={() => router.push('/privacidad')}>Política de privacidad</Text>
+              <Text style={{ color: c.textoSuave }}>  ·  aldiatuvehiculo@gmail.com</Text>
+            </Text>
           </View>
         </View>
       </ScrollView>

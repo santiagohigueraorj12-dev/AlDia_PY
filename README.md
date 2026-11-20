@@ -11,8 +11,7 @@ Aplicación para controlar el **mantenimiento de motos y carros**, que funciona 
 (aceite, frenos, llantas…) según los kilómetros y el tiempo, avisa cuándo toca cada cambio, lleva el costo
 del mantenimiento y controla el vencimiento del SOAT, la revisión técnico-mecánica y el impuesto.
 
-Proyecto formativo — Tecnólogo en Análisis y Desarrollo de Software (ADSO), SENA. Ficha 3407177.
-Integrantes: Simon Higuera y Santiago Higuera.
+**En línea:** <https://aldia-ru4q.onrender.com> · **Creadores:** Simon Higuera y Santiago Higuera · **Contacto:** aldiatuvehiculo@gmail.com
 
 | Capa | Tecnología |
 |---|---|

@@ -155,6 +155,17 @@ se usa Gmail y Brevo queda sin usar.
 > El usuario de demostración `demo@aldia.co` no existe en producción: el backend lo
 > elimina al encender. Para conservarlo (por ejemplo, en una prueba) agrega `DEMO=true`.
 
+## Paso 6. Cuentas de administrador
+
+Las cuentas de administrador **no** se escriben en el código (el repositorio es público).
+En Render → **Environment** agrega la variable , con una cuenta por línea
+(o separadas por punto y coma):
+
+\
+Al encender, AlDía crea esas cuentas con la contraseña cifrada y elimina la cuenta genérica
+. Si una cuenta ya existe no se cambia su contraseña: para cambiarla,
+el administrador usa **Mi cuenta → Cambiar contraseña** o **¿Olvidaste tu contraseña?**.
+
 ## Cada vez que cambies el código
 
 Haz `git push origin main` y Render vuelve a desplegar solo. La base de datos no se borra:

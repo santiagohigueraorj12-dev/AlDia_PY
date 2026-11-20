@@ -7,7 +7,8 @@ const SECCIONES = [
     titulo: '1. Responsable',
     icono: 'business-outline',
     parrafos: [
-      'AlDía es un proyecto de software desarrollado por Simon Higuera y Santiago Higuera como proyecto formativo del programa Análisis y Desarrollo de Software (ADSO) del SENA. Ellos son los responsables del tratamiento de los datos que registras en la aplicación.',
+      'AlDía es una aplicación creada y administrada por Simon Higuera y Santiago Higuera, responsables del tratamiento de los datos que registras en ella.',
+      'Para cualquier consulta, reclamo o solicitud sobre tus datos personales escríbenos a aldiatuvehiculo@gmail.com. Respondemos en un plazo máximo de 15 días hábiles.',
     ],
   },
   {

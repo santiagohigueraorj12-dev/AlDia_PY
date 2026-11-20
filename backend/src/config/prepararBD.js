@@ -102,6 +102,53 @@ async function existeTabla(conn, tabla) {
   return Number(fila.n) > 0;
 }
 
+/**
+ * Administradores reales de AlDía, definidos en la variable ADMINS (en Render →
+ * Environment, nunca en el código: el repositorio es público).
+ * Formato: una cuenta por línea, o separadas por punto y coma:
+ *   Nombre Apellido|correo@ejemplo.com|Contraseña
+ * - Si la cuenta no existe, se crea como administrador con la contraseña cifrada.
+ * - Si ya existe, solo se asegura de que sea administrador (la contraseña NO se
+ *   toca: así no se pierde si el administrador la cambió desde la app).
+ * - Cuando hay al menos un administrador real, se elimina la cuenta genérica
+ *   admin@aldia.co, cuya contraseña de las semillas es pública.
+ */
+async function crearAdministradores(conn) {
+  const cuentas = (process.env.ADMINS || '')
+    .split(/[;\n]/).map((l) => l.trim()).filter(Boolean)
+    .map((l) => l.split('|').map((p) => p.trim()));
+  if (cuentas.length === 0) return;
+
+  const bcrypt = require('bcryptjs');
+  let validas = 0;
+  for (const [nombre, correo, clave] of cuentas) {
+    if (!nombre || !/^\S+@\S+\.\S+$/.test(correo || '') || !clave || clave.length < 8) {
+      console.log(`  ✖ ADMINS: cuenta ignorada (${correo || nombre || 'vacía'}): usa "Nombre|correo|contraseña" con contraseña de 8 o más caracteres`);
+      continue;
+    }
+    validas += 1;
+    const correoNormal = correo.toLowerCase();
+    const [existe] = await conn.query('SELECT id, rol FROM usuarios WHERE correo = ?', [correoNormal]);
+    if (existe) {
+      if (existe.rol !== 'admin') {
+        await conn.query("UPDATE usuarios SET rol = 'admin' WHERE id = ?", [existe.id]);
+        console.log(`  ✔ ${correoNormal} ahora es administrador`);
+      }
+      continue;
+    }
+    await conn.query(
+      "INSERT INTO usuarios (nombre, correo, password_hash, rol, acepta_datos_en) VALUES (?, ?, ?, 'admin', NOW())",
+      [nombre, correoNormal, await bcrypt.hash(clave, 10)],
+    );
+    console.log(`  ✔ Administrador creado: ${nombre} (${correoNormal})`);
+  }
+
+  if (validas > 0) {
+    const r = await conn.query("DELETE FROM usuarios WHERE correo = 'admin@aldia.co' AND rol = 'admin'");
+    if (r.affectedRows) console.log('  ✔ Cuenta genérica admin@aldia.co eliminada (ya hay administradores reales)');
+  }
+}
+
 async function prepararBaseDeDatos() {
   const conn = await buscarMariaDB();
   try {
@@ -154,6 +201,9 @@ async function prepararBaseDeDatos() {
       const r = await conn.query("DELETE FROM usuarios WHERE correo = 'demo@aldia.co' AND rol = 'usuario'");
       if (r.affectedRows) console.log('  ✔ Usuario de demostración eliminado (producción)');
     }
+
+    // 4c. Administradores reales (variable ADMINS). Ver crearAdministradores().
+    await crearAdministradores(conn);
 
     // 5. Contraseña propia del administrador (ADMIN_CLAVE), para no dejar la pública en internet
     if (config.admin.clave) {
