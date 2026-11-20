@@ -12,7 +12,24 @@ require('dotenv').config();
 function configurarSsl() {
   if (process.env.DB_SSL !== 'true') return undefined;
   const ca = process.env.DB_SSL_CA;
-  return ca ? { ca: ca.replace(/\\n/g, '\n'), rejectUnauthorized: true } : { rejectUnauthorized: true };
+  return ca ? { ca: limpiarCertificado(ca), rejectUnauthorized: true } : { rejectUnauthorized: true };
+}
+
+/**
+ * Al pegar el certificado en un panel web se suelen dañar los saltos de línea
+ * (queda en una sola línea, con espacios o con "\n" escritos). Esta función
+ * toma solo el contenido entre BEGIN y END y lo vuelve a armar en el formato
+ * PEM correcto: líneas de 64 caracteres.
+ */
+function limpiarCertificado(texto) {
+  const bloques = texto.match(/-----BEGIN CERTIFICATE-----[\s\S]*?-----END CERTIFICATE-----/g);
+  if (!bloques) return texto;
+  return bloques.map((bloque) => {
+    const contenido = bloque
+      .replace(/-----(BEGIN|END) CERTIFICATE-----/g, '')
+      .replace(/\\n|\s/g, '');
+    return `-----BEGIN CERTIFICATE-----\n${contenido.match(/.{1,64}/g).join('\n')}\n-----END CERTIFICATE-----\n`;
+  }).join('');
 }
 
 const config = {
