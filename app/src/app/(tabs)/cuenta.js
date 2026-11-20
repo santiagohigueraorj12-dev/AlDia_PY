@@ -1,7 +1,7 @@
 // RF-03: resumen del perfil, contraseña, cerrar sesión y eliminar la cuenta (RNF-09).
 // Los datos personales se editan en la pantalla "Mi perfil" (app/perfil.js).
 import { useState } from 'react';
-import { api } from '../../api/cliente';
+import { api, descargarYCompartir } from '../../api/cliente';
 import { useErrores } from '../../api/useErrores';
 import { useSesion } from '../../context/SesionContext';
 import { Text, View } from 'react-native';
@@ -29,8 +29,33 @@ export default function Cuenta() {
       </Tarjeta>
       <ResumenPerfil usuario={usuario} />
       <CambiarPassword />
+      <MisDatos />
       <EliminarCuenta onEliminada={cerrarSesion} />
     </Pantalla>
+  );
+}
+
+/** Ley 1581: descargar todos mis datos y leer la política de privacidad. */
+function MisDatos() {
+  const [cargando, setCargando] = useState(false);
+  const { general, mostrar, reiniciar } = useErrores();
+
+  async function descargar() {
+    reiniciar();
+    setCargando(true);
+    try {
+      await descargarYCompartir('/auth/mis-datos', 'mis-datos-aldia.json', 'application/json');
+    } catch (e) { mostrar(e); } finally { setCargando(false); }
+  }
+
+  return (
+    <Tarjeta estilo={{ gap: 12 }}>
+      <TituloSeccion titulo="Mis datos y privacidad" icono="shield-checkmark-outline" />
+      <Texto variante="suave">Descarga una copia de todo lo que AlDía guarda sobre ti: tu perfil, tus vehículos, su historial y tus documentos.</Texto>
+      <Aviso>{general}</Aviso>
+      <Boton titulo={cargando ? 'Preparando…' : 'Descargar mis datos'} icono="download-outline" onPress={descargar} />
+      <Boton titulo="Política de privacidad" icono="document-text-outline" tipo="enlace" onPress={() => router.push('/privacidad')} />
+    </Tarjeta>
   );
 }
 

@@ -53,6 +53,9 @@ function Navegacion() {
           <Stack.Screen name="registro" options={{ headerShown: false, title: 'Crear cuenta' }} />
           <Stack.Screen name="recuperar" options={{ headerShown: false, title: 'Recuperar contraseña' }} />
         </Stack.Protected>
+
+        {/* Con o sin sesión */}
+        <Stack.Screen name="privacidad" options={{ title: 'Política de privacidad' }} />
       </Stack>
 
       {/* Botón flotante del asistente (RF-21): solo con sesión iniciada */}

@@ -108,6 +108,26 @@ Las demás variables ya vienen en `render.yaml`. No hay que tocarlas:
    - Administrador: `admin@aldia.co` / la `ADMIN_CLAVE` que pusiste.
      `Admin123*` deja de funcionar.
 
+## Paso 5. Correos con Brevo (recuperar contraseña y avisos diarios)
+
+1. En <https://brevo.com>, menú de tu cuenta → **SMTP & API** → pestaña **API Keys** →
+   **Generate a new API key**. Copia la clave (empieza por `xkeysib-`).
+2. En **Senders, Domains & Dedicated IPs** → **Senders** → **Add a sender**: agrega el correo
+   desde el que saldrán los avisos y confírmalo con el enlace que te llega.
+3. En Render → servicio → **Environment** → **Add Environment Variable**:
+
+| Variable | Valor |
+|---|---|
+| `BREVO_API_KEY` | La clave de Brevo |
+| `CORREO_REMITENTE` | El correo verificado en Brevo |
+
+4. **Save changes**. Render redespliega solo. Desde entonces:
+   - "¿Olvidaste tu contraseña?" envía un enlace al correo (vale 1 hora).
+   - Cada día, quien tenga avisos nuevos recibe **un** correo con el resumen.
+
+> El usuario de demostración `demo@aldia.co` no existe en producción: el backend lo
+> elimina al encender. Para conservarlo (por ejemplo, en una prueba) agrega `DEMO=true`.
+
 ## Cada vez que cambies el código
 
 Haz `git push origin main` y Render vuelve a desplegar solo. La base de datos no se borra:

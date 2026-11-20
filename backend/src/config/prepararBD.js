@@ -136,12 +136,23 @@ async function prepararBaseDeDatos() {
     }
 
     // 4. Semillas: solo la primera vez, cuando la base se acaba de crear
+    //    En producción no se cargan los datos de demostración (ver config.demo)
     if (esNueva) {
       for (const archivo of archivosSql(CARPETA_SEMILLAS)) {
+        if (!config.demo && archivo.includes('demo')) continue;
         await conn.query(fs.readFileSync(path.join(CARPETA_SEMILLAS, archivo), 'utf8'));
         console.log(`  ✔ Semilla ${archivo}`);
       }
-      console.log('Base de datos lista. Usuario demo: demo@aldia.co / Demo123*  ·  Administrador: admin@aldia.co / Admin123*');
+      console.log(config.demo
+        ? 'Base de datos lista. Usuario demo: demo@aldia.co / Demo123*  ·  Administrador: admin@aldia.co / Admin123*'
+        : 'Base de datos lista (sin datos de demostración).');
+    }
+
+    // 4b. En producción se borra el usuario demo si quedó de antes: su contraseña
+    //     es pública (está en el repositorio). Sus vehículos se borran en cascada.
+    if (!config.demo) {
+      const r = await conn.query("DELETE FROM usuarios WHERE correo = 'demo@aldia.co' AND rol = 'usuario'");
+      if (r.affectedRows) console.log('  ✔ Usuario de demostración eliminado (producción)');
     }
 
     // 5. Contraseña propia del administrador (ADMIN_CLAVE), para no dejar la pública en internet

@@ -7,6 +7,7 @@ const AppError = require('../../utils/AppError');
 const repo = require('./auth.repository');
 const { hoy } = require('../../utils/fechas');
 const { validarPerfil, completitudPerfil, estadoLicencia } = require('../../domain/perfil');
+const { enviarCorreo, plantilla, escapar } = require('../../utils/correo');
 
 const RONDAS_BCRYPT = 10;
 
@@ -49,17 +50,34 @@ async function iniciarSesion({ correo, password }) {
 
 /**
  * RF-02: recuperar contraseña.
- * El proyecto no tiene servidor de correo: el token se imprime en la consola
- * del backend y, en desarrollo, también se devuelve en la respuesta.
+ * Envía al correo un enlace con el código (vale 1 hora). Sin Brevo configurado
+ * (computador local) el código se escribe en la consola y, en desarrollo,
+ * también se devuelve en la respuesta.
+ * La respuesta es la misma exista o no el correo, para no revelar quién tiene cuenta.
  */
 async function solicitarRecuperacion(correo) {
-  const respuesta = { mensaje: 'Si el correo está registrado, te enviamos las instrucciones.' };
+  const respuesta = { mensaje: 'Si el correo está registrado, te enviamos un enlace para cambiar la contraseña. Revisa también la carpeta de spam.' };
   const usuario = await repo.buscarPorCorreo(correo);
   if (!usuario) return respuesta;
 
   const token = crypto.randomBytes(32).toString('hex');
   await repo.guardarTokenRecuperacion(usuario.id, token);
-  console.log(`[Recuperación de contraseña] ${correo} -> token: ${token}`);
+  const enlace = `${config.urlApp}/recuperar?token=${token}`;
+  const enviado = await enviarCorreo({
+    para: usuario.correo,
+    nombre: usuario.nombre,
+    asunto: 'Cambia tu contraseña de AlDía',
+    html: plantilla({
+      titulo: `Hola, ${usuario.nombre}`,
+      contenido: `<p>Pediste cambiar la contraseña de tu cuenta de AlDía. Pulsa el botón para crear una nueva.
+        El enlace vale por <b>1 hora</b>.</p>
+        <p style="font-size:13px;color:#64748b">Si el botón no funciona, copia este código en la pantalla de recuperación:<br>
+        <code style="word-break:break-all">${escapar(token)}</code></p>
+        <p style="font-size:13px;color:#64748b">Si no pediste el cambio, ignora este correo: tu contraseña sigue igual.</p>`,
+      boton: { texto: 'Crear nueva contraseña', url: enlace },
+    }),
+  });
+  if (!enviado) console.log(`[Recuperación de contraseña] ${correo} -> enlace: ${enlace}`);
   if (!config.esProduccion) respuesta.tokenDesarrollo = token;
   return respuesta;
 }

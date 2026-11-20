@@ -56,6 +56,9 @@ export default function Registro() {
       <Casilla marcada={aceptaDatos} onCambio={(v) => { setAceptaDatos(v); limpiar('aceptaDatos'); }} error={errores.aceptaDatos}>
         Autorizo el tratamiento de mis datos personales conforme a la Ley 1581 de 2012. Puedo eliminar mi cuenta y mis datos cuando quiera.
       </Casilla>
+      <Text style={{ fontSize: 14, color: c.textoSuave }}>
+        Lee la <Link href="/privacidad" style={{ color: c.primario, fontWeight: '700' }}>política de privacidad</Link> para saber cómo usamos tus datos.
+      </Text>
       <Boton titulo={enviando ? 'Creando cuenta…' : 'Crear cuenta'} tipo="primario" onPress={enviar} deshabilitado={enviando} />
     </PantallaAutenticacion>
   );

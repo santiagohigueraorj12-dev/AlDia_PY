@@ -129,7 +129,7 @@ export function archivoParaFormulario(archivo) {
  *  - En el celular abre el menú "Compartir" (WhatsApp, correo, guardar…).
  *  - En el navegador lo descarga como cualquier archivo.
  */
-export async function descargarYCompartir(ruta, nombreArchivo) {
+export async function descargarYCompartir(ruta, nombreArchivo, mimeType = 'application/pdf') {
   if (ES_WEB) {
     const respuesta = await fetch(`${SERVIDOR}/api${ruta}`, { headers: { Authorization: `Bearer ${tokenEnMemoria}` } });
     if (!respuesta.ok) throw new ErrorApi('No se pudo descargar el archivo', respuesta.status);
@@ -146,5 +146,5 @@ export async function descargarYCompartir(ruta, nombreArchivo) {
   const archivo = await File.downloadFileAsync(`${SERVIDOR}/api${ruta}`, destino, {
     headers: { Authorization: `Bearer ${tokenEnMemoria}` },
   });
-  await Sharing.shareAsync(archivo.uri, { mimeType: 'application/pdf', dialogTitle: nombreArchivo });
+  await Sharing.shareAsync(archivo.uri, { mimeType, dialogTitle: nombreArchivo });
 }

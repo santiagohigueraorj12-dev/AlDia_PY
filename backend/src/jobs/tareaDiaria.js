@@ -12,6 +12,7 @@ const cron = require('node-cron');
 const vehiculosRepo = require('../modules/vehiculos/vehiculos.repository');
 const { armarVehiculo } = require('../modules/vehiculos/vehiculos.service');
 const { revisarVehiculo } = require('../modules/notificaciones/alertas.service');
+const { enviarResumenes } = require('../modules/notificaciones/resumenCorreo');
 
 async function ejecutar() {
   const inicio = Date.now();
@@ -25,6 +26,10 @@ async function ejecutar() {
     }
   }
   console.log(`[Tarea diaria] ${vehiculos.length} vehículos revisados en ${Date.now() - inicio} ms`);
+
+  // Resumen por correo de las alertas nuevas (solo si Brevo está configurado)
+  const { enviados } = await enviarResumenes();
+  if (enviados) console.log(`[Tarea diaria] ${enviados} resúmenes enviados por correo`);
 }
 
 function programar() {

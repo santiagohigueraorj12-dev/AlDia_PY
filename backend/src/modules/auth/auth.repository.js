@@ -53,7 +53,38 @@ function eliminar(id) {
   return query('DELETE FROM usuarios WHERE id = ?', [id]);
 }
 
+/**
+ * Ley 1581 (derecho de acceso): todos los datos del usuario para descargarlos.
+ * Nunca incluye password_hash ni el código de recuperación.
+ */
+async function datosCompletos(id) {
+  const delVehiculo = (tabla) => query(
+    `SELECT t.* FROM ${tabla} t JOIN vehiculos v ON v.id = t.vehiculo_id WHERE v.usuario_id = ? ORDER BY t.id`, [id]);
+  const [usuario] = await query(
+    `SELECT id, nombre, correo, telefono, rol, tipo_documento, numero_documento, fecha_nacimiento,
+            departamento, ciudad, direccion, licencia_categoria, licencia_vence, acepta_datos_en, creado_en
+       FROM usuarios WHERE id = ?`, [id]);
+  return {
+    usuario,
+    vehiculos: await query('SELECT * FROM vehiculos WHERE usuario_id = ? ORDER BY id', [id]),
+    lecturasKilometraje: await delVehiculo('lecturas_km'),
+    partes: await delVehiculo('partes_vehiculo'),
+    servicios: await delVehiculo('servicios'),
+    cambiosDeParte: await query(
+      `SELECT c.* FROM cambios_parte c JOIN servicios s ON s.id = c.servicio_id
+         JOIN vehiculos v ON v.id = s.vehiculo_id WHERE v.usuario_id = ? ORDER BY c.id`, [id]),
+    documentos: await delVehiculo('documentos'),
+    renovacionesDeDocumentos: await query(
+      `SELECT r.* FROM renovaciones_documento r JOIN documentos d ON d.id = r.documento_id
+         JOIN vehiculos v ON v.id = d.vehiculo_id WHERE v.usuario_id = ? ORDER BY r.id`, [id]),
+    notificaciones: await query(
+      'SELECT id, tipo, titulo, mensaje, leida, creado_en FROM notificaciones WHERE usuario_id = ? ORDER BY id', [id]),
+    archivosAdjuntos: await query(
+      'SELECT id, nombre, tipo, tamano, creado_en FROM archivos WHERE usuario_id = ? ORDER BY creado_en', [id]),
+  };
+}
+
 module.exports = {
   buscarPorCorreo, buscarPorId, crear, actualizarPerfil,
-  guardarTokenRecuperacion, buscarPorTokenVigente, cambiarPassword, eliminar,
+  guardarTokenRecuperacion, buscarPorTokenVigente, cambiarPassword, eliminar, datosCompletos,
 };

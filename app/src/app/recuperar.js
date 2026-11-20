@@ -1,7 +1,8 @@
 // RF-02: recuperar la contraseña en dos pasos: pedir el código y luego usarlo.
+// El correo trae un enlace /recuperar?token=... que abre directamente el paso 2.
 import { useState } from 'react';
 import { Text } from 'react-native';
-import { Link, router } from 'expo-router';
+import { Link, router, useLocalSearchParams } from 'expo-router';
 import { api } from '../api/cliente';
 import { useErrores } from '../api/useErrores';
 import { Aviso, Boton, Campo, CampoPassword } from '../components/ui';
@@ -10,11 +11,12 @@ import { useColores } from '../tema';
 
 export default function Recuperar() {
   const c = useColores();
-  const [paso, setPaso] = useState(1);
+  const { token: tokenDelEnlace } = useLocalSearchParams();
+  const [paso, setPaso] = useState(tokenDelEnlace ? 2 : 1);
   const [correo, setCorreo] = useState('');
-  const [token, setToken] = useState('');
+  const [token, setToken] = useState(typeof tokenDelEnlace === 'string' ? tokenDelEnlace : '');
   const [password, setPassword] = useState('');
-  const [mensaje, setMensaje] = useState('');
+  const [mensaje, setMensaje] = useState(tokenDelEnlace ? 'Escribe tu nueva contraseña.' : '');
   const { errores, general, mostrar, limpiar, reiniciar } = useErrores();
 
   async function pedirCodigo() {
@@ -42,8 +44,8 @@ export default function Recuperar() {
   }
 
   const subtitulos = {
-    1: 'Escribe el correo de tu cuenta y te enviaremos un código.',
-    2: 'Escribe el código que recibiste y tu nueva contraseña.',
+    1: 'Escribe el correo de tu cuenta y te enviaremos un enlace para cambiar la contraseña.',
+    2: 'Escribe el código que recibiste (si abriste el enlace del correo ya está puesto) y tu nueva contraseña.',
     3: 'Listo. Ya puedes iniciar sesión con tu nueva contraseña.',
   };
 
@@ -63,7 +65,7 @@ export default function Recuperar() {
         <>
           <Campo etiqueta="Correo de tu cuenta" placeholder="nombre@correo.com" value={correo} keyboardType="email-address"
             autoCapitalize="none" error={errores.correo} onChangeText={(t) => { setCorreo(t); limpiar('correo'); }} />
-          <Boton titulo="Enviar código" tipo="primario" onPress={pedirCodigo} />
+          <Boton titulo="Enviar enlace" tipo="primario" onPress={pedirCodigo} />
         </>
       )}
       {paso === 2 && (
