@@ -108,22 +108,49 @@ Las demás variables ya vienen en `render.yaml`. No hay que tocarlas:
    - Administrador: `admin@aldia.co` / la `ADMIN_CLAVE` que pusiste.
      `Admin123*` deja de funcionar.
 
-## Paso 5. Correos con Brevo (recuperar contraseña y avisos diarios)
+## Paso 5. Correos con Gmail desde Google Cloud (recuperar contraseña y avisos diarios)
 
-1. En <https://brevo.com>, menú de tu cuenta → **SMTP & API** → pestaña **API Keys** →
-   **Generate a new API key**. Copia la clave (empieza por `xkeysib-`).
-2. En **Senders, Domains & Dedicated IPs** → **Senders** → **Add a sender**: agrega el correo
-   desde el que saldrán los avisos y confírmalo con el enlace que te llega.
-3. En Render → servicio → **Environment** → **Add Environment Variable**:
+Los correos salen por los servidores de Gmail con tu dirección autorizada, así que llegan a
+la bandeja de entrada y no a spam. Es gratis (hasta ~500 correos al día).
+Usa un Gmail del proyecto (ej.: `aldia.app@gmail.com`), no el personal.
+
+**A. Crear el proyecto y activar la API**
+1. Entra a <https://console.cloud.google.com> con el Gmail del proyecto.
+2. Arriba, selector de proyectos → **Proyecto nuevo** → nombre `AlDia` → **Crear**.
+3. Menú ☰ → **APIs y servicios** → **Biblioteca** → busca **Gmail API** → **Habilitar**.
+
+**B. Pantalla de consentimiento**
+1. **APIs y servicios** → **Pantalla de consentimiento de OAuth** (o **Google Auth Platform**) → **Comenzar**.
+2. Nombre de la app `AlDía`, correo de asistencia el Gmail del proyecto, público **Externo**, acepta y **Crear**.
+3. En **Público** (Audience): pulsa **Publicar aplicación** → **Confirmar**, para que quede
+   **En producción**. Si se queda "En prueba", el token deja de funcionar a los 7 días.
+
+**C. Credenciales**
+1. **APIs y servicios** → **Credenciales** → **Crear credenciales** → **ID de cliente de OAuth**.
+2. Tipo **Aplicación web**, nombre `AlDia`.
+3. En **URI de redireccionamiento autorizados** agrega: `https://developers.google.com/oauthplayground`
+4. **Crear** y copia el **ID de cliente** y el **Secreto del cliente**.
+
+**D. Sacar el token de actualización (OAuth Playground)**
+1. Entra a <https://developers.google.com/oauthplayground>.
+2. Engranaje ⚙️ (arriba a la derecha) → marca **Use your own OAuth credentials** → pega el ID y el secreto.
+3. A la izquierda, en el cuadro de abajo escribe `https://www.googleapis.com/auth/gmail.send` → **Authorize APIs**.
+4. Entra con el Gmail del proyecto. Si aparece "Google no verificó esta app": **Configuración avanzada** →
+   **Ir a AlDía (no seguro)** → **Continuar**. (Es tu propia app; el aviso es normal.)
+5. **Exchange authorization code for tokens** → copia el **Refresh token** (empieza por `1//`).
+
+**E. Ponerlo en Render** → servicio → **Environment** → **Edit** → **Add Environment Variable**:
 
 | Variable | Valor |
 |---|---|
-| `BREVO_API_KEY` | La clave de Brevo |
-| `CORREO_REMITENTE` | El correo verificado en Brevo |
+| `GMAIL_CLIENT_ID` | ID de cliente (termina en `.apps.googleusercontent.com`) |
+| `GMAIL_CLIENT_SECRET` | Secreto del cliente (empieza por `GOCSPX-`) |
+| `GMAIL_REFRESH_TOKEN` | Refresh token (empieza por `1//`) |
+| `CORREO_REMITENTE` | El Gmail con el que autorizaste |
 
-4. **Save changes**. Render redespliega solo. Desde entonces:
-   - "¿Olvidaste tu contraseña?" envía un enlace al correo (vale 1 hora).
-   - Cada día, quien tenga avisos nuevos recibe **un** correo con el resumen.
+**Save changes**. Desde entonces "¿Olvidaste tu contraseña?" envía un enlace (vale 1 hora) y cada día
+quien tenga avisos nuevos recibe **un** correo con el resumen. Si también está `BREVO_API_KEY`,
+se usa Gmail y Brevo queda sin usar.
 
 > El usuario de demostración `demo@aldia.co` no existe en producción: el backend lo
 > elimina al encender. Para conservarlo (por ejemplo, en una prueba) agrega `DEMO=true`.

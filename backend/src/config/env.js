@@ -71,10 +71,16 @@ const config = {
     correo: process.env.ADMIN_CORREO || 'admin@aldia.co',
     clave: process.env.ADMIN_CLAVE || '',
   },
-  // Correos con Brevo (utils/correo.js). Sin BREVO_API_KEY solo se escriben en la consola.
+  // Correos (utils/correo.js): Gmail por la API de Google Cloud o, de respaldo, Brevo.
+  // Sin ninguno configurado solo se escriben en la consola.
   correo: {
-    apiKey: process.env.BREVO_API_KEY || '',
     remitente: process.env.CORREO_REMITENTE || '',
+    gmail: {
+      clientId: process.env.GMAIL_CLIENT_ID || '',
+      clientSecret: process.env.GMAIL_CLIENT_SECRET || '',
+      refreshToken: process.env.GMAIL_REFRESH_TOKEN || '',
+    },
+    apiKey: process.env.BREVO_API_KEY || '',
   },
   // Dirección pública de la app, para los enlaces de los correos.
   // Render pone RENDER_EXTERNAL_URL solo (ej.: https://aldia-ru4q.onrender.com).
