@@ -158,12 +158,15 @@ se usa Gmail y Brevo queda sin usar.
 ## Paso 6. Cuentas de administrador
 
 Las cuentas de administrador **no** se escriben en el código (el repositorio es público).
-En Render → **Environment** agrega la variable , con una cuenta por línea
+En Render → **Environment** agrega la variable `ADMINS`, con una cuenta por línea
 (o separadas por punto y coma):
 
-\
+```
+Nombre Apellido|correo@ejemplo.com|Contraseña
+```
+
 Al encender, AlDía crea esas cuentas con la contraseña cifrada y elimina la cuenta genérica
-. Si una cuenta ya existe no se cambia su contraseña: para cambiarla,
+`admin@aldia.co`. Si una cuenta ya existe no se cambia su contraseña: para cambiarla,
 el administrador usa **Mi cuenta → Cambiar contraseña** o **¿Olvidaste tu contraseña?**.
 
 ## Cada vez que cambies el código
