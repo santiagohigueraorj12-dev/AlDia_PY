@@ -37,15 +37,16 @@ export default function Cuenta() {
 
 /** Ley 1581: descargar todos mis datos y leer la política de privacidad. */
 function MisDatos() {
-  const [cargando, setCargando] = useState(false);
+  const [cargando, setCargando] = useState(null);  // 'pdf' | 'json' mientras se descarga
   const { general, mostrar, reiniciar } = useErrores();
 
-  async function descargar() {
+  async function descargar(formato) {
     reiniciar();
-    setCargando(true);
+    setCargando(formato);
     try {
-      await descargarYCompartir('/auth/mis-datos', 'mis-datos-aldia.json', 'application/json');
-    } catch (e) { mostrar(e); } finally { setCargando(false); }
+      if (formato === 'pdf') await descargarYCompartir('/auth/mis-datos/pdf', 'mis-datos-aldia.pdf');
+      else await descargarYCompartir('/auth/mis-datos', 'mis-datos-aldia.json', 'application/json');
+    } catch (e) { mostrar(e); } finally { setCargando(null); }
   }
 
   return (
@@ -53,7 +54,11 @@ function MisDatos() {
       <TituloSeccion titulo="Mis datos y privacidad" icono="shield-checkmark-outline" />
       <Texto variante="suave">Descarga una copia de todo lo que AlDía guarda sobre ti: tu perfil, tus vehículos, su historial y tus documentos.</Texto>
       <Aviso>{general}</Aviso>
-      <Boton titulo={cargando ? 'Preparando…' : 'Descargar mis datos'} icono="download-outline" onPress={descargar} />
+      <Boton titulo={cargando === 'pdf' ? 'Preparando…' : 'Descargar mis datos (PDF)'} icono="document-outline" tipo="primario"
+        onPress={() => descargar('pdf')} deshabilitado={!!cargando} />
+      {/* El JSON sirve para llevar los datos a otra aplicación (portabilidad) */}
+      <Boton titulo={cargando === 'json' ? 'Preparando…' : 'Descargar en formato para otras apps (JSON)'} icono="code-download-outline"
+        onPress={() => descargar('json')} deshabilitado={!!cargando} />
       <Boton titulo="Política de privacidad" icono="document-text-outline" tipo="enlace" onPress={() => router.push('/privacidad')} />
     </Tarjeta>
   );

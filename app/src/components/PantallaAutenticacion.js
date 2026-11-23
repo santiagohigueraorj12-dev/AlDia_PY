@@ -7,7 +7,7 @@ import { useColores } from '../tema';
 import EncabezadoPublico from './EncabezadoPublico';
 import { EscenaCarretera } from './Ilustraciones';
 import Escena3D from './Escena3D';
-import { FondoDecorado } from './Decoracion';
+import { Burbujas, FondoDecorado } from './Decoracion';
 
 const BENEFICIOS = ['Te avisa cuándo cambiar cada parte', 'Te recuerda el SOAT y la técnico-mecánica', 'Sabes cuánto gastas en tu vehículo'];
 
@@ -38,8 +38,9 @@ export default function PantallaAutenticacion({ titulo, subtitulo, ocultar, pie,
   return (
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: c.fondo }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <EncabezadoPublico ocultar={ocultar} />
-      <View style={{ flex: 1 }}>
+      <View style={{ flex: 1, overflow: 'hidden' }}>
       <FondoDecorado />
+      <Burbujas variante={2} escala={ancha ? 1.3 : 0.6} />
       <ScrollView contentContainerStyle={{ padding: 20, paddingVertical: ancha ? 48 : 24, flexGrow: 1, justifyContent: 'center' }} keyboardShouldPersistTaps="handled">
         {ancha ? (
           <View style={{ flexDirection: 'row', gap: 48, alignItems: 'center', width: '100%', maxWidth: 1060, alignSelf: 'center' }}>

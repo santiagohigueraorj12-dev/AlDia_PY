@@ -62,6 +62,7 @@ router.get('/perfil', requiereSesion, c.perfil);
 router.put('/perfil', requiereSesion, validar(esquemas.perfil), c.actualizarPerfil);
 router.put('/password', requiereSesion, validar(esquemas.cambiarPassword), c.cambiarPassword);
 router.delete('/cuenta', requiereSesion, validar(esquemas.eliminar), c.eliminarCuenta);  // RNF-09
-router.get('/mis-datos', requiereSesion, c.misDatos);  // Ley 1581: descargar mis datos
+router.get('/mis-datos', requiereSesion, c.misDatos);  // Ley 1581: descargar mis datos (JSON)
+router.get('/mis-datos/pdf', requiereSesion, c.misDatosPdf);  // los mismos datos en PDF
 
 module.exports = router;

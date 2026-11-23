@@ -11,7 +11,7 @@ import EncabezadoPublico, { Logo } from '../components/EncabezadoPublico';
 import { IlustracionCarro, IlustracionMoto } from '../components/Ilustraciones';
 import Escena3D from '../components/Escena3D';
 import { ESTADO_PARTE, ESTADO_VEHICULO } from '../utils/formato';
-import { Degradado, FondoDecorado } from '../components/Decoracion';
+import { Burbujas, Degradado, FondoDecorado } from '../components/Decoracion';
 
 const PROBLEMAS = [
   { icono: 'water', titulo: 'Se te pasó el cambio de aceite', texto: 'Llevar el mantenimiento de memoria o en el sticker del taller termina en motores, frenos y llantas dañados.' },
@@ -37,11 +37,11 @@ const FUNCIONES = [
   { icono: 'mail', titulo: 'Avisos por correo', texto: 'Un resumen diario de lo que necesita atención, aunque no abras la app.' },
 ];
 
-// Cifras de la portada (datos reales de las reglas de AlDía)
-const CIFRAS = [
-  { valor: '2', texto: 'tipos de vehículo: moto y carro' },
-  { valor: '3', texto: 'documentos controlados' },
-  { valor: '30 · 7 · 1', texto: 'días de aviso antes de vencer' },
+// Ventajas rápidas debajo de los botones de la portada
+const VENTAJAS = [
+  { icono: 'gift', texto: 'Gratis y sin anuncios' },
+  { icono: 'phone-portrait', texto: 'En el celular y el computador' },
+  { icono: 'notifications', texto: 'Avisos antes de que venza' },
 ];
 
 // Partes que AlDía controla en cada tipo de vehículo (las mismas del plan base)
@@ -92,6 +92,7 @@ export default function Bienvenida() {
         {/* ---------------- Portada ---------------- */}
         <View style={{ backgroundColor: c.esOscuro ? c.fondo : c.primarioSuave, paddingVertical: grande ? 80 : ancha ? 56 : 32, overflow: 'hidden' }}>
           <FondoDecorado />
+          <Burbujas variante={0} escala={grande ? 1.3 : ancha ? 1 : 0.6} />
           <View style={[contenedor, { flexDirection: ancha ? 'row' : 'column', gap: grande ? 64 : 36, alignItems: 'center' }]}>
             <View style={{ flex: ancha ? 1.1 : undefined, gap: 18 }}>
               <View style={{ alignSelf: 'flex-start', backgroundColor: c.superficie, borderRadius: 99, paddingHorizontal: 14, paddingVertical: 5, borderWidth: 1, borderColor: c.borde }}>
@@ -109,12 +110,15 @@ export default function Bienvenida() {
                 <Boton titulo="Crear cuenta gratis" tipo="primario" icono="arrow-forward" onPress={() => router.push('/registro')} />
                 <Boton titulo="Ya tengo cuenta" onPress={() => router.push('/login')} />
               </View>
-              {/* Cifras rápidas de lo que hace AlDía */}
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: grande ? 40 : 20, marginTop: 10 }}>
-                {CIFRAS.map((x) => (
-                  <View key={x.texto} style={{ gap: 2 }}>
-                    <Text style={{ fontSize: grande ? 30 : 24, fontWeight: '800', color: c.texto }}>{x.valor}</Text>
-                    <Text style={{ fontSize: 13.5, color: c.textoSuave }}>{x.texto}</Text>
+              {/* Ventajas en pastillas con ícono */}
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 8 }}>
+                {VENTAJAS.map((x) => (
+                  <View key={x.texto} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: c.superficie, borderWidth: 1, borderColor: c.borde,
+                    borderRadius: 99, paddingLeft: 5, paddingRight: 14, paddingVertical: 5, boxShadow: `0 4px 14px ${c.sombra}` }}>
+                    <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: c.primarioSuave, alignItems: 'center', justifyContent: 'center' }}>
+                      <Ionicons name={x.icono} size={15} color={c.primario} />
+                    </View>
+                    <Text style={{ fontSize: 14, fontWeight: '700', color: c.texto }}>{x.texto}</Text>
                   </View>
                 ))}
               </View>
@@ -128,6 +132,8 @@ export default function Bienvenida() {
         </View>
 
         {/* ---------------- El problema ---------------- */}
+        <View style={{ overflow: 'hidden' }}>
+        <Burbujas variante={1} escala={grande ? 1.2 : ancha ? 1 : 0.55} />
         <View style={[contenedor, seccion, { gap: 28 }]}>
           <Text style={titulo}>¿Te ha pasado?</Text>
           <Text style={subtitulo}>Llevar el mantenimiento de memoria sale caro. Estas son las situaciones que AlDía evita.</Text>
@@ -144,8 +150,11 @@ export default function Bienvenida() {
           </View>
         </View>
 
+        </View>
+
         {/* ---------------- Para motos y carros ---------------- */}
-        <View onLayout={guardarPosicion('vehiculos')} style={[seccion, { backgroundColor: c.superficie }]}>
+        <View onLayout={guardarPosicion('vehiculos')} style={[seccion, { backgroundColor: c.superficie, overflow: 'hidden' }]}>
+          <Burbujas variante={2} escala={grande ? 1.2 : ancha ? 1 : 0.55} />
           <View style={[contenedor, { gap: 28 }]}>
             <Text style={titulo}>Hecho para motos y carros</Text>
             <Text style={subtitulo}>AlDía ya sabe qué partes tiene cada vehículo y cada cuánto se cambian. Tú solo ajustas lo que diga tu manual.</Text>
@@ -174,7 +183,8 @@ export default function Bienvenida() {
         </View>
 
         {/* ---------------- Cómo funciona ---------------- */}
-        <View onLayout={guardarPosicion('pasos')} style={seccion}>
+        <View onLayout={guardarPosicion('pasos')} style={[seccion, { overflow: 'hidden' }]}>
+          <Burbujas variante={3} escala={grande ? 1.2 : ancha ? 1 : 0.55} />
           <View style={[contenedor, { gap: 28 }]}>
             <Text style={titulo}>Cómo funciona</Text>
             <Text style={subtitulo}>En tres pasos tienes el mantenimiento de tu vehículo bajo control.</Text>
@@ -198,7 +208,8 @@ export default function Bienvenida() {
         </View>
 
         {/* ---------------- Funciones ---------------- */}
-        <View onLayout={guardarPosicion('funciones')} style={[seccion, { backgroundColor: c.superficie }]}>
+        <View onLayout={guardarPosicion('funciones')} style={[seccion, { backgroundColor: c.superficie, overflow: 'hidden' }]}>
+          <Burbujas variante={0} escala={grande ? 1.2 : ancha ? 1 : 0.55} />
           <View style={[contenedor, { gap: 28 }]}>
             <Text style={titulo}>Todo lo que hace por ti</Text>
             <Text style={subtitulo}>Lo que necesitas para cuidar tu vehículo, en una sola aplicación.</Text>
@@ -219,7 +230,8 @@ export default function Bienvenida() {
         </View>
 
         {/* ---------------- Estados con colores + vista previa al lado ---------------- */}
-        <View onLayout={guardarPosicion('colores')} style={seccion}>
+        <View onLayout={guardarPosicion('colores')} style={[seccion, { overflow: 'hidden' }]}>
+          <Burbujas variante={1} escala={grande ? 1.2 : ancha ? 1 : 0.55} />
           <View style={[contenedor, { flexDirection: grande ? 'row' : 'column', gap: grande ? 56 : 28, alignItems: grande ? 'center' : 'stretch' }]}>
             <View style={{ flex: grande ? 1.2 : undefined, gap: 20 }}>
               <Text style={[titulo, grande && { textAlign: 'left' }]}>Los colores te dicen qué hacer</Text>

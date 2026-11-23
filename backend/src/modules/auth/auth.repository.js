@@ -66,7 +66,8 @@ async function datosCompletos(id) {
        FROM usuarios WHERE id = ?`, [id]);
   return {
     usuario,
-    vehiculos: await query('SELECT * FROM vehiculos WHERE usuario_id = ? ORDER BY id', [id]),
+    vehiculos: await query(
+      'SELECT v.*, t.nombre AS tipo FROM vehiculos v JOIN tipos_vehiculo t ON t.id = v.tipo_vehiculo_id WHERE v.usuario_id = ? ORDER BY v.id', [id]),
     lecturasKilometraje: await delVehiculo('lecturas_km'),
     partes: await delVehiculo('partes_vehiculo'),
     servicios: await delVehiculo('servicios'),

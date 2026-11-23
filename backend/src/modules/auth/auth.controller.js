@@ -2,6 +2,7 @@
 // No contiene reglas de negocio (esas están en auth.service.js).
 const servicio = require('./auth.service');
 const repo = require('./auth.repository');
+const { generarMisDatos } = require('./misDatosPdf');
 
 module.exports = {
   registrar: async (req, res) => res.status(201).json(await servicio.registrar(req.body)),
@@ -18,4 +19,6 @@ module.exports = {
     res.set('Content-Disposition', 'attachment; filename="mis-datos-aldia.json"');
     res.json({ generado_en: new Date().toISOString(), ...datos });
   },
+  // La misma información en PDF, para leerla o imprimirla
+  misDatosPdf: async (req, res) => generarMisDatos(res, await repo.datosCompletos(req.usuario.id)),
 };

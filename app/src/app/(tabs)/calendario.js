@@ -30,8 +30,8 @@ function Flecha({ icono, etiqueta, onPress }) {
   const c = useColores();
   return (
     <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={etiqueta}
-      style={({ pressed }) => ({ width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.22)', alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.7 : 1 })}>
-      <Ionicons name={icono} size={22} color="#ffffff" />
+      style={({ pressed }) => ({ width: 44, height: 44, borderRadius: 22, backgroundColor: c.superficie, borderWidth: 1, borderColor: c.borde, alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.7 : 1 })}>
+      <Ionicons name={icono} size={22} color={c.primario} />
     </Pressable>
   );
 }
@@ -56,11 +56,11 @@ export default function Calendario() {
       <Fila estilo={{ justifyContent: 'space-between', flexWrap: 'nowrap', padding: 14 }}>
         <Flecha icono="chevron-back" etiqueta="Mes anterior" onPress={() => setMes(moverMes(mes, -1))} />
         <View style={{ alignItems: 'center', flex: 1 }}>
-          <Ionicons name="calendar" size={22} color="#ffffff" />
-          <Texto variante="subtitulo" estilo={{ color: '#ffffff', fontSize: 19 }}>{nombreMes(mes)}</Texto>
+          <Ionicons name="calendar" size={22} color={c.primario} />
+          <Texto variante="subtitulo" estilo={{ color: c.sobreDegradado, fontSize: 19 }}>{nombreMes(mes)}</Texto>
           {mes !== mesActual
             ? <Boton titulo="Volver a este mes" pequeno onPress={() => setMes(mesActual)} estilo={{ marginTop: 4 }} />
-            : <Texto variante="pequeno" estilo={{ color: '#ffffff', opacity: 0.9 }}>Este mes</Texto>}
+            : <Texto variante="pequeno" estilo={{ color: c.sobreDegradadoSuave }}>Este mes</Texto>}
         </View>
         <Flecha icono="chevron-forward" etiqueta="Mes siguiente" onPress={() => setMes(moverMes(mes, 1))} />
       </Fila>
