@@ -8,6 +8,8 @@ import { Aviso, Boton, Cargando, Etiqueta, Fila, Pantalla, Tarjeta, Texto, Vacio
 import { useColores } from '../../tema';
 import { EscenaCarretera, IlustracionVehiculo } from '../../components/Ilustraciones';
 import { ESTADO_VEHICULO, EXPLICACION_VEHICULO, km, pesos } from '../../utils/formato';
+import Placa from '../../components/Placa';
+import AnilloSalud from '../../components/AnilloSalud';
 
 export default function Vehiculos() {
   const c = useColores();
@@ -45,7 +47,7 @@ export default function Vehiculos() {
                 )}
               <View style={{ flex: 1, gap: 3 }}>
                 <Fila estilo={{ justifyContent: 'space-between' }}>
-                  <Texto variante="negrita" estilo={{ fontSize: 17 }}>{v.placa}</Texto>
+                  <Placa placa={v.placa} tipo={v.tipo} alto={32} />
                   <Etiqueta estado={estado} />
                 </Fila>
                 <Texto>{v.marca} {v.linea} ({v.modelo})</Texto>
@@ -54,6 +56,7 @@ export default function Vehiculos() {
                 </Texto>
                 <Texto variante="pequeno" estilo={{ color: c[estado.clase] }}>{EXPLICACION_VEHICULO[v.estado]}</Texto>
               </View>
+              {v.salud && <AnilloSalud porcentaje={v.salud.porcentaje} nivel={v.salud.nivel} tamano={52} />}
               <Ionicons name="chevron-forward" size={20} color={c.textoSuave} />
             </Pressable>
             <Fila>

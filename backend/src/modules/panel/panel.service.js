@@ -3,7 +3,8 @@
 // No tiene repositorio propio: reutiliza los vehículos ya "armados"
 // por vehiculos.service, que traen desgaste, documentos y estado.
 // =====================================================================
-const { queryUno } = require('../../config/db');
+const { query, queryUno } = require('../../config/db');
+const { saludGeneral, resumenGastos, inicioUltimos12Meses } = require('../../domain/salud');
 const { hoy, inicioMes, finMes } = require('../../utils/fechas');
 const { NOMBRES, resumenDocumentacion } = require('../../domain/documentos');
 const vehiculosService = require('../vehiculos/vehiculos.service');
@@ -60,8 +61,9 @@ async function resumen(usuarioId) {
   return {
     vehiculos: vehiculos.map((v) => ({
       id: v.id, placa: v.placa, tipo: v.tipo, marca: v.marca, linea: v.linea, modelo: v.modelo, foto_url: v.foto_url,
-      estado: v.estado, kmCalculo: v.kmCalculo, kmEstimado: v.kmEstimado, resumenPartes: v.resumenPartes,
+      estado: v.estado, salud: v.salud, kmCalculo: v.kmCalculo, kmEstimado: v.kmEstimado, resumenPartes: v.resumenPartes,
     })),
+    salud: saludGeneral(vehiculos.map((v) => v.salud)),  // RN-19: anillo de Inicio
     partesUrgentes,
     documentosPorVencer,
     documentacion,
@@ -98,4 +100,30 @@ async function calendario(usuarioId, mes) {
   return eventos.sort((a, b) => a.fecha.localeCompare(b.fecha));
 }
 
-module.exports = { resumen, calendario };
+/** RF-26: gastos de los últimos 12 meses (cambios de partes + pagos de documentos). */
+async function gastos(usuarioId) {
+  const fechaHoy = hoy();
+  const desde = inicioUltimos12Meses(fechaHoy);
+  const partes = await query(
+    `SELECT DATE_FORMAT(s.fecha, '%Y-%m') AS mes, p.nombre, SUM(c.costo) AS total
+       FROM cambios_parte c
+       JOIN servicios s ON s.id = c.servicio_id
+       JOIN partes_vehiculo p ON p.id = c.parte_id
+       JOIN vehiculos v ON v.id = s.vehiculo_id
+      WHERE v.usuario_id = ? AND s.fecha BETWEEN ? AND ?
+      GROUP BY mes, p.nombre`,
+    [usuarioId, desde, fechaHoy],
+  );
+  const documentos = await query(
+    `SELECT DATE_FORMAT(r.fecha_pago, '%Y-%m') AS mes, d.tipo, SUM(r.valor) AS total
+       FROM renovaciones_documento r
+       JOIN documentos d ON d.id = r.documento_id
+       JOIN vehiculos v ON v.id = d.vehiculo_id
+      WHERE v.usuario_id = ? AND r.fecha_pago BETWEEN ? AND ?
+      GROUP BY mes, d.tipo`,
+    [usuarioId, desde, fechaHoy],
+  );
+  return resumenGastos(partes, documentos, fechaHoy);
+}
+
+module.exports = { resumen, calendario, gastos };

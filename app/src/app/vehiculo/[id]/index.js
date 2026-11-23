@@ -14,6 +14,8 @@ import {
 import { useColores } from '../../../tema';
 import { IlustracionTaller, IlustracionVehiculo } from '../../../components/Ilustraciones';
 import { RellenoPrimario } from '../../../components/Decoracion';
+import AnilloSalud from '../../../components/AnilloSalud';
+import Placa from '../../../components/Placa';
 import { avisar, confirmar } from '../../../utils/dialogos';
 import {
   ESTADO_DOCUMENTO, ESTADO_PARTE, ESTADO_VEHICULO, EXPLICACION_VEHICULO, NOMBRE_DOCUMENTO,
@@ -65,12 +67,14 @@ export default function DetalleVehiculo() {
         </View>
         <View style={{ flex: 1, gap: 4 }}>
           <Fila estilo={{ justifyContent: 'space-between' }}>
-            <Texto variante="titulo">{vehiculo.placa}</Texto>
+            <Placa placa={vehiculo.placa} tipo={vehiculo.tipo} alto={42} />
             <Etiqueta estado={estado} />
           </Fila>
           <Texto variante="suave">{vehiculo.marca} {vehiculo.linea} ({vehiculo.modelo}) · {km(vehiculo.kmCalculo)}{vehiculo.kmEstimado ? ' (aprox.)' : ''}</Texto>
           <Texto estilo={{ fontSize: 14 }}>{EXPLICACION_VEHICULO[vehiculo.estado]}</Texto>
         </View>
+        {/* RN-19: qué tan al día está este vehículo */}
+        {vehiculo.salud && <AnilloSalud porcentaje={vehiculo.salud.porcentaje} nivel={vehiculo.salud.nivel} tamano={width < 500 ? 70 : 92} />}
       </Tarjeta>
 
       {/* Acciones principales: las que más se usan */}

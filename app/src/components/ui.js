@@ -1,10 +1,11 @@
 // Componentes pequeños que se reutilizan en todas las pantallas.
 // Así cada pantalla se lee fácil: <Pantalla>, <Tarjeta>, <Boton>, <Campo>...
-import { useState } from 'react';
-import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
+import { Children, useState } from 'react';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useColores } from '../tema';
 import { Degradado, FondoDecorado, RellenoPrimario } from './Decoracion';
+import { Aparecer, Siluetas, useProgreso } from './Animaciones';
 
 /**
  * Contenedor con scroll y márgenes para el contenido de una pantalla.
@@ -23,7 +24,10 @@ export function Pantalla({ children, onRefrescar, refrescando = false }) {
       keyboardShouldPersistTaps="handled"
       refreshControl={onRefrescar ? <RefreshControl refreshing={refrescando} onRefresh={onRefrescar} tintColor={c.primario} /> : undefined}
     >
-      {children}
+      {/* Cada bloque de la pantalla entra deslizándose, uno tras otro (máximo 0,5 s de espera) */}
+      {Children.toArray(children).map((hijo, i) => (
+        <Aparecer key={hijo.key ?? i} retraso={Math.min(i, 8) * 60}>{hijo}</Aparecer>
+      ))}
     </ScrollView>
     </View>
   );
@@ -32,7 +36,7 @@ export function Pantalla({ children, onRefrescar, refrescando = false }) {
 export function Tarjeta({ children, estilo }) {
   const c = useColores();
   return (
-    <View style={[{ backgroundColor: c.superficie, borderColor: c.borde, borderWidth: 1, borderRadius: 16, padding: 14, gap: 8, boxShadow: `0 6px 18px ${c.sombra}` }, estilo]}>
+    <View style={[{ backgroundColor: c.superficie, borderColor: c.borde, borderWidth: 1, borderRadius: 12, padding: 14, gap: 8, boxShadow: `0 4px 14px ${c.sombra}` }, estilo]}>
       {children}
     </View>
   );
@@ -77,19 +81,20 @@ export function Boton({ titulo, onPress, tipo = 'normal', icono, pequeno = false
       accessibilityLabel={titulo}
       style={({ pressed }) => [
         {
-          backgroundColor: colores.fondo, borderColor: colores.borde, borderWidth: 1, borderRadius: 12,
-          boxShadow: tipo === 'primario' ? `0 4px 14px ${conDegradado ? 'rgba(99, 102, 241, 0.45)' : `${c.primario}55`}` : undefined,
+          backgroundColor: colores.fondo, borderColor: colores.borde, borderWidth: 1, borderRadius: 8,
+          boxShadow: tipo === 'primario' ? `0 4px 14px ${c.primario}40` : undefined,
           overflow: conDegradado ? 'hidden' : undefined,
           paddingVertical: vertical, paddingHorizontal: tipo === 'enlace' ? 2 : pequeno ? 12 : 16,
           flexDirection: 'row', gap: 7, alignItems: 'center', justifyContent: 'center',
           opacity: deshabilitado ? 0.5 : pressed ? 0.75 : 1,
+          transform: [{ scale: pressed && !deshabilitado ? 0.97 : 1 }],  // se "hunde" un poco al tocarlo
         },
         estilo,
       ]}
     >
       {conDegradado && <RellenoPrimario />}
       {icono && <Ionicons name={icono} size={pequeno ? 16 : 18} color={colores.texto} />}
-      <Text style={{ color: colores.texto, fontWeight: '600', fontSize: pequeno ? 14 : 15 }}>{titulo}</Text>
+      <Text style={{ color: colores.texto, fontWeight: tipo === 'primario' ? '800' : '600', fontSize: pequeno ? 14 : 15, letterSpacing: tipo === 'primario' ? 0.3 : 0 }}>{titulo}</Text>
     </Pressable>
   );
 }
@@ -119,12 +124,10 @@ export function TituloSeccion({ titulo, icono, accion }) {
   const c = useColores();
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6 }}>
-      {icono && (
-        <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: c.primario, alignItems: 'center', justifyContent: 'center' }}>
-          <Ionicons name={icono} size={18} color={c.primarioTexto} />
-        </View>
-      )}
-      <Text style={{ flex: 1, fontSize: 17, fontWeight: '700', color: c.texto }} accessibilityRole="header">{titulo}</Text>
+      {/* Ícono discreto y una barra naranja corta, como los indicadores de un tablero */}
+      <View style={{ width: 3, height: 20, borderRadius: 2, backgroundColor: c.acento }} />
+      {icono && <Ionicons name={icono} size={18} color={c.textoSuave} />}
+      <Text style={{ flex: 1, fontSize: 17, fontWeight: '800', color: c.texto, letterSpacing: 0.2 }} accessibilityRole="header">{titulo}</Text>
       {accion}
     </View>
   );
@@ -308,10 +311,11 @@ export function Etiqueta({ estado }) {
 /** Barra de desgaste (RNF-04). Se llena hasta el 100 % aunque el desgaste sea mayor. */
 export function BarraDesgaste({ porcentaje, estado }) {
   const c = useColores();
+  const lleno = useProgreso(Math.min(100, Math.max(0, porcentaje)));  // se llena con animación
   return (
     <View style={{ height: 8, backgroundColor: c.superficie2, borderRadius: 99, overflow: 'hidden' }}
       accessibilityRole="progressbar" accessibilityValue={{ min: 0, max: 100, now: Math.round(porcentaje) }}>
-      <View style={{ width: `${Math.min(100, Math.max(0, porcentaje))}%`, height: '100%', backgroundColor: c[`${estado}Barra`], borderRadius: 99 }} />
+      <View style={{ width: `${lleno}%`, height: '100%', backgroundColor: c[`${estado}Barra`], borderRadius: 99 }} />
     </View>
   );
 }
@@ -323,27 +327,22 @@ export function BarraDesgaste({ porcentaje, estado }) {
  */
 export function Cifra({ valor, texto, icono, tono = 'primario', ancho = '47%' }) {
   const c = useColores();
-  // Cada tono tiene su degradado: rojo, amarillo, verde o azul
-  const degradados = {
-    // Tonos escogidos para que el texto blanco tenga contraste ≥ 4,5 (WCAG AA, RNF-05)
-    vencida: ['#b3202a', '#d63a3f'],
-    proxima: ['#a84f00', '#b85c00'],
-    bien: ['#13703a', '#16803f'],
-    primario: c.degradado.slice(1),
-    neutro: ['#3f4b5e', '#56637a'],
-  };
+  // Tarjeta grafito (como un indicador del tablero); el tono solo pinta el ícono y la barra lateral.
+  // Colores vivos sobre grafito: contraste ≥ 4,5 (WCAG AA, RNF-05)
+  const color = { vencida: '#f87171', proxima: '#fbbf24', bien: '#34d399', primario: '#ff7a2e', neutro: '#94a3b8' }[tono];
   return (
-    <Degradado colores={degradados[tono]} circulos
-      estilo={{ flexBasis: ancho, flexGrow: 1, alignSelf: 'stretch', borderRadius: 16, boxShadow: `0 6px 16px ${c.sombra}` }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, padding: 13 }}>
+    <Degradado
+      estilo={{ flexBasis: ancho, flexGrow: 1, alignSelf: 'stretch', borderRadius: 12, boxShadow: `0 4px 14px ${c.sombra}` }}>
+      <View style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 3, backgroundColor: color }} />
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, padding: 13, paddingLeft: 15 }}>
         {icono && (
-          <View style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: 'rgba(255,255,255,0.25)', alignItems: 'center', justifyContent: 'center' }}>
-            <Ionicons name={icono} size={20} color="#ffffff" />
+          <View style={{ width: 36, height: 36, borderRadius: 8, backgroundColor: `${color}22`, alignItems: 'center', justifyContent: 'center' }}>
+            <Ionicons name={icono} size={19} color={color} />
           </View>
         )}
         <View style={{ flexShrink: 1 }}>
-          <Text style={{ color: '#ffffff', fontSize: 20, fontWeight: '800' }}>{valor}</Text>
-          <Text style={{ color: '#ffffff', opacity: 0.92, fontSize: 12.5 }}>{texto}</Text>
+          <Text style={{ color: '#ffffff', fontSize: 20, fontWeight: '800', letterSpacing: 0.2 }}>{valor}</Text>
+          <Text style={{ color: '#aab1bb', fontSize: 12.5 }}>{texto}</Text>
         </View>
       </View>
     </Degradado>
@@ -368,9 +367,9 @@ export function Aviso({ tipo = 'error', children, accion }) {
   );
 }
 
+/** Mientras carga una pantalla: siluetas grises que "respiran" (components/Animaciones.js). */
 export function Cargando() {
-  const c = useColores();
-  return <View style={{ flex: 1, padding: 40, backgroundColor: c.fondo }}><ActivityIndicator color={c.primario} size="large" /></View>;
+  return <Siluetas />;
 }
 
 /** Casilla de verificación (React Native no trae una). El texto puede ser cualquier contenido. */

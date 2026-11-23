@@ -10,6 +10,7 @@ import { useDatos } from '../../../api/useDatos';
 import { useErrores } from '../../../api/useErrores';
 import { Aviso, Boton, Campo, Cargando, Casilla, Etiqueta, Fila, MensajeCampo, NotaObligatorios, Pantalla, Paso, Separador, Tarjeta, Texto } from '../../../components/ui';
 import CampoFecha from '../../../components/CampoFecha';
+import { useCelebracion } from '../../../components/Celebracion';
 import { ESTADO_PARTE, aNumero, hoyISO, pesos, porcentaje } from '../../../utils/formato';
 
 export default function RegistrarServicio() {
@@ -23,6 +24,7 @@ export default function RegistrarServicio() {
   const [elegidas, setElegidas] = useState(parteId ? { [parteId]: { costo: '', marca_referencia: '' } } : {});
   const [sugerencias, setSugerencias] = useState([]);
   const { errores, general, mostrar, limpiar, reiniciar } = useErrores();
+  const celebrar = useCelebracion();
   const [enviando, setEnviando] = useState(false);
 
   const ids = Object.keys(elegidas).map(Number);
@@ -70,6 +72,7 @@ export default function RegistrarServicio() {
           })),
         },
       });
+      celebrar(ids.length === 1 ? '¡Cambio registrado!' : `¡${ids.length} cambios registrados!`);
       volver(`/vehiculo/${id}`);
     } catch (e) {
       mostrar(e);

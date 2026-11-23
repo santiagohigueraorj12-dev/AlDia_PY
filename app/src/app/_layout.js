@@ -14,6 +14,7 @@ import AsistenteFlotante from '../components/AsistenteFlotante';
 import { TemaProvider, useColores } from '../tema';
 import BotonTema from '../components/BotonTema';
 import { FondoEncabezado } from '../components/Decoracion';
+import { CelebracionProvider } from '../components/Celebracion';
 
 function Navegacion() {
   const { usuario, cargando } = useSesion();
@@ -69,7 +70,10 @@ export default function RaizApp() {
     // TemaProvider va por fuera: así todas las pantallas saben si se eligió claro u oscuro
     <TemaProvider>
       <SesionProvider>
-        <Navegacion />
+        {/* Confeti y ✓ al completar algo (components/Celebracion.js) */}
+        <CelebracionProvider>
+          <Navegacion />
+        </CelebracionProvider>
       </SesionProvider>
     </TemaProvider>
   );

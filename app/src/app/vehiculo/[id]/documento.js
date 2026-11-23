@@ -10,6 +10,7 @@ import { useDatos } from '../../../api/useDatos';
 import { useErrores } from '../../../api/useErrores';
 import { Aviso, Boton, Campo, Cargando, Etiqueta, Fila, MensajeCampo, NotaObligatorios, Pantalla, Separador, Tarjeta, Texto } from '../../../components/ui';
 import CampoFecha from '../../../components/CampoFecha';
+import { useCelebracion } from '../../../components/Celebracion';
 import { confirmar } from '../../../utils/dialogos';
 import { ESTADO_DOCUMENTO, NOMBRE_DOCUMENTO, fecha, hoyISO, pesos } from '../../../utils/formato';
 
@@ -22,6 +23,7 @@ export default function Documento() {
   const [archivo, setArchivo] = useState(null);  // { uri, nombre, tipo, web }
   const [historial, setHistorial] = useState([]);
   const { errores, general, mostrar, limpiar, reiniciar, setGeneral } = useErrores();
+  const celebrar = useCelebracion();
   const [enviando, setEnviando] = useState(false);
 
   const doc = vehiculo?.documentos.find((d) => d.tipo === tipo);
@@ -55,6 +57,7 @@ export default function Documento() {
     try {
       if (doc) await api(`/documentos/${doc.id}/renovar`, { metodo: 'POST', formulario });
       else await api(`/vehiculos/${id}/documentos`, { metodo: 'POST', formulario });
+      celebrar(doc ? `¡Renovación guardada!\n${nombre}` : `¡Documento registrado!\n${nombre}`);
       volver(`/vehiculo/${id}`);
     } catch (e) {
       mostrar(e);

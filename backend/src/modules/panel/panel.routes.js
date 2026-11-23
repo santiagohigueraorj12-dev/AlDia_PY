@@ -9,6 +9,11 @@ router.get('/', async (req, res) => {
   res.json(await servicio.resumen(req.usuario.id));
 });
 
+// RF-26: gráfica de gastos de los últimos 12 meses
+router.get('/gastos', async (req, res) => {
+  res.json(await servicio.gastos(req.usuario.id));
+});
+
 router.get('/calendario', async (req, res) => {
   const mes = /^\d{4}-\d{2}$/.test(req.query.mes || '') ? `${req.query.mes}-01` : hoy();
   res.json(await servicio.calendario(req.usuario.id, mes));

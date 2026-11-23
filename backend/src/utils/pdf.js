@@ -1,4 +1,4 @@
-// Ayudas para generar PDF con pdfkit (hoja de vida RF-12 y reportes RF-25).
+// Ayudas para generar PDF con pdfkit (hoja de vida del vehículo, RF-11).
 const fs = require('fs');
 const path = require('path');
 const PDFDocument = require('pdfkit');

@@ -12,6 +12,7 @@ const {
 const { validarNuevoKm, promedioDiario, kmParaCalculo } = require('../../domain/kilometraje');
 const { estadoVehiculo, costoPorKm, fechaPrimeraRtm } = require('../../domain/vehiculo');
 const { estadoDocumento } = require('../../domain/documentos');
+const { calcularSalud } = require('../../domain/salud');
 const documentosRepo = require('../documentos/documentos.repository');
 const alertas = require('../notificaciones/alertas.service');
 const repo = require('./vehiculos.repository');
@@ -59,6 +60,7 @@ async function armarVehiculo(vehiculo, fechaHoy = hoy()) {
 
   // Costos (RF-10, RN-12)
   const mantenimiento = await repo.costoMantenimiento(vehiculo.id);
+  const estado = estadoVehiculo(partes, documentos, fechaHoy);  // RN-11
 
   return {
     ...vehiculo,
@@ -66,7 +68,8 @@ async function armarVehiculo(vehiculo, fechaHoy = hoy()) {
     kmEstimado: km.estimado,
     diasSinActualizarKm: km.diasSinActualizar,
     promedioDiarioKm: promedio === null ? null : Math.round(promedio * 10) / 10,
-    estado: estadoVehiculo(partes, documentos, fechaHoy),  // RN-11
+    estado,
+    salud: calcularSalud(partes, documentos, estado),  // RN-19: anillo de salud
     resumenPartes: {
       bien: partes.filter((p) => p.desgaste.estado === 'bien').length,
       proximas: partes.filter((p) => p.desgaste.estado === 'proxima').length,
