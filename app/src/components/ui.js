@@ -423,3 +423,10 @@ export function Columnas({ izquierda, derecha, proporcion = 1.35 }) {
     </View>
   );
 }
+
+/** Ancho máximo de las páginas públicas (portada, iniciar sesión): aprovecha pantallas grandes. */
+export const ANCHO_PAGINA = 1440;
+/** Margen a los lados según el ancho de la pantalla (celular, tableta o computador). */
+export function margenLateral(ancho) {
+  return ancho >= 1200 ? 56 : ancho >= 800 ? 32 : 16;
+}

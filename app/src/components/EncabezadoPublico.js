@@ -7,9 +7,9 @@ import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useColores } from '../tema';
-import { Boton } from './ui';
-import BotonTema from './BotonTema';
+import { ANCHO_PAGINA, Boton, margenLateral } from './ui';
 import LogoAlDia from './LogoAlDia';
+import BotonTema from './BotonTema';
 
 /** Logo oficial de AlDía (components/LogoAlDia.js): ícono + nombre. */
 export function Logo({ tamano = 22 }) {
@@ -31,9 +31,10 @@ export default function EncabezadoPublico({ ocultar, enlaces = [] }) {
   return (
     <View style={{
       backgroundColor: c.superficie, borderBottomWidth: 1, borderBottomColor: c.borde,
-      paddingTop: insets.top + 10, paddingBottom: 10, paddingHorizontal: 16,
+      paddingTop: insets.top + 12, paddingBottom: 12, paddingHorizontal: margenLateral(width),
     }}>
-      <View style={{ width: '100%', maxWidth: 1100, alignSelf: 'center', flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+      {/* Usa el ancho de la pantalla (hasta 1440 px), igual que el contenido de la portada */}
+      <View style={{ width: '100%', maxWidth: ANCHO_PAGINA, alignSelf: 'center', flexDirection: 'row', alignItems: 'center', gap: ancha ? 28 : 12 }}>
         <Pressable onPress={() => router.replace('/bienvenida')} accessibilityRole="link" accessibilityLabel="Ir al inicio">
           <Logo tamano={angosta ? 18 : 22} />
         </Pressable>

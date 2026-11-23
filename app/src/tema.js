@@ -38,29 +38,32 @@ const claro = {
   vencida: '#b91c1c', vencidaFondo: '#fdebeb', vencidaBarra: '#dc2626',
 };
 
+// Modo oscuro (opcional, con el botón de luna): pizarra profunda en vez de negro puro,
+// tarjetas un poco más claras que el fondo para que se separen, texto suave que no
+// encandila y el mismo naranja de competencia. Contrastes medidos con WCAG 2.1.
 const oscuro = {
   esOscuro: true,
-  fondo: '#0a0b0d',          // negro carbón
-  superficie: '#131519',
-  superficie2: '#1c1f24',
-  borde: '#2a2e35',
-  texto: '#f2f3f5',
-  textoSuave: '#9aa1ab',     // 7:1 sobre la superficie
-  primario: '#ff6b1a',       // naranja de competencia
-  primarioTexto: '#0a0b0d',  // texto negro sobre naranja: 6,9:1
-  primarioSuave: '#2a1a10',
-  acento: '#ff6b1a',
-  secundario: '#94a3b8',
+  fondo: '#0e1116',          // pizarra profunda
+  superficie: '#171b22',     // tarjetas: se despegan del fondo
+  superficie2: '#20252e',
+  borde: '#2b313c',
+  texto: '#eef1f5',
+  textoSuave: '#a6aebb',
+  primario: '#ff7a2e',       // naranja de competencia
+  primarioTexto: '#111318',  // texto oscuro sobre el naranja
+  primarioSuave: '#2a1c13',
+  acento: '#ff7a2e',
+  secundario: '#8f9bb0',
   rellenoDegradado: false,
-  sobrePrimario: '#0a0b0d',
-  degradado: ['#15171b', '#1d2026', '#262a31'],  // grafito
+  sobrePrimario: '#111318',
+  degradado: ['#171b22', '#1b2029', '#222833'],
   sobreDegradado: '#ffffff',
-  sobreDegradadoSuave: '#aab1bb',
-  decoracion: ['#ff6b1a', '#475569', '#0a0b0d'],
-  sombra: 'rgba(0, 0, 0, 0.5)',
-  bien: '#34d399', bienFondo: '#0f2a20', bienBarra: '#22c55e',
-  proxima: '#fbbf24', proximaFondo: '#2e2309', proximaBarra: '#f59e0b',
-  vencida: '#f87171', vencidaFondo: '#341416', vencidaBarra: '#ef4444',
+  sobreDegradadoSuave: '#b3bac6',
+  decoracion: ['#ff7a2e', '#475569', '#0e1116'],
+  sombra: 'rgba(0, 0, 0, 0.45)',
+  bien: '#4ade80', bienFondo: '#12291d', bienBarra: '#22c55e',
+  proxima: '#fbbf24', proximaFondo: '#2d230d', proximaBarra: '#f59e0b',
+  vencida: '#f87171', vencidaFondo: '#331719', vencidaBarra: '#ef4444',
 };
 
 // ---------------------------------------------------------------------
