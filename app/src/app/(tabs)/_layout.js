@@ -33,16 +33,16 @@ export default function PestanasLayout() {
         tabBarInactiveTintColor: c.textoSuave,
         tabBarStyle: { backgroundColor: c.superficie, borderTopColor: c.borde, boxShadow: `0 -4px 16px ${c.sombra}` },
         tabBarLabelStyle: { fontWeight: '700' },
-        // Barra de arriba en degradado azul con letras blancas
+        // Barra de arriba: blanca con letras oscuras (modo claro) o grafito (modo oscuro), con una línea naranja
         headerBackground: () => <FondoEncabezado />,
-        headerTintColor: '#ffffff',
+        headerTintColor: c.sobreDegradado,
         headerTitleStyle: { fontWeight: '800' },
         headerRight: () => <BotonTema />,  // botón de sol / luna en la esquina derecha
         sceneStyle: { backgroundColor: c.fondo },
       }}
     >
-      {/* En Inicio la barra azul muestra el logo oficial en vez del texto */}
-      <Tabs.Screen name="index" options={{ title: 'Inicio', headerTitle: () => <LogoAlDia tamano={20} color="#ffffff" colorDia="#ffd166" />, tabBarIcon: icono('home') }} />
+      {/* En Inicio la barra muestra el logo oficial en vez del texto */}
+      <Tabs.Screen name="index" options={{ title: 'Inicio', headerTitle: () => <LogoAlDia tamano={20} color={c.sobreDegradado} colorDia={c.esOscuro ? '#ffd166' : c.primario} />, tabBarIcon: icono('home') }} />
       <Tabs.Screen name="vehiculos" options={{ title: 'Vehículos', tabBarIcon: icono('car-sport') }} />
       <Tabs.Screen name="documentos" options={{ title: 'Docs', headerTitle: 'Documentación', tabBarIcon: icono('document-text') }} />
       <Tabs.Screen name="calendario" options={{ title: 'Calendario', tabBarIcon: icono('calendar') }} />

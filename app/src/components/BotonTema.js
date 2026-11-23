@@ -10,8 +10,10 @@ import { useColores, useTema } from '../tema';
 export default function BotonTema({ sobreClaro = false }) {
   const c = useColores();
   const { esOscuro, alternar } = useTema();
-  const colorIcono = sobreClaro ? c.texto : '#ffffff';
-  const fondo = sobreClaro ? c.superficie2 : 'rgba(255, 255, 255, 0.16)';
+  // Sobre una barra clara (o el encabezado en modo claro) el ícono es oscuro
+  const claro = sobreClaro || !c.esOscuro;
+  const colorIcono = claro ? c.texto : '#ffffff';
+  const fondo = claro ? c.superficie2 : 'rgba(255, 255, 255, 0.16)';
   return (
     <Pressable
       onPress={alternar}

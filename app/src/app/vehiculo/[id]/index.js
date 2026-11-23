@@ -82,7 +82,6 @@ export default function DetalleVehiculo() {
       <Fila estilo={{ gap: 10 }}>
         <Accion icono="construct" titulo="Registrar cambio" texto="Cambiaste una parte" principal onPress={() => router.push(`/vehiculo/${id}/servicio`)} />
         <Accion icono="speedometer" titulo="Actualizar km" texto="Lo que marca el tablero" onPress={() => router.push(`/vehiculo/${id}/kilometraje`)} />
-        <Accion icono="document-text" titulo="Documentos" texto="SOAT, técnico-mecánica" onPress={() => setSeccion('documentos')} />
         <Accion icono="download" titulo="Hoja de vida" texto="Descargar en PDF" onPress={hojaDeVida} />
       </Fila>
 
@@ -156,7 +155,7 @@ function Accion({ icono, titulo, texto, onPress, principal = false }) {
   return (
     <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={titulo}
       style={({ pressed }) => ({
-        flexBasis: '22%', flexGrow: 1, minWidth: 140, backgroundColor: fondo, borderColor: degradado ? 'transparent' : principal ? c.primario : c.borde, borderWidth: 1, overflow: 'hidden',
+        flexBasis: '30%', flexGrow: 1, minWidth: 140, backgroundColor: fondo, borderColor: degradado ? 'transparent' : principal ? c.primario : c.borde, borderWidth: 1, overflow: 'hidden',
         borderRadius: 12, padding: 12, gap: 6, opacity: pressed ? 0.75 : 1,
       })}>
       {degradado && <RellenoPrimario />}

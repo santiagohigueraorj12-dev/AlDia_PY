@@ -92,7 +92,6 @@ export default function Inicio() {
         tono={estadoDocs.clase}
         titulo={estadoDocs.texto}
         detalle={`${docs.faltantes} faltantes · ${docs.vencidos} vencidos · ${docs.porVencer} próximos`}
-        derecha={<Etiqueta estado={estadoDocs} />}
         onPress={() => router.push('/documentos')}
       />
     </Tarjeta>
@@ -120,7 +119,7 @@ export default function Inicio() {
 
   return (
     <Pantalla onRefrescar={refrescar} refrescando={refrescando} ancha>
-      <Resumen nombre={nombre} pendientes={tareas.length} salud={panel.salud} varios={panel.vehiculos.length > 1} />
+      <Resumen nombre={nombre} pendientes={tareas.length} salud={panel.salud} vehiculos={panel.vehiculos} />
       {dosColumnas ? (
         // Computador: tareas y gastos a la izquierda; perfil, documentos, cifras y vehículos a la derecha
         <Columnas
@@ -144,30 +143,35 @@ export default function Inicio() {
  * Saludo con una frase que resume todo y, a la derecha, el anillo de salud (RN-19):
  * qué tan al día están los vehículos, de 0 a 100 %.
  */
-function Resumen({ nombre, pendientes, salud, varios }) {
+function Resumen({ nombre, pendientes, salud, vehiculos }) {
   const c = useColores();
   const alDia = pendientes === 0;
+  // El porcentaje ya lo muestra el anillo: aquí se dice, en palabras, cómo está cada vehículo
+  const cuenta = (estado) => vehiculos.filter((v) => v.estado === estado).length;
+  const partes = [
+    [cuenta('al_dia'), 'al día'],
+    [cuenta('requiere_atencion'), cuenta('requiere_atencion') === 1 ? 'requiere atención' : 'requieren atención'],
+    [cuenta('no_apto'), cuenta('no_apto') === 1 ? 'no apto para circular' : 'no aptos para circular'],
+  ].filter(([n]) => n > 0).map(([n, texto]) => `${n} ${texto}`);
   return (
-    <Degradado circulos estilo={{ borderRadius: 14, boxShadow: `0 10px 24px ${c.sombra}` }}>
+    <Degradado circulos estilo={{ borderRadius: 14, borderWidth: c.esOscuro ? 0 : 1, borderColor: c.borde, boxShadow: `0 10px 24px ${c.sombra}` }}>
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, padding: 20 }}>
       <View style={{ flex: 1, gap: 6 }}>
-        <Text style={{ color: '#ffffff', fontSize: 24, fontWeight: '800' }}>¡Hola, {nombre}!</Text>
-        {salud && (
-          <Text style={{ color: '#ffffff', fontSize: 16, fontWeight: '700' }}>
-            {varios ? 'Tus vehículos están' : 'Tu vehículo está'} {salud.porcentaje} % al día
-          </Text>
-        )}
-        <Text style={{ color: '#ffffff', fontSize: 14.5, opacity: 0.92 }}>
+        <Text style={{ color: c.sobreDegradado, fontSize: 24, fontWeight: '800' }}>¡Hola, {nombre}!</Text>
+        <Text style={{ color: c.sobreDegradado, fontSize: 15.5, fontWeight: '700' }}>
+          {vehiculos.length === 1 ? 'Tu vehículo' : `Tus ${vehiculos.length} vehículos`}: {partes.join(' · ')}
+        </Text>
+        <Text style={{ color: c.sobreDegradadoSuave, fontSize: 14.5 }}>
           {alDia
             ? '¡Buen trabajo! No tienes nada pendiente.'
             : `Tienes ${pendientes} ${pendientes === 1 ? 'cosa pendiente' : 'cosas pendientes'}. Empieza por la primera de la lista.`}
         </Text>
       </View>
-      {salud && <AnilloSalud porcentaje={salud.porcentaje} nivel={salud.nivel} tamano={104} claro />}
+      {salud && <AnilloSalud porcentaje={salud.porcentaje} nivel={salud.nivel} tamano={104} claro={c.esOscuro} />}
     </View>
     {/* Franja de carretera al pie del saludo */}
-    <View style={{ height: 10, backgroundColor: 'rgba(10,20,45,0.35)', justifyContent: 'center' }}>
-      <View style={{ height: 2, marginHorizontal: 12, borderStyle: 'dashed', borderTopWidth: 2, borderColor: 'rgba(255,255,255,0.7)' }} />
+    <View style={{ height: 10, backgroundColor: c.esOscuro ? 'rgba(0,0,0,0.35)' : c.superficie2, justifyContent: 'center' }}>
+      <View style={{ height: 2, marginHorizontal: 12, borderStyle: 'dashed', borderTopWidth: 2, borderColor: c.esOscuro ? 'rgba(255,255,255,0.7)' : c.acento }} />
     </View>
     </Degradado>
   );

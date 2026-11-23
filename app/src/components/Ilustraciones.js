@@ -149,46 +149,48 @@ export function IlustracionVehiculo({ tipo, ancho, color }) {
  * la página de inicio, el inicio de sesión y las pantallas vacías.
  */
 export function EscenaCarretera({ ancho }) {
+  const c = useColores();
+  const os = c.esOscuro;
   const filas = [
-    { y: 70, color: '#34d399', parte: 'Aceite de motor', valor: 'Al día' },
-    { y: 140, color: '#fbbf24', parte: 'Pastillas de freno', valor: '85 %' },
-    { y: 210, color: '#f87171', parte: 'SOAT', valor: 'Vence en 7 días' },
+    { y: 70, color: os ? '#34d399' : '#15803d', parte: 'Aceite de motor', valor: 'Al día' },
+    { y: 140, color: os ? '#fbbf24' : '#b45309', parte: 'Pastillas de freno', valor: '85 %' },
+    { y: 210, color: os ? '#f87171' : '#b91c1c', parte: 'SOAT', valor: 'Vence en 7 días' },
   ];
   return (
     <Lienzo ancho={ancho} proporcion={600 / 320} viewBox="0 0 600 320" redondeado etiqueta="Tablero de AlDía con la salud del vehículo y el estado de sus partes">
       <Defs>
         <LinearGradient id="tableroFondo" x1="0" y1="0" x2="1" y2="1">
-          <Stop offset="0" stopColor="#111317" />
-          <Stop offset="1" stopColor="#1f2228" />
+          <Stop offset="0" stopColor={os ? '#111317' : '#ffffff'} />
+          <Stop offset="1" stopColor={os ? '#1f2228' : '#f3f4f6'} />
         </LinearGradient>
         <LinearGradient id="tableroArco" x1="0" y1="1" x2="1" y2="0">
           <Stop offset="0" stopColor="#ff9a5c" />
           <Stop offset="1" stopColor="#ff5a0a" />
         </LinearGradient>
       </Defs>
-      <Rect x={0} y={0} width={600} height={320} rx={18} fill="url(#tableroFondo)" />
+      <Rect x={0} y={0} width={600} height={320} rx={18} fill="url(#tableroFondo)" stroke={os ? 'none' : c.borde} strokeWidth={2} />
       {/* franjas de competencia */}
       <G opacity={0.5}>
         <Line x1={560} y1={-10} x2={500} y2={330} stroke="#ff6b1a" strokeWidth={6} />
         <Line x1={580} y1={-10} x2={520} y2={330} stroke="#ff6b1a" strokeWidth={2} />
       </G>
       {/* indicador: pista, avance (78 %) y marcas */}
-      <Path d="M 69.1 242.5 A 105 105 0 1 1 250.9 242.5" stroke="#2a2e35" strokeWidth={16} fill="none" strokeLinecap="round" />
+      <Path d="M 69.1 242.5 A 105 105 0 1 1 250.9 242.5" stroke={os ? '#2a2e35' : '#e5e7eb'} strokeWidth={16} fill="none" strokeLinecap="round" />
       <Path d="M 69.1 242.5 A 105 105 0 1 1 256.8 149.3" stroke="url(#tableroArco)" strokeWidth={16} fill="none" strokeLinecap="round" />
       {[210, 150, 90, 30, -30].map((a) => {
         const r1 = 82;
         const r2 = 72;
         const rad = (a * Math.PI) / 180;
-        return <Line key={a} x1={160 + r1 * Math.cos(rad)} y1={190 - r1 * Math.sin(rad)} x2={160 + r2 * Math.cos(rad)} y2={190 - r2 * Math.sin(rad)} stroke="#4b5260" strokeWidth={3} strokeLinecap="round" />;
+        return <Line key={a} x1={160 + r1 * Math.cos(rad)} y1={190 - r1 * Math.sin(rad)} x2={160 + r2 * Math.cos(rad)} y2={190 - r2 * Math.sin(rad)} stroke={os ? '#4b5260' : '#c4c9d1'} strokeWidth={3} strokeLinecap="round" />;
       })}
-      <SvgText x={160} y={198} fill="#ffffff" fontSize={46} fontWeight="800" textAnchor="middle" fontFamily="Arial">78%</SvgText>
-      <SvgText x={160} y={226} fill="#9aa1ab" fontSize={14} fontWeight="700" textAnchor="middle" letterSpacing={2} fontFamily="Arial">AL DÍA</SvgText>
+      <SvgText x={160} y={198} fill={c.texto} fontSize={46} fontWeight="800" textAnchor="middle" fontFamily="Arial">78%</SvgText>
+      <SvgText x={160} y={226} fill={c.textoSuave} fontSize={14} fontWeight="700" textAnchor="middle" letterSpacing={2} fontFamily="Arial">AL DÍA</SvgText>
       {/* filas de estado */}
       {filas.map((f) => (
         <G key={f.y}>
-          <Rect x={318} y={f.y} width={232} height={50} rx={8} fill="#1a1d22" stroke="#2a2e35" strokeWidth={1} />
+          <Rect x={318} y={f.y} width={232} height={50} rx={8} fill={os ? '#1a1d22' : '#ffffff'} stroke={os ? '#2a2e35' : c.borde} strokeWidth={1} />
           <Rect x={318} y={f.y} width={4} height={50} rx={2} fill={f.color} />
-          <SvgText x={336} y={f.y + 21} fill="#e5e7eb" fontSize={15} fontWeight="700" fontFamily="Arial">{f.parte}</SvgText>
+          <SvgText x={336} y={f.y + 21} fill={c.texto} fontSize={15} fontWeight="700" fontFamily="Arial">{f.parte}</SvgText>
           <SvgText x={336} y={f.y + 40} fill={f.color} fontSize={13} fontWeight="700" fontFamily="Arial">{f.valor}</SvgText>
         </G>
       ))}

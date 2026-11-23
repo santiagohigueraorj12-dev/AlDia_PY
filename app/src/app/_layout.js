@@ -23,7 +23,7 @@ function Navegacion() {
 
   const opciones = {
     headerBackground: () => <FondoEncabezado />,
-    headerTintColor: '#ffffff',
+    headerTintColor: c.sobreDegradado,
     headerTitleStyle: { fontWeight: '800' },
     headerRight: () => <BotonTema />,  // botón de sol / luna en la esquina derecha
     contentStyle: { backgroundColor: c.fondo },

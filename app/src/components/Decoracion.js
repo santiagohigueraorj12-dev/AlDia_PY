@@ -41,7 +41,7 @@ export function Degradado({ colores, circulos = false, estilo, children }) {
         </Defs>
         <Rect x="0" y="0" width="100" height="100" fill={`url(#${id})`} />
       </Svg>
-      {circulos && <Franjas color={c.acento} opacidad={0.55} />}
+      {circulos && <Franjas color={c.acento} opacidad={c.esOscuro ? 0.55 : 0.28} />}
       {children}
     </View>
   );

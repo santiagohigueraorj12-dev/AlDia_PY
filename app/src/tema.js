@@ -27,8 +27,10 @@ const claro = {
   secundario: '#334155',     // pizarra: segundo color de las gráficas
   rellenoDegradado: false,   // botones de color sólido, sin degradado
   sobrePrimario: '#ffffff',
-  // Grafito: encabezados, saludo y cifras. Blanco encima: contraste ≥ 15:1; etiquetas de estado ≥ 5:1
-  degradado: ['#0e1014', '#181b21', '#22262d'],
+  // Modo claro: encabezados, saludo y cifras en blanco con un toque cálido y letras oscuras (etiquetas de estado ≥ 5:1)
+  degradado: ['#ffffff', '#fdf7f3', '#fbefe7'],
+  sobreDegradado: '#0d1015',        // texto sobre el degradado
+  sobreDegradadoSuave: '#596171',
   decoracion: ['#c2410c', '#94a3b8', '#0d1015'],
   sombra: 'rgba(13, 16, 21, 0.08)',
   bien: '#126b33', bienFondo: '#e8f5ec', bienBarra: '#16a34a',
@@ -51,7 +53,9 @@ const oscuro = {
   secundario: '#94a3b8',
   rellenoDegradado: false,
   sobrePrimario: '#0a0b0d',
-  degradado: ['#15171b', '#1d2026', '#262a31'],
+  degradado: ['#15171b', '#1d2026', '#262a31'],  // grafito
+  sobreDegradado: '#ffffff',
+  sobreDegradadoSuave: '#aab1bb',
   decoracion: ['#ff6b1a', '#475569', '#0a0b0d'],
   sombra: 'rgba(0, 0, 0, 0.5)',
   bien: '#34d399', bienFondo: '#0f2a20', bienBarra: '#22c55e',
@@ -63,7 +67,8 @@ const oscuro = {
 // Preferencia del usuario: 'sistema' (sigue al dispositivo), 'claro' u 'oscuro'.
 // Se guarda en el navegador (localStorage) o en el celular (SecureStore).
 // ---------------------------------------------------------------------
-const CLAVE = 'aldia_tema';
+// v2: la preferencia guardada antes se descarta para que todos arranquen en modo claro
+const CLAVE = 'aldia_tema_v2';
 
 async function leerPreferencia() {
   try {

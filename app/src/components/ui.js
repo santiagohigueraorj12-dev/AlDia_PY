@@ -331,10 +331,12 @@ export function Cifra({ valor, texto, icono, tono = 'primario', ancho = '47%' })
   const c = useColores();
   // Tarjeta grafito (como un indicador del tablero); el tono solo pinta el ícono y la barra lateral.
   // Colores vivos sobre grafito: contraste ≥ 4,5 (WCAG AA, RNF-05)
-  const color = { vencida: '#f87171', proxima: '#fbbf24', bien: '#34d399', primario: '#ff7a2e', neutro: '#94a3b8' }[tono];
+  const color = c.esOscuro
+    ? { vencida: '#f87171', proxima: '#fbbf24', bien: '#34d399', primario: '#ff7a2e', neutro: '#94a3b8' }[tono]
+    : { vencida: c.vencidaBarra, proxima: c.proximaBarra, bien: c.bienBarra, primario: c.primario, neutro: c.textoSuave }[tono];
   return (
     <Degradado
-      estilo={{ flexBasis: ancho, flexGrow: 1, alignSelf: 'stretch', borderRadius: 12, boxShadow: `0 4px 14px ${c.sombra}` }}>
+      estilo={{ flexBasis: ancho, flexGrow: 1, alignSelf: 'stretch', borderRadius: 12, borderWidth: 1, borderColor: c.borde, boxShadow: `0 4px 14px ${c.sombra}` }}>
       <View style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 3, backgroundColor: color }} />
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, padding: 13, paddingLeft: 15 }}>
         {icono && (
@@ -343,8 +345,8 @@ export function Cifra({ valor, texto, icono, tono = 'primario', ancho = '47%' })
           </View>
         )}
         <View style={{ flexShrink: 1 }}>
-          <Text style={{ color: '#ffffff', fontSize: 20, fontWeight: '800', letterSpacing: 0.2 }}>{valor}</Text>
-          <Text style={{ color: '#aab1bb', fontSize: 12.5 }}>{texto}</Text>
+          <Text style={{ color: c.sobreDegradado, fontSize: 20, fontWeight: '800', letterSpacing: 0.2 }}>{valor}</Text>
+          <Text style={{ color: c.sobreDegradadoSuave, fontSize: 12.5 }}>{texto}</Text>
         </View>
       </View>
     </Degradado>

@@ -8,7 +8,8 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useColores } from '../tema';
 import { BarraDesgaste, Boton, Etiqueta } from '../components/ui';
 import EncabezadoPublico, { Logo } from '../components/EncabezadoPublico';
-import { EscenaCarretera, IlustracionCarro, IlustracionMoto } from '../components/Ilustraciones';
+import { IlustracionCarro, IlustracionMoto } from '../components/Ilustraciones';
+import Escena3D from '../components/Escena3D';
 import { ESTADO_PARTE, ESTADO_VEHICULO } from '../utils/formato';
 import { Degradado, FondoDecorado } from '../components/Decoracion';
 
@@ -77,7 +78,7 @@ export default function Bienvenida() {
           <View style={[contenedor, { flexDirection: ancha ? 'row' : 'column', gap: 36, alignItems: 'center' }]}>
             <View style={{ flex: ancha ? 1.1 : undefined, gap: 16 }}>
               <View style={{ alignSelf: 'flex-start', backgroundColor: c.superficie, borderRadius: 99, paddingHorizontal: 12, paddingVertical: 4 }}>
-                <Text style={{ color: c.primario, fontWeight: '700', fontSize: 13 }}>Para motos y carros</Text>
+                <Text style={{ color: c.primario, fontWeight: '700', fontSize: 13 }}>Tu taller de bolsillo</Text>
               </View>
               <Text style={{ fontSize: ancha ? 44 : 32, fontWeight: '800', color: c.texto, lineHeight: ancha ? 52 : 38 }}>
                 Que no se te pase ningún cambio de tu vehículo.
@@ -94,9 +95,9 @@ export default function Bienvenida() {
               <Text style={{ color: c.textoSuave, fontSize: 13 }}>Funciona en el celular y en el computador.</Text>
             </View>
 
-            {/* Ilustración: una moto y un carro en la carretera, con avisos de AlDía */}
-            <View style={{ flex: ancha ? 1 : undefined, width: ancha ? undefined : '100%', maxWidth: 560 }}>
-              <EscenaCarretera />
+            {/* Escena 3D: AlDía en un celular, con avisos flotando alrededor */}
+            <View style={{ flex: ancha ? 1 : undefined, width: ancha ? undefined : '100%', maxWidth: 560, alignItems: 'center' }}>
+              <Escena3D tamano={ancha ? 240 : 170} />
             </View>
           </View>
         </View>
