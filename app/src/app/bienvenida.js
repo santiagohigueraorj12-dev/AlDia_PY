@@ -124,7 +124,7 @@ export default function Bienvenida() {
               {VEHICULOS.map((v) => (
                 <View key={v.tipo} style={[tarjeta, ancha ? { flexBasis: '48%', flexGrow: 1 } : {}, { backgroundColor: c.fondo, alignItems: 'center', gap: 14 }]}>
                   <View style={{ width: '80%', maxWidth: 320 }}>
-                    {v.tipo === 'Moto' ? <IlustracionMoto /> : <IlustracionCarro color="#d9534f" />}
+                    {v.tipo === 'Moto' ? <IlustracionMoto /> : <IlustracionCarro color="#64748b" />}
                   </View>
                   <Text style={{ fontSize: 20, fontWeight: '800', color: c.texto }}>{v.titulo}</Text>
                   <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
@@ -209,7 +209,7 @@ export default function Bienvenida() {
           <View style={{ padding: ancha ? 40 : 24, alignItems: 'center', gap: 14 }}>
             <View style={{ flexDirection: 'row', gap: 16, alignItems: 'flex-end' }}>
               <IlustracionMoto ancho={ancha ? 150 : 110} color="#ffffff" />
-              <IlustracionCarro ancho={ancha ? 170 : 120} color="#e0a100" />
+              <IlustracionCarro ancho={ancha ? 170 : 120} color="#ff6b1a" />
             </View>
             <Text style={{ fontSize: ancha ? 28 : 22, fontWeight: '800', color: '#ffffff', textAlign: 'center' }}>
               Empieza hoy a llevar el mantenimiento al día

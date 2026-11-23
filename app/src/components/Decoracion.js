@@ -1,19 +1,31 @@
-// Decoración visual de AlDía: degradados y fondo con dibujos.
-// Todo se dibuja con SVG e íconos, así que no pesa ni necesita internet.
+// Decoración visual de AlDía (estilo "Carbono": sobrio, como el tablero de un carro deportivo).
+// Todo se dibuja con SVG, así que no pesa ni necesita internet.
 //
-//   <Degradado>...</Degradado>   caja con fondo degradado (azul -> celeste)
-//   <FondoDecorado />            fondo de pantalla con figuras suaves y dibujos
-//                                de herramientas, vehículos y carretera
+//   <Degradado>...</Degradado>   caja con fondo grafito (o los colores que se pasen)
+//   <FondoDecorado />            fondo de pantalla casi liso: un brillo naranja muy
+//                                tenue y franjas diagonales finas de competencia
 import { useId } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import Svg, { Circle, Defs, LinearGradient, Path, RadialGradient, Rect, Stop } from 'react-native-svg';
+import Svg, { Defs, G, LinearGradient, Line, RadialGradient, Rect, Stop } from 'react-native-svg';
 import { useColores } from '../tema';
+
+/** Franjas diagonales finas (como las de un carro de carreras), para la esquina de una caja. */
+function Franjas({ color, opacidad }) {
+  return (
+    <Svg style={StyleSheet.absoluteFill} width="100%" height="100%" preserveAspectRatio="xMaxYMin slice" viewBox="0 0 400 200" pointerEvents="none">
+      <G opacity={opacidad}>
+        {[0, 1, 2].map((i) => (
+          <Line key={i} x1={300 + i * 22} y1={-10} x2={220 + i * 22} y2={210} stroke={color} strokeWidth={i === 0 ? 6 : 2} />
+        ))}
+      </G>
+    </Svg>
+  );
+}
 
 /**
  * Caja con fondo degradado. Los hijos se dibujan encima.
- * colores: lista de colores (por defecto, el degradado del tema)
- * circulos: agrega círculos transparentes de adorno
+ * colores: lista de colores (por defecto, el grafito del tema)
+ * circulos: agrega las franjas diagonales de adorno (el nombre se conserva por compatibilidad)
  */
 export function Degradado({ colores, circulos = false, estilo, children }) {
   const c = useColores();
@@ -29,80 +41,53 @@ export function Degradado({ colores, circulos = false, estilo, children }) {
         </Defs>
         <Rect x="0" y="0" width="100" height="100" fill={`url(#${id})`} />
       </Svg>
-      {circulos && (
-        <View style={StyleSheet.absoluteFill} pointerEvents="none">
-          <View style={[estilos.circulo, { width: 180, height: 180, right: -50, top: -70 }]} />
-          <View style={[estilos.circulo, { width: 110, height: 110, right: 70, bottom: -60 }]} />
-          <View style={[estilos.circulo, { width: 60, height: 60, left: -20, bottom: -15 }]} />
-        </View>
-      )}
+      {circulos && <Franjas color={c.acento} opacidad={0.55} />}
       {children}
     </View>
   );
 }
 
-// Dibujos del fondo: [ícono, izquierda %, arriba %, tamaño, giro en grados]
-const DIBUJOS = [
-  ['construct', 6, 4, 34, -20], ['car-sport', 74, 8, 46, 0], ['speedometer', 44, 15, 30, 10],
-  ['bicycle', 12, 27, 40, 0], ['settings', 82, 30, 38, 15], ['calendar', 52, 38, 28, -10],
-  ['water', 4, 49, 30, 0], ['shield-checkmark', 70, 52, 36, -8], ['car', 30, 60, 44, 0],
-  ['build', 86, 66, 30, 25], ['flash', 10, 74, 30, 12], ['document-text', 56, 77, 32, -12],
-  ['notifications', 80, 88, 30, 10], ['color-fill', 22, 90, 30, -15], ['speedometer', 46, 95, 34, 0],
-];
-
-/** Fondo de pantalla: manchas de color suaves, una carretera curva y dibujos tenues. */
+/** Fondo de pantalla: casi liso, con un brillo naranja muy tenue arriba y franjas finas. */
 export function FondoDecorado() {
   const c = useColores();
-  const [azul, celeste, naranja] = c.decoracion;
-  const oscuro = c.esOscuro;
-  const opacidadDibujos = oscuro ? 0.16 : 0.11;
   const id = `f${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
-  // En modo oscuro las manchas son brillos: intensos en el centro y transparentes en el borde
-  const mancha = (color) => (oscuro ? `url(#${id}${color.slice(1)})` : color);
-  const brillos = oscuro ? [azul, celeste, naranja, '#6d28d9'] : [];
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="none">
-      <Svg style={StyleSheet.absoluteFill} width="100%" height="100%" preserveAspectRatio="xMidYMid slice" viewBox="0 0 400 800">
+      <Svg style={StyleSheet.absoluteFill} width="100%" height="100%" preserveAspectRatio="xMidYMin slice" viewBox="0 0 400 800">
         <Defs>
-          {brillos.map((color) => (
-            <RadialGradient key={color} id={`${id}${color.slice(1)}`} cx="50%" cy="50%" r="50%">
-              <Stop offset="0" stopColor={color} stopOpacity={0.85} />
-              <Stop offset="1" stopColor={color} stopOpacity={0} />
-            </RadialGradient>
-          ))}
+          <RadialGradient id={id} cx="85%" cy="0%" r="70%">
+            <Stop offset="0" stopColor={c.acento} stopOpacity={c.esOscuro ? 0.16 : 0.07} />
+            <Stop offset="1" stopColor={c.acento} stopOpacity={0} />
+          </RadialGradient>
         </Defs>
-        <Circle cx="380" cy="40" r={oscuro ? 210 : 150} fill={mancha(azul)} opacity={oscuro ? 1 : 0.55} />
-        <Circle cx="-30" cy="330" r={oscuro ? 180 : 130} fill={mancha(celeste)} opacity={oscuro ? 1 : 0.6} />
-        <Circle cx="420" cy="560" r={oscuro ? 170 : 120} fill={mancha(naranja)} opacity={oscuro ? 0.9 : 0.45} />
-        <Circle cx="40" cy="790" r={oscuro ? 200 : 140} fill={oscuro ? mancha('#6d28d9') : azul} opacity={oscuro ? 1 : 0.45} />
-        {/* carretera curva con su línea punteada */}
-        <Path d="M-20 640 C 90 560, 170 700, 280 620 S 420 560, 440 600" stroke={azul} strokeWidth="34" fill="none" opacity={oscuro ? 0.7 : 0.55} strokeLinecap="round" />
-        <Path d="M-20 640 C 90 560, 170 700, 280 620 S 420 560, 440 600" stroke={oscuro ? '#fbbf24' : '#ffffff'} strokeWidth="3" fill="none" opacity={0.7} strokeDasharray="14 12" />
+        <Rect x="0" y="0" width="400" height="800" fill={`url(#${id})`} />
+        <G opacity={c.esOscuro ? 0.07 : 0.05}>
+          {[0, 1, 2].map((i) => (
+            <Line key={i} x1={360 + i * 16} y1={-20} x2={160 + i * 16} y2={420} stroke={c.texto} strokeWidth={i === 0 ? 10 : 3} />
+          ))}
+        </G>
       </Svg>
-      {DIBUJOS.map(([icono, x, y, tam, giro], i) => (
-        <Ionicons key={i} name={icono} size={tam} color={c.primario}
-          style={{ position: 'absolute', left: `${x}%`, top: `${y}%`, opacity: opacidadDibujos, transform: [{ rotate: `${giro}deg` }] }} />
-      ))}
     </View>
   );
 }
 
 /**
- * Relleno de un elemento azul (botón, pestaña activa, botón del asistente...).
- * En modo oscuro dibuja el degradado del tema detrás del contenido; en modo claro no
- * dibuja nada y el elemento conserva su color sólido. El elemento debe tener
- * overflow: 'hidden' y fondo c.rellenoDegradado ? 'transparent' : c.primario.
+ * Relleno de un elemento de color (botón, pestaña activa, botón del asistente...).
+ * Con la paleta "Carbono" los elementos son de color sólido, así que no dibuja nada;
+ * se conserva para el caso de que una paleta use degradados (c.rellenoDegradado).
  */
 export function RellenoPrimario() {
   const c = useColores();
   return c.rellenoDegradado ? <Degradado estilo={StyleSheet.absoluteFill} /> : null;
 }
 
-/** Fondo del encabezado de la app (barra de arriba) en degradado. */
+/** Fondo del encabezado de la app: grafito con una línea naranja abajo. */
 export function FondoEncabezado() {
-  return <Degradado estilo={StyleSheet.absoluteFill} />;
+  const c = useColores();
+  return (
+    <View style={StyleSheet.absoluteFill}>
+      <Degradado estilo={StyleSheet.absoluteFill} />
+      <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 2, backgroundColor: c.acento }} />
+    </View>
+  );
 }
-
-const estilos = StyleSheet.create({
-  circulo: { position: 'absolute', borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.12)' },
-});

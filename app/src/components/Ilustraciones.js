@@ -5,7 +5,7 @@
 //   <IlustracionMoto color="#1f4e79" />      <IlustracionCarro />
 //   <EscenaCarretera />                       <IlustracionTaller />
 import { View } from 'react-native';
-import Svg, { Circle, Ellipse, G, Line, Path, Rect } from 'react-native-svg';
+import Svg, { Circle, Defs, Ellipse, G, Line, LinearGradient, Path, Rect, Stop, Text as SvgText } from 'react-native-svg';
 import { useColores } from '../tema';
 
 const LLANTA = '#1b2533';
@@ -115,44 +115,56 @@ export function IlustracionVehiculo({ tipo, ancho, color }) {
   return tipo === 'Moto' ? <IlustracionMoto ancho={ancho} color={color} /> : <IlustracionCarro ancho={ancho} color={color} />;
 }
 
-/** Escena de carretera con una moto, un carro y avisos de "todo al día". Para portadas. */
+/**
+ * Portada: tablero de instrumentos (estilo "Carbono"), como el de un carro deportivo.
+ * Un indicador semicircular con el porcentaje de salud y tres filas de estado
+ * (al día, próximo y vencido). Se conserva el nombre EscenaCarretera porque la usan
+ * la página de inicio, el inicio de sesión y las pantallas vacías.
+ */
 export function EscenaCarretera({ ancho }) {
-  const c = useColores();
-  const oscuro = c.esOscuro;
-  const cielo = oscuro ? '#16263a' : '#dcebf8';
-  const lomaAtras = oscuro ? '#1f3a55' : '#b9d3ea';
-  const lomaAdelante = oscuro ? '#1d4632' : '#a9d5b5';
+  const filas = [
+    { y: 70, color: '#34d399', parte: 'Aceite de motor', valor: 'Al día' },
+    { y: 140, color: '#fbbf24', parte: 'Pastillas de freno', valor: '85 %' },
+    { y: 210, color: '#f87171', parte: 'SOAT', valor: 'Vence en 7 días' },
+  ];
   return (
-    <Lienzo ancho={ancho} proporcion={600 / 320} viewBox="0 0 600 320" redondeado etiqueta="Ilustración de una moto y un carro en la carretera">
-      <Rect x={0} y={0} width={600} height={320} rx={24} fill={cielo} />
-      <Circle cx={505} cy={70} r={34} fill={LUZ} opacity={oscuro ? 0.75 : 1} />
-      <Ellipse cx={130} cy={62} rx={42} ry={14} fill="#fff" opacity={oscuro ? 0.15 : 0.9} />
-      <Ellipse cx={165} cy={54} rx={30} ry={13} fill="#fff" opacity={oscuro ? 0.15 : 0.9} />
-      <Ellipse cx={380} cy={42} rx={34} ry={11} fill="#fff" opacity={oscuro ? 0.12 : 0.8} />
-      <Path d="M0 200 Q110 120 230 175 Q330 120 450 165 Q530 135 600 160 L600 230 L0 230 Z" fill={lomaAtras} />
-      <Path d="M0 215 Q150 170 300 205 Q450 175 600 200 L600 240 L0 240 Z" fill={lomaAdelante} />
-      {/* carretera */}
-      <Path d="M0 230 L600 230 L600 320 L0 320 Z" fill="#3a4656" />
-      <Line x1={0} y1={276} x2={600} y2={276} stroke="#ffffff" strokeWidth={5} strokeDasharray="34 22" opacity={0.85} />
-      <G transform="translate(40 128) scale(1.05)"><Moto color={c.primario} detalle="#e0a100" /></G>
-      <G transform="translate(300 146) scale(1.08)"><Carro color="#d9534f" vidrio="#cfe3f5" /></G>
-      {/* aviso verde: todo al día */}
-      <G transform="translate(208 70)">
-        <Rect x={0} y={0} width={150} height={46} rx={23} fill={oscuro ? '#17212d' : '#ffffff'} />
-        <Circle cx={23} cy={23} r={14} fill="#1e7b45" />
-        <Path d="M16 23 L21 28 L30 18" stroke="#fff" strokeWidth={3.5} fill="none" strokeLinecap="round" strokeLinejoin="round" />
-        <Rect x={46} y={14} width={86} height={7} rx={3.5} fill={oscuro ? '#5a6577' : '#b8c2cf'} />
-        <Rect x={46} y={27} width={60} height={6} rx={3} fill={oscuro ? '#3a4656' : '#d8dee8'} />
+    <Lienzo ancho={ancho} proporcion={600 / 320} viewBox="0 0 600 320" redondeado etiqueta="Tablero de AlDía con la salud del vehículo y el estado de sus partes">
+      <Defs>
+        <LinearGradient id="tableroFondo" x1="0" y1="0" x2="1" y2="1">
+          <Stop offset="0" stopColor="#111317" />
+          <Stop offset="1" stopColor="#1f2228" />
+        </LinearGradient>
+        <LinearGradient id="tableroArco" x1="0" y1="1" x2="1" y2="0">
+          <Stop offset="0" stopColor="#ff9a5c" />
+          <Stop offset="1" stopColor="#ff5a0a" />
+        </LinearGradient>
+      </Defs>
+      <Rect x={0} y={0} width={600} height={320} rx={18} fill="url(#tableroFondo)" />
+      {/* franjas de competencia */}
+      <G opacity={0.5}>
+        <Line x1={560} y1={-10} x2={500} y2={330} stroke="#ff6b1a" strokeWidth={6} />
+        <Line x1={580} y1={-10} x2={520} y2={330} stroke="#ff6b1a" strokeWidth={2} />
       </G>
-      {/* aviso amarillo: cambio próximo */}
-      <G transform="translate(420 118)">
-        <Rect x={0} y={0} width={128} height={40} rx={20} fill={oscuro ? '#17212d' : '#ffffff'} />
-        <Circle cx={20} cy={20} r={12} fill="#e0a100" />
-        <Rect x={18} y={12} width={4} height={10} rx={2} fill="#fff" />
-        <Circle cx={20} cy={27} r={2.2} fill="#fff" />
-        <Rect x={40} y={12} width={72} height={6} rx={3} fill={oscuro ? '#5a6577' : '#b8c2cf'} />
-        <Rect x={40} y={23} width={50} height={5} rx={2.5} fill={oscuro ? '#3a4656' : '#d8dee8'} />
-      </G>
+      {/* indicador: pista, avance (78 %) y marcas */}
+      <Path d="M 69.1 242.5 A 105 105 0 1 1 250.9 242.5" stroke="#2a2e35" strokeWidth={16} fill="none" strokeLinecap="round" />
+      <Path d="M 69.1 242.5 A 105 105 0 1 1 256.8 149.3" stroke="url(#tableroArco)" strokeWidth={16} fill="none" strokeLinecap="round" />
+      {[210, 150, 90, 30, -30].map((a) => {
+        const r1 = 82;
+        const r2 = 72;
+        const rad = (a * Math.PI) / 180;
+        return <Line key={a} x1={160 + r1 * Math.cos(rad)} y1={190 - r1 * Math.sin(rad)} x2={160 + r2 * Math.cos(rad)} y2={190 - r2 * Math.sin(rad)} stroke="#4b5260" strokeWidth={3} strokeLinecap="round" />;
+      })}
+      <SvgText x={160} y={198} fill="#ffffff" fontSize={46} fontWeight="800" textAnchor="middle" fontFamily="Arial">78%</SvgText>
+      <SvgText x={160} y={226} fill="#9aa1ab" fontSize={14} fontWeight="700" textAnchor="middle" letterSpacing={2} fontFamily="Arial">AL DÍA</SvgText>
+      {/* filas de estado */}
+      {filas.map((f) => (
+        <G key={f.y}>
+          <Rect x={318} y={f.y} width={232} height={50} rx={8} fill="#1a1d22" stroke="#2a2e35" strokeWidth={1} />
+          <Rect x={318} y={f.y} width={4} height={50} rx={2} fill={f.color} />
+          <SvgText x={336} y={f.y + 21} fill="#e5e7eb" fontSize={15} fontWeight="700" fontFamily="Arial">{f.parte}</SvgText>
+          <SvgText x={336} y={f.y + 40} fill={f.color} fontSize={13} fontWeight="700" fontFamily="Arial">{f.valor}</SvgText>
+        </G>
+      ))}
     </Lienzo>
   );
 }

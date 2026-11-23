@@ -3,57 +3,60 @@
 // con el botón de sol / luna de la barra superior (components/BotonTema.js) y la
 // app recuerda su elección.
 // Estados: verde = bien, amarillo = próxima, rojo = vencida (RNF-04).
+// Estilo visual: paleta "Carbono" (grafito + naranja de competencia), ver abajo.
 import { createContext, useContext, useEffect, useState } from 'react';
 import { Platform, useColorScheme } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 
+// Paleta "Carbono": inspirada en los tableros de los carros deportivos.
+// Grafito casi negro, superficies neutras y UN solo acento naranja de competencia
+// (el mismo naranja del sol del logo). Los colores de estado son sobrios y solo
+// aparecen donde informan algo. Contrastes medidos con WCAG 2.1 (RNF-05).
 const claro = {
   esOscuro: false,
-  // Azules vivos: fondo celeste, tarjetas blancas y azul intenso en lo importante
-  fondo: '#dbeafe',
+  fondo: '#f1f2f4',          // gris claro neutro (no celeste)
   superficie: '#ffffff',
-  superficie2: '#e0ecff',
-  borde: '#bcd3f7',
-  texto: '#0f1e46',
-  textoSuave: '#3f5378',
-  primario: '#1d4ed8',
+  superficie2: '#e8eaee',
+  borde: '#dcdfe5',
+  texto: '#0d1015',          // casi negro: 19:1 sobre blanco
+  textoSuave: '#596171',     // 6,2:1 sobre blanco
+  primario: '#c2410c',       // naranja quemado: 5,2:1 con texto blanco
   primarioTexto: '#ffffff',
-  primarioSuave: '#dbeafe',
-  acento: '#ff8a1f',
-  rellenoDegradado: true,    // los elementos azules llevan el degradado (más llamativo)
-  sobrePrimario: '#ffffff',  // color del texto sobre un elemento relleno de azul
-  // Degradado de encabezados, botones y tarjetas destacadas (azul marino -> azul -> azul océano)
-  degradado: ['#1e3a8a', '#2563eb', '#0369a1'],  // blanco encima: contraste ≥ 5,1 (WCAG AA)
-  // Figuras del fondo decorado: azul, celeste y un toque naranja
-  decoracion: ['#93c5fd', '#7dd3fc', '#fdba74'],
-  sombra: 'rgba(37, 99, 235, 0.18)',  // sombra azulada
-  bien: '#1e7b45', bienFondo: '#e3f4ea', bienBarra: '#1e7b45',
-  proxima: '#8a5a00', proximaFondo: '#fff3d6', proximaBarra: '#e0a100',
-  vencida: '#b42318', vencidaFondo: '#fde8e6', vencidaBarra: '#b42318',
+  primarioSuave: '#fdeee6',
+  acento: '#ea580c',
+  secundario: '#334155',     // pizarra: segundo color de las gráficas
+  rellenoDegradado: false,   // botones de color sólido, sin degradado
+  sobrePrimario: '#ffffff',
+  // Grafito: encabezados, saludo y cifras. Blanco encima: contraste ≥ 15:1; etiquetas de estado ≥ 5:1
+  degradado: ['#0e1014', '#181b21', '#22262d'],
+  decoracion: ['#c2410c', '#94a3b8', '#0d1015'],
+  sombra: 'rgba(13, 16, 21, 0.08)',
+  bien: '#126b33', bienFondo: '#e8f5ec', bienBarra: '#16a34a',
+  proxima: '#8f5606', proximaFondo: '#fdf3df', proximaBarra: '#d97706',
+  vencida: '#b91c1c', vencidaFondo: '#fdebeb', vencidaBarra: '#dc2626',
 };
 
 const oscuro = {
   esOscuro: true,
-  // Azul noche con brillos de color (violeta, azul, turquesa y naranja)
-  fondo: '#0a0f1f',
-  superficie: '#131b31',
-  superficie2: '#1b2542',
-  borde: '#2a3a64',
-  texto: '#eef2ff',
-  textoSuave: '#a5b4d4',
-  primario: '#60a5fa',
-  primarioTexto: '#0b1220',
-  primarioSuave: '#1e2f5c',
-  acento: '#fb923c',
-  rellenoDegradado: true,    // los elementos azules llevan el degradado (más llamativo)
-  sobrePrimario: '#ffffff',
-  // Violeta -> azul -> turquesa; blanco encima: contraste ≥ 4,5 (WCAG AA)
-  degradado: ['#4c1d95', '#1d4ed8', '#0e7490'],
-  decoracion: ['#1e40af', '#0e7490', '#9a3412'],
-  sombra: 'rgba(59, 130, 246, 0.22)',  // brillo azul alrededor de las tarjetas
-  bien: '#4ade80', bienFondo: '#0f3a24', bienBarra: '#22c55e',
-  proxima: '#fbbf24', proximaFondo: '#3d2e08', proximaBarra: '#f59e0b',
-  vencida: '#f87171', vencidaFondo: '#45161a', vencidaBarra: '#ef4444',
+  fondo: '#0a0b0d',          // negro carbón
+  superficie: '#131519',
+  superficie2: '#1c1f24',
+  borde: '#2a2e35',
+  texto: '#f2f3f5',
+  textoSuave: '#9aa1ab',     // 7:1 sobre la superficie
+  primario: '#ff6b1a',       // naranja de competencia
+  primarioTexto: '#0a0b0d',  // texto negro sobre naranja: 6,9:1
+  primarioSuave: '#2a1a10',
+  acento: '#ff6b1a',
+  secundario: '#94a3b8',
+  rellenoDegradado: false,
+  sobrePrimario: '#0a0b0d',
+  degradado: ['#15171b', '#1d2026', '#262a31'],
+  decoracion: ['#ff6b1a', '#475569', '#0a0b0d'],
+  sombra: 'rgba(0, 0, 0, 0.5)',
+  bien: '#34d399', bienFondo: '#0f2a20', bienBarra: '#22c55e',
+  proxima: '#fbbf24', proximaFondo: '#2e2309', proximaBarra: '#f59e0b',
+  vencida: '#f87171', vencidaFondo: '#341416', vencidaBarra: '#ef4444',
 };
 
 // ---------------------------------------------------------------------
