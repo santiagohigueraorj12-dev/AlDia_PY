@@ -51,6 +51,7 @@ gasta en mantenimiento y controla el vencimiento de los documentos del vehículo
 | RN-16 | Al registrar un vehículo, cada parte se cuenta desde la matrícula (0 km y fecha de matrícula), como si nunca se hubiera cambiado. El usuario puede indicar el km y la fecha de su último cambio real: el km no puede pasar del actual y la fecha no puede ser futura ni anterior a la matrícula. Solo se puede indicar mientras la parte no tenga cambios registrados en la app. | `domain/desgaste.js` → `validarUltimoCambio()` |
 | RN-17 | El asistente no es una inteligencia artificial: sus preguntas son fijas y cada respuesta se arma solo con los datos registrados del vehículo elegido (desgaste, documentos, costos y kilometraje), uno a la vez. Si falta un dato, lo dice en vez de inventarlo. No usa internet ni servicios externos. | `domain/asistente.js` |
 | RN-18 | Datos del perfil: todos son opcionales. El usuario debe tener al menos 16 años; el tipo y el número de documento van juntos (la cédula y la tarjeta de identidad solo tienen números); la categoría y el vencimiento de la licencia van juntos y la licencia no puede vencer en más de 10 años. La licencia muestra su estado igual que un documento (vigente, por vencer a 30 días o vencida) y aparece en "Lo que debes hacer" cuando está por vencer o vencida. | `domain/perfil.js` |
+| RN-19 | Salud del vehículo de 0 a 100 %: partes (bien 100, próxima 50, vencida 0) pesan 70 % y documentos (vigente 100, por vencer 50, vencido 0) 30 %. No contradice el estado: no apto, máximo 49 %; requiere atención, máximo 79 %. Verde desde 80 %. | `domain/salud.js` |
 
 ## Requisitos funcionales
 **Usuarios**
@@ -85,6 +86,13 @@ gasta en mantenimiento y controla el vencimiento de los documentos del vehículo
 **Proceso automático**
 - RF-20: Cada día (y al iniciar el servidor) recalcular el desgaste, estimar el kilometraje y generar las alertas.
 
+**Correos, privacidad e indicadores (v2.2)**
+- RF-22: Recibir por correo un resumen diario con las alertas nuevas.
+- RF-23: Descargar todos mis datos en un archivo JSON (sin contraseñas ni códigos).
+- RF-24: Consultar la política de tratamiento de datos (Ley 1581) antes de registrarse y desde Mi cuenta.
+- RF-25: Ver la salud de cada vehículo y de todos en conjunto (anillo de 0 a 100 %, RN-19).
+- RF-26: Ver la gráfica de gastos de los últimos 12 meses y en qué se va la plata.
+
 **Asistente**
 - RF-21: Consultar el asistente de preguntas: un botón flotante abre una ventana donde el usuario elige un vehículo y una de 7 preguntas frecuentes (qué le toca cambiar, si puede circular, cuándo vencen sus documentos, qué viene este mes, cuánto ha gastado, cuánto costará el próximo mantenimiento y cuántos km lleva). Solo con sesión iniciada.
 
@@ -104,10 +112,15 @@ gasta en mantenimiento y controla el vencimiento de los documentos del vehículo
 | RNF-11 | Calidad | Pruebas unitarias de las reglas de desgaste, kilometraje, último cambio, estado del vehículo, documentos, perfil y asistente, y de las funciones de la app. |
 | RNF-12 | Instalación | La base de datos se crea y actualiza sola al encender el backend: primero se crean las tablas y luego se aplican las modificaciones del esquema. |
 | RNF-13 | Respaldo | La base de datos y los archivos subidos se respaldan con un comando (`respaldar.bat`), se guardan los últimos 14 respaldos y se restauran con `restaurar.bat`, que antes guarda el estado actual. |
-| RNF-14 | Despliegue | En producción un solo servidor entrega la app web y la API (`desplegar.bat`); el servidor no arranca si la clave JWT es la de ejemplo. |
+| RNF-14 | Despliegue | En producción un solo servidor entrega la app web y la API (`desplegar.bat` en la red local; Render en internet: https://aldia-ru4q.onrender.com); el servidor no arranca si la clave JWT es la de ejemplo. |
+| RNF-15 | Seguridad | Límite de intentos (10 inicios de sesión fallidos cada 15 min por IP y correo) y encabezados de seguridad (helmet). |
+| RNF-16 | Persistencia | Las fotos y los PDF adjuntos se guardan en la base de datos (tabla `archivos`). |
+| RNF-17 | Despliegue en la nube | Render + MySQL 8 en Aiven con SSL; sin usuario demo en producción; administradores desde la variable `ADMINS`. |
+| RNF-18 | Correo | Correos por la API de Gmail (OAuth 2.0) desde aldiatuvehiculo@gmail.com, con versión de texto y HTML. |
+| RNF-19 | Experiencia visual | Animaciones, siluetas de carga, celebración al completar, placa colombiana y logo oficial. |
 
 ## Restricciones conocidas
-- No se envían correos ni notificaciones push: las alertas se ven dentro de la aplicación y el código de recuperación de contraseña se lee en la consola del backend.
+- No hay notificaciones push: las alertas se ven dentro de la aplicación y llegan por correo en un resumen diario.
 - El kilometraje lo registra el usuario; si no lo actualiza, el sistema lo estima (RN-04).
 - La app del celular se usa con Expo Go en la misma red Wi-Fi del servidor; no se publica en las tiendas de aplicaciones.
 

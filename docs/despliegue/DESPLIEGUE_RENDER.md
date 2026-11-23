@@ -9,7 +9,10 @@ Un solo servicio de Render entrega la app web y la API en esa misma dirección.
 |---|---|---|
 | Código | GitHub (`santiagohigueraorj12-dev/AlDia_PY`) | Gratis |
 | App web + API (Node/Express) | Render, "Web Service" | Gratis |
-| Base de datos MySQL | Aiven, "Free MySQL" | Gratis |
+| Base de datos MySQL | Aiven, plan "Developer" | Prueba gratis de 30 días; después tiene costo (Aiven no tiene plan gratis para MySQL) |
+
+> **Importante:** Aiven solo regala PostgreSQL, Kafka, OpenSearch y Valkey; MySQL corre con los créditos de prueba (30 días).
+> Antes de que venza, hay que pagar el plan o mover la base a otro MySQL compatible (por ejemplo, TiDB Cloud Serverless).
 
 **¿Por qué la base no está en Render?** Render gratis solo ofrece PostgreSQL, y AlDía usa
 MariaDB/MySQL. Aiven regala un MySQL 8 que es compatible con AlDía: las migraciones
@@ -25,10 +28,10 @@ MariaDB/MySQL. Aiven regala un MySQL 8 que es compatible con AlDía: las migraci
 
 ---
 
-## Paso 1. Crear la base MySQL gratis en Aiven
+## Paso 1. Crear la base MySQL en Aiven
 
 1. Entra a <https://aiven.io> y crea una cuenta (con Google o GitHub).
-2. **Create service** → **MySQL** → plan **Free** → una región cercana (por ejemplo, la de
+2. **Create service** → **MySQL** → el plan más pequeño (Developer; Aiven ofrece MySQL gratis solo durante la prueba de 30 días) → una región cercana (por ejemplo, la de
    Estados Unidos) → **Create service**.
 3. Espera a que el estado diga **Running** (unos minutos).
 4. En la pestaña **Overview**, sección **Connection information**, anota:
@@ -183,7 +186,7 @@ las migraciones ya ejecutadas se saltan y las semillas no se repiten.
 | **Se duerme** tras 15 min sin visitas | La primera visita tarda ~1 minuto en despertar | Abre la página unos minutos antes de presentar |
 | **Archivos subidos no se guardan** | Las fotos y PDF adjuntos se borran cuando Render reinicia o redespliega (el disco es temporal) | Para la demo súbelos el mismo día; los datos en la base sí se conservan |
 | **Tarea de las 6:00 a. m.** | Si el servicio está dormido no corre a esa hora | Igual corre cada vez que el servicio despierta, así que las alertas se generan |
-| **Respaldos** (`respaldar.bat`) | Funcionan contra tu MariaDB local, no contra Aiven | Aiven hace sus propios respaldos diarios del plan gratis |
+| **Respaldos** (`respaldar.bat`) | Funcionan contra tu MariaDB local, no contra Aiven | Aiven hace respaldos automáticos cifrados de sus servicios (excepto Kafka); revisa la sección Backups de la consola |
 
 ## Problemas comunes
 
@@ -196,4 +199,4 @@ las migraciones ya ejecutadas se saltan y las semillas no se repiten.
 | `npm ci` falla en el Build | `package-lock.json` desactualizado | En tu PC: `npm install` en `app` y en `backend`, y sube los `package-lock.json` |
 | `JavaScript heap out of memory` al compilar | Poca memoria al compilar la web | **Manual Deploy** → **Clear build cache & deploy**. Si persiste, en **Environment** agrega `NODE_OPTIONS=--max-old-space-size=460` |
 | La página abre en blanco | La compilación de `app/dist` falló | Revisa la parte "Compilando la app web" de los Logs del Build |
-| El servicio no responde y en Aiven sale **Powered off** | Aiven apaga los servicios gratis sin uso prolongado | En Aiven pulsa **Power on** y en Render **Manual Deploy** |
+| El servicio no responde y en Aiven sale **Powered off** | El servicio de Aiven se apagó (por ejemplo, terminó la prueba) | En Aiven pulsa **Power on** y en Render **Manual Deploy** |

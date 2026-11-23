@@ -114,7 +114,10 @@ con `AppError.campo('km', 'mensaje')`.
 | GET | `/api/vehiculos/:id/hoja-de-vida` | PDF |
 | POST | `/api/vehiculos/:id/documentos` | Registrar SOAT/RTM/impuesto |
 | GET/DELETE | `/api/documentos/:id` · POST `/api/documentos/:id/renovar` | Historial / eliminar / renovar |
-| GET | `/api/panel` · `/api/panel/calendario?mes=AAAA-MM` | Panel y calendario |
+| GET | `/api/panel` · `/api/panel/calendario?mes=AAAA-MM` | Panel (con la salud de cada vehículo, RN-19) y calendario |
+| GET | `/api/panel/gastos` | Gastos de los últimos 12 meses (RF-26) |
+| GET | `/api/auth/mis-datos` | Descargar mis datos (RF-23) |
+| GET | `/api/archivos/:id` | Foto o PDF guardado en la base de datos (sin sesión; id UUID) |
 | GET/POST | `/api/notificaciones` · `/contador` · `/:id/leer` · `/leer-todas` | Notificaciones |
 | GET | `/api/asistente/preguntas` · `/api/asistente/vehiculos/:id/:pregunta` | Asistente: lista de preguntas y respuesta sobre un vehículo (RF-21) |
 | GET/POST/PUT/DELETE | `/api/admin/...` | Plan base, reglas RTM, usuarios |
