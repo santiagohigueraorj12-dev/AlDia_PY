@@ -1,10 +1,12 @@
 // RN-16: campos para indicar cuándo fue el último cambio de una parte.
-// "No lo sé" -> el desgaste se cuenta desde la matrícula.
-// "Lo sé"    -> se piden el kilometraje y la fecha de ese cambio.
+// "No lo sé"              -> se cuenta desde la matrícula y se pide revisarla.
+// "Nunca se ha cambiado"  -> también desde la matrícula, pero es un dato seguro:
+//                            el desgaste es real y no se pide revisarla.
+// "Sí, lo sé"             -> se piden el kilometraje y la fecha de ese cambio.
 //
-// valor = { sabe: boolean, km: string, fecha: 'AAAA-MM-DD' }
+// valor = { sabe: boolean, nunca: boolean, km: string, fecha: 'AAAA-MM-DD' }
 import { View } from 'react-native';
-import { Boton, Campo, Fila } from './ui';
+import { Campo, Fila, Segmentos } from './ui';
 import CampoFecha from './CampoFecha';
 import { hoyISO } from '../utils/formato';
 
@@ -13,10 +15,16 @@ export default function CamposUltimoCambio({ valor, onCambio, kmActual, fechaMat
 
   return (
     <View style={{ gap: 8 }}>
-      <Fila>
-        <Boton titulo="No lo sé" tipo={valor.sabe ? 'normal' : 'primario'} onPress={() => onCambio({ ...valor, sabe: false })} />
-        <Boton titulo="Sí, lo sé" tipo={valor.sabe ? 'primario' : 'normal'} onPress={() => onCambio({ ...valor, sabe: true })} />
-      </Fila>
+      {/* Tres opciones en una sola fila (selector segmentado) */}
+      <Segmentos
+        opciones={[
+          { id: 'no', titulo: 'No lo sé' },
+          { id: 'nunca', titulo: 'Nunca se cambió' },
+          { id: 'si', titulo: 'Sí, lo sé' },
+        ]}
+        valor={valor.sabe ? 'si' : valor.nunca ? 'nunca' : 'no'}
+        onCambio={(op) => onCambio({ ...valor, sabe: op === 'si', nunca: op === 'nunca' })}
+      />
       {valor.sabe && (
         <Fila estilo={{ flexWrap: 'nowrap', alignItems: 'flex-start' }}>
           <View style={{ flex: 1 }}>

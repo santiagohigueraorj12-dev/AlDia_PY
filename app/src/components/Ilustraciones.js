@@ -8,9 +8,8 @@ import { View } from 'react-native';
 import Svg, { Circle, Defs, Ellipse, G, Line, LinearGradient, Path, Rect, Stop, Text as SvgText } from 'react-native-svg';
 import { useColores } from '../tema';
 
-const LLANTA = '#1b2533';
+const LLANTA = '#15171b';
 const METAL = '#c9d2de';
-const LUZ = '#ffd25a';
 
 /** Contenedor que mantiene la proporción del dibujo y ocupa el ancho disponible. */
 function Lienzo({ ancho, proporcion, viewBox, children, etiqueta, redondeado = false }) {
@@ -22,68 +21,96 @@ function Lienzo({ ancho, proporcion, viewBox, children, etiqueta, redondeado = f
   );
 }
 
-/** Rueda: llanta, rin y centro. */
-function Rueda({ x, y, r }) {
+/** Rueda: llanta con banda, rin de 5 radios y, si se pide, disco de freno. */
+function Rueda({ x, y, r, disco = false }) {
+  const radios = [0, 72, 144, 216, 288].map((a) => (a * Math.PI) / 180);
   return (
     <G>
       <Circle cx={x} cy={y} r={r} fill={LLANTA} />
-      <Circle cx={x} cy={y} r={r * 0.62} fill={METAL} />
-      <Circle cx={x} cy={y} r={r * 0.45} fill="#8d99a8" />
-      <Circle cx={x} cy={y} r={r * 0.16} fill={LLANTA} />
+      <Circle cx={x} cy={y} r={r * 0.84} fill="none" stroke="#2c3138" strokeWidth={r * 0.05} />
+      <Circle cx={x} cy={y} r={r * 0.68} fill="#262a31" />
+      {disco && <Circle cx={x} cy={y} r={r * 0.44} fill="none" stroke="#9aa3ad" strokeWidth={r * 0.1} strokeDasharray="2 1.5" />}
+      {radios.map((a) => (
+        <Line key={a} x1={x} y1={y} x2={x + r * 0.66 * Math.cos(a)} y2={y + r * 0.66 * Math.sin(a)} stroke={METAL} strokeWidth={r * 0.11} strokeLinecap="round" />
+      ))}
+      <Circle cx={x} cy={y} r={r * 0.68} fill="none" stroke={METAL} strokeWidth={r * 0.07} />
+      <Circle cx={x} cy={y} r={r * 0.15} fill="#e5e9ef" />
     </G>
   );
 }
 
-/** Moto vista de lado (se dibuja en un espacio de 240 x 150). */
+/** Moto deportiva vista de lado (se dibuja en un espacio de 240 x 150). */
 function Moto({ color, detalle }) {
   return (
     <G>
-      <Ellipse cx={122} cy={140} rx={96} ry={6} fill="#000" opacity={0.15} />
-      {/* basculante y exosto */}
-      <Line x1={60} y1={110} x2={118} y2={96} stroke="#5a6577" strokeWidth={7} strokeLinecap="round" />
-      <Path d="M112 112 L54 106 Q42 104 38 96" stroke="#9aa7b8" strokeWidth={7} strokeLinecap="round" fill="none" />
-      <Rueda x={60} y={110} r={28} />
-      <Rueda x={185} y={110} r={28} />
-      {/* guardabarros */}
-      <Path d="M36 96 Q60 74 84 94" stroke={color} strokeWidth={6} fill="none" strokeLinecap="round" />
-      <Path d="M164 92 Q185 76 206 92" stroke={color} strokeWidth={6} fill="none" strokeLinecap="round" />
-      {/* motor */}
-      <Rect x={100} y={80} width={44} height={28} rx={6} fill="#5a6577" />
-      <Line x1={108} y1={86} x2={108} y2={102} stroke="#8d99a8" strokeWidth={3} />
-      <Line x1={118} y1={86} x2={118} y2={102} stroke="#8d99a8" strokeWidth={3} />
-      <Line x1={128} y1={86} x2={128} y2={102} stroke="#8d99a8" strokeWidth={3} />
-      {/* barra delantera */}
-      <Line x1={166} y1={58} x2={185} y2={110} stroke="#9aa7b8" strokeWidth={7} strokeLinecap="round" />
-      {/* cola, costado, sillín y tanque */}
-      <Path d="M46 74 L68 68 L68 84 L52 86 Z" fill={color} />
-      <Path d="M68 80 L118 76 L112 94 L80 96 Z" fill={detalle} />
-      <Path d="M62 70 Q90 58 116 62 L118 76 Q88 80 64 82 Z" fill={LLANTA} />
-      <Path d="M110 62 Q132 46 162 54 L168 70 Q140 80 114 78 Z" fill={color} />
-      <Path d="M120 66 Q140 57 160 61" stroke={detalle} strokeWidth={4} fill="none" strokeLinecap="round" />
-      {/* manubrio y farola */}
-      <Path d="M156 50 L170 43 L184 45" stroke={LLANTA} strokeWidth={5} fill="none" strokeLinecap="round" />
-      <Circle cx={174} cy={60} r={9} fill={LUZ} stroke={LLANTA} strokeWidth={3} />
+      <Ellipse cx={122} cy={142} rx={98} ry={5} fill="#000" opacity={0.18} />
+      {/* basculante y cadena */}
+      <Path d="M58 112 L122 98 L124 107 L60 119 Z" fill="#2a2e35" />
+      <Line x1={62} y1={110} x2={118} y2={100} stroke="#6b7280" strokeWidth={1.5} />
+      {/* exhosto */}
+      <Path d="M108 110 Q84 118 60 104" stroke="#9aa3ad" strokeWidth={5} fill="none" strokeLinecap="round" />
+      <Path d="M36 93 L66 101 L62 110 L32 101 Z" fill="#c9d2de" />
+      <Path d="M36 93 L66 101" stroke="#ffffff" strokeOpacity={0.6} strokeWidth={1.5} />
+      <Rueda x={58} y={112} r={30} />
+      <Rueda x={188} y={112} r={30} disco />
+      {/* chasis multitubular */}
+      <Path d="M160 52 L122 100 M160 52 L104 86 M122 70 L122 100" stroke="#2a2e35" strokeWidth={4} fill="none" strokeLinecap="round" />
+      {/* motor con aletas */}
+      <Path d="M100 84 L146 82 L150 106 L104 110 Z" fill="#3b4048" />
+      {[108, 116, 124, 132, 140].map((x) => <Line key={x} x1={x} y1={86} x2={x + 2} y2={106} stroke="#5b616b" strokeWidth={2} />)}
+      <Circle cx={138} cy={102} r={6} fill="#2a2e35" stroke="#6b7280" strokeWidth={1.5} />
+      {/* horquilla invertida */}
+      <Line x1={160} y1={50} x2={188} y2={112} stroke="#c9d2de" strokeWidth={7} strokeLinecap="round" />
+      <Line x1={174} y1={80} x2={188} y2={112} stroke="#d4a017" strokeWidth={7} strokeLinecap="round" />
+      {/* guardabarros delantero */}
+      <Path d="M170 90 Q188 76 206 90" stroke={color} strokeWidth={5} fill="none" strokeLinecap="round" />
+      {/* cola, colín y piloto */}
+      <Path d="M34 56 L70 60 L70 72 L40 67 Z" fill={color} />
+      <Path d="M30 55 L38 56 L38 62 L31 61 Z" fill="#ef4444" />
+      {/* tapa lateral */}
+      <Path d="M64 66 L112 62 L110 80 L90 84 L68 80 Z" fill={color} opacity={0.9} />
+      <Path d="M70 76 L106 72" stroke={detalle} strokeWidth={3} strokeLinecap="round" />
+      {/* sillín */}
+      <Path d="M62 62 Q88 52 116 56 L116 63 Q90 61 64 68 Z" fill={LLANTA} />
+      {/* tanque con brillo */}
+      <Path d="M110 58 Q130 42 158 46 L166 62 Q140 76 112 74 Z" fill={color} />
+      <Path d="M120 54 Q138 46 156 50" stroke="#ffffff" strokeOpacity={0.35} strokeWidth={3} fill="none" strokeLinecap="round" />
+      {/* manubrio, farola y tablero */}
+      <Path d="M148 44 L160 40 L176 41" stroke={LLANTA} strokeWidth={4} fill="none" strokeLinecap="round" />
+      <Path d="M164 50 L178 48 L182 62 L168 66 Z" fill="#2a2e35" />
+      <Circle cx={177} cy={57} r={5} fill="#f3f4f6" />
     </G>
   );
 }
 
-/** Carro visto de lado (se dibuja en un espacio de 260 x 140). */
+/** Carro (sedán moderno) visto de lado (se dibuja en un espacio de 260 x 140). */
 function Carro({ color, vidrio }) {
   return (
     <G>
-      <Ellipse cx={133} cy={130} rx={110} ry={6} fill="#000" opacity={0.15} />
-      <Path d="M20 98 Q18 78 40 74 L72 70 L100 44 Q106 38 116 38 L176 38 Q188 38 196 46 L220 70 L236 74 Q246 78 246 92 L246 104 L20 104 Z" fill={color} />
-      {/* ventanas */}
-      <Path d="M110 48 L86 70 L144 70 L144 48 Z" fill={vidrio} />
-      <Path d="M152 48 L152 70 L208 70 L190 51 Q186 48 180 48 Z" fill={vidrio} />
-      {/* puertas y manijas */}
-      <Line x1={148} y1={74} x2={148} y2={100} stroke="#000" strokeOpacity={0.25} strokeWidth={2} />
-      <Rect x={124} y={80} width={14} height={4} rx={2} fill="#000" opacity={0.3} />
-      <Rect x={164} y={80} width={14} height={4} rx={2} fill="#000" opacity={0.3} />
-      {/* luces y bómper */}
-      <Rect x={232} y={80} width={13} height={8} rx={3} fill={LUZ} />
-      <Rect x={20} y={80} width={9} height={9} rx={2} fill="#ff6b5b" />
-      <Rect x={16} y={100} width={234} height={8} rx={4} fill={LLANTA} opacity={0.85} />
+      <Ellipse cx={133} cy={130} rx={112} ry={5} fill="#000" opacity={0.18} />
+      {/* arcos de las ruedas */}
+      <Circle cx={70} cy={106} r={26} fill="#0f1115" />
+      <Circle cx={200} cy={106} r={26} fill="#0f1115" />
+      {/* carrocería */}
+      <Path d="M18 100 Q16 84 30 80 L68 74 Q92 52 118 44 Q130 40 150 40 L178 40 Q196 40 210 52 L228 70 Q246 74 248 88 L248 102 Q248 106 244 106 L226 106 A26 26 0 0 0 174 106 L96 106 A26 26 0 0 0 44 106 L22 106 Q18 106 18 100 Z" fill={color} />
+      {/* línea de hombro (brillo) y estribo oscuro */}
+      <Path d="M34 82 L232 74" stroke="#ffffff" strokeOpacity={0.22} strokeWidth={2} />
+      <Path d="M96 98 L174 98 L174 104 L96 104 Z" fill="#000" opacity={0.2} />
+      {/* vidrios polarizados con reflejo */}
+      <Path d="M90 70 Q106 54 122 48 L150 47 L150 70 Z" fill={vidrio} />
+      <Path d="M156 47 L178 47 Q192 47 202 56 L214 70 L156 70 Z" fill={vidrio} />
+      <Path d="M112 66 L134 50" stroke="#ffffff" strokeOpacity={0.18} strokeWidth={4} />
+      <Path d="M170 66 L186 50" stroke="#ffffff" strokeOpacity={0.12} strokeWidth={3} />
+      {/* espejo, puertas y manijas */}
+      <Path d="M86 70 L96 66 L98 73 L88 74 Z" fill={color} stroke="#000" strokeOpacity={0.25} strokeWidth={1} />
+      <Line x1={152} y1={72} x2={150} y2={98} stroke="#000" strokeOpacity={0.25} strokeWidth={1.5} />
+      <Line x1={98} y1={74} x2={100} y2={98} stroke="#000" strokeOpacity={0.15} strokeWidth={1.5} />
+      <Rect x={126} y={79} width={14} height={3} rx={1.5} fill="#000" opacity={0.35} />
+      <Rect x={176} y={77} width={14} height={3} rx={1.5} fill="#000" opacity={0.35} />
+      {/* farola LED y stop */}
+      <Path d="M230 78 L247 82 L247 87 L228 84 Z" fill="#f3f4f6" />
+      <Path d="M232 88 L246 90" stroke="#ff9a3c" strokeWidth={2} strokeLinecap="round" />
+      <Path d="M19 82 L34 80 L34 86 L19 89 Z" fill="#ef4444" />
       <Rueda x={70} y={106} r={22} />
       <Rueda x={200} y={106} r={22} />
     </G>
@@ -105,7 +132,7 @@ export function IlustracionCarro({ ancho, color }) {
   const c = useColores();
   return (
     <Lienzo ancho={ancho} proporcion={260 / 140} viewBox="0 0 260 140" etiqueta="Ilustración de un carro">
-      <Carro color={color || c.primario} vidrio="#cfe3f5" />
+      <Carro color={color || c.primario} vidrio="#1b1f26" />
     </Lienzo>
   );
 }

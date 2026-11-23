@@ -7,7 +7,7 @@ import { router } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useDatos } from '../../api/useDatos';
 import { useSesion } from '../../context/SesionContext';
-import { Aviso, BarraDesgaste, Boton, Cargando, Cifra, ElementoLista, Etiqueta, Fila, Icono, Pantalla, Separador, Tarjeta, Texto, TituloSeccion, Vacio } from '../../components/ui';
+import { Aviso, BarraDesgaste, Boton, Cargando, Cifra, Columnas, ElementoLista, Etiqueta, Fila, Icono, Pantalla, Separador, Tarjeta, Texto, TituloSeccion, Vacio } from '../../components/ui';
 import { useColores } from '../../tema';
 import { armarTareas } from '../../utils/tareas';
 import { EscenaCarretera, IlustracionVehiculo } from '../../components/Ilustraciones';
@@ -56,65 +56,86 @@ export default function Inicio() {
     : docs.porVencer > 0
       ? { texto: `${docs.porVencer} por vencer`, clase: 'proxima' }
       : { texto: 'Al día', clase: 'bien' };
-  const anchoCifra = width >= 700 ? '22%' : '47%';
+  const dosColumnas = width >= 1000;
+  // En dos columnas las cifras van de a dos por fila (la columna es más angosta)
+  const anchoCifra = width >= 700 && !dosColumnas ? '22%' : '47%';
 
-  return (
-    <Pantalla onRefrescar={refrescar} refrescando={refrescando}>
-      <Resumen nombre={nombre} pendientes={tareas.length} salud={panel.salud} varios={panel.vehiculos.length > 1} />
-
-      {usuario.perfil.porcentaje < 100 && <CompletarPerfil perfil={usuario.perfil} />}
-
-      {/* 1. Lo que debe hacer el usuario, con el botón para hacerlo */}
-      {tareas.length > 0 && (
-        <Tarjeta estilo={{ gap: 4 }}>
-          <TituloSeccion titulo="Lo que debes hacer" icono="checkbox-outline"
-            accion={<Texto variante="pequeno">{tareas.length} pendiente{tareas.length === 1 ? '' : 's'}</Texto>} />
-          <Texto variante="pequeno">Ordenado de lo más urgente a lo menos urgente.</Texto>
-          {visibles.map((t, i) => (
-            <View key={t.clave}>
-              {i > 0 && <Separador />}
-              <ElementoLista icono={t.icono} tono={t.tono} titulo={t.titulo} detalle={t.detalle}>
-                <View style={{ alignSelf: 'flex-start', marginTop: 6 }}>
-                  <Boton titulo={t.boton} icono={t.iconoBoton} pequeno tipo={t.tono === 'vencida' ? 'primario' : 'normal'} onPress={() => router.push(t.ruta)} />
-                </View>
-              </ElementoLista>
+  // 1. Lo que debe hacer el usuario, con el botón para hacerlo
+  const tarjetaTareas = tareas.length > 0 && (
+    <Tarjeta estilo={{ gap: 4 }}>
+      <TituloSeccion titulo="Lo que debes hacer" icono="checkbox-outline"
+        accion={<Texto variante="pequeno">{tareas.length} pendiente{tareas.length === 1 ? '' : 's'}</Texto>} />
+      <Texto variante="pequeno">Ordenado de lo más urgente a lo menos urgente.</Texto>
+      {visibles.map((t, i) => (
+        <View key={t.clave}>
+          {i > 0 && <Separador />}
+          <ElementoLista icono={t.icono} tono={t.tono} titulo={t.titulo} detalle={t.detalle}>
+            <View style={{ alignSelf: 'flex-start', marginTop: 6 }}>
+              <Boton titulo={t.boton} icono={t.iconoBoton} pequeno tipo={t.tono === 'vencida' ? 'primario' : 'normal'} onPress={() => router.push(t.ruta)} />
             </View>
-          ))}
-          {tareas.length > TAREAS_VISIBLES && (
-            <Boton titulo={verTodas ? 'Ver menos' : `Ver las ${tareas.length} tareas`} tipo="enlace"
-              icono={verTodas ? 'chevron-up' : 'chevron-down'} onPress={() => setVerTodas(!verTodas)} estilo={{ marginTop: 6 }} />
-          )}
-        </Tarjeta>
+          </ElementoLista>
+        </View>
+      ))}
+      {tareas.length > TAREAS_VISIBLES && (
+        <Boton titulo={verTodas ? 'Ver menos' : `Ver las ${tareas.length} tareas`} tipo="enlace"
+          icono={verTodas ? 'chevron-up' : 'chevron-down'} onPress={() => setVerTodas(!verTodas)} estilo={{ marginTop: 6 }} />
       )}
+    </Tarjeta>
+  );
 
-      {/* Resumen de documentación con acceso al módulo completo */}
-      <Tarjeta>
-        <TituloSeccion titulo="Documentación" icono="document-text" />
-        <ElementoLista
-          icono="shield-checkmark-outline"
-          tono={estadoDocs.clase}
-          titulo={estadoDocs.texto}
-          detalle={`${docs.faltantes} faltantes · ${docs.vencidos} vencidos · ${docs.porVencer} próximos`}
-          derecha={<Etiqueta estado={estadoDocs} />}
-          onPress={() => router.push('/documentos')}
-        />
-      </Tarjeta>
+  // Resumen de documentación con acceso al módulo completo
+  const tarjetaDocumentos = (
+    <Tarjeta>
+      <TituloSeccion titulo="Documentación" icono="document-text" />
+      <ElementoLista
+        icono="shield-checkmark-outline"
+        tono={estadoDocs.clase}
+        titulo={estadoDocs.texto}
+        detalle={`${docs.faltantes} faltantes · ${docs.vencidos} vencidos · ${docs.porVencer} próximos`}
+        derecha={<Etiqueta estado={estadoDocs} />}
+        onPress={() => router.push('/documentos')}
+      />
+    </Tarjeta>
+  );
 
-      {/* 2. Cifras del mes */}
-      <Fila>
-        <Cifra valor={vencidas} texto="Partes vencidas" icono="alert-circle" tono={vencidas ? 'vencida' : 'bien'} ancho={anchoCifra} />
-        <Cifra valor={proximas} texto="Próximas a cambio" icono="time" tono={proximas ? 'proxima' : 'bien'} ancho={anchoCifra} />
-        <Cifra valor={pesos(panel.gastoMes.total)} texto="Gastado este mes" icono="wallet" ancho={anchoCifra} />
-        <Cifra valor={pesos(panel.estimadoMes)} texto="Gasto estimado del mes" icono="calculator" ancho={anchoCifra} />
-      </Fila>
+  // 2. Cifras del mes
+  const cifras = (
+    <Fila>
+      <Cifra valor={vencidas} texto="Partes vencidas" icono="alert-circle" tono={vencidas ? 'vencida' : 'bien'} ancho={anchoCifra} />
+      <Cifra valor={proximas} texto="Próximas a cambio" icono="time" tono={proximas ? 'proxima' : 'bien'} ancho={anchoCifra} />
+      <Cifra valor={pesos(panel.gastoMes.total)} texto="Gastado este mes" icono="wallet" ancho={anchoCifra} />
+      <Cifra valor={pesos(panel.estimadoMes)} texto="Gasto estimado del mes" icono="calculator" ancho={anchoCifra} />
+    </Fila>
+  );
 
-      {/* RF-26: gastos de los últimos 12 meses */}
-      <GraficaGastos />
-
-      {/* 3. Vehículos */}
+  // 3. Vehículos
+  const vehiculos = (
+    <View style={{ gap: 14 }}>
       <TituloSeccion titulo="Mis vehículos" icono="car-sport"
         accion={<Boton titulo="Agregar" icono="add" tipo="enlace" onPress={() => router.push('/vehiculo/nuevo')} />} />
       {panel.vehiculos.map((v) => <TarjetaVehiculo key={v.id} vehiculo={v} />)}
+    </View>
+  );
+  const perfil = usuario.perfil.porcentaje < 100 && <CompletarPerfil perfil={usuario.perfil} />;
+
+  return (
+    <Pantalla onRefrescar={refrescar} refrescando={refrescando} ancha>
+      <Resumen nombre={nombre} pendientes={tareas.length} salud={panel.salud} varios={panel.vehiculos.length > 1} />
+      {dosColumnas ? (
+        // Computador: tareas y gastos a la izquierda; perfil, documentos, cifras y vehículos a la derecha
+        <Columnas
+          izquierda={<>{tarjetaTareas}<GraficaGastos /></>}
+          derecha={<>{perfil}{tarjetaDocumentos}{cifras}{vehiculos}</>}
+        />
+      ) : (
+        // Celular: una sola columna, de lo más urgente a lo menos
+        <View style={{ gap: 14 }}>
+          {perfil}{tarjetaTareas}{tarjetaDocumentos}{cifras}
+          {/* RF-26: gastos de los últimos 12 meses */}
+          <GraficaGastos />
+          {vehiculos}
+        </View>
+      )}
     </Pantalla>
   );
 }

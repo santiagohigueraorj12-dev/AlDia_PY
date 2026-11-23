@@ -7,7 +7,7 @@ const { transaccion } = require('../../config/db');
 const AppError = require('../../utils/AppError');
 const { hoy, ahora } = require('../../utils/fechas');
 const {
-  calcularDesgaste, ordenarPorUrgencia, sugerenciasServicio, validarUltimoCambio, ultimoCambioDesconocido,
+  calcularDesgaste, ordenarPorUrgencia, sugerenciasServicio, validarUltimoCambio, ultimoCambioDesconocido, ultimoCambioNunca,
 } = require('../../domain/desgaste');
 const { validarNuevoKm, promedioDiario, kmParaCalculo } = require('../../domain/kilometraje');
 const { estadoVehiculo, costoPorKm, fechaPrimeraRtm } = require('../../domain/vehiculo');
@@ -203,7 +203,7 @@ async function quitarParte(usuarioId, parteId) {
 /**
  * RN-16: el usuario indica cuándo fue el último cambio de una o varias partes
  * (al registrar un vehículo con uso, o después para corregir el dato).
- *   partes = [{ parte_id, desconocido: true }]  o  [{ parte_id, km, fecha }]
+ *   partes = [{ parte_id, desconocido: true }], [{ parte_id, nunca: true }]  o  [{ parte_id, km, fecha }]
  * Solo se permite en partes sin cambios registrados en la app: si ya tienen,
  * el historial es el que manda.
  */
@@ -217,6 +217,9 @@ async function fijarUltimosCambios(usuarioId, vehiculoId, partes) {
     if (!parte) throw new AppError('Una de las partes no pertenece a este vehículo');
     if (parte.cambios_registrados > 0) {
       throw new AppError(`"${parte.nombre}" ya tiene cambios registrados en la app; su desgaste se calcula desde el último.`);
+    }
+    if (dato.nunca) {
+      return { parteId: parte.id, ...ultimoCambioNunca(vehiculo.fecha_matricula) };
     }
     if (dato.desconocido) {
       const { km, fecha } = ultimoCambioDesconocido(vehiculo.fecha_matricula);

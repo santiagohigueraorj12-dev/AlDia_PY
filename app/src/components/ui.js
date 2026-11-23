@@ -10,8 +10,10 @@ import { Aparecer, Siluetas, useProgreso } from './Animaciones';
 /**
  * Contenedor con scroll y márgenes para el contenido de una pantalla.
  * Si recibe onRefrescar, se puede deslizar hacia abajo para recargar.
+ * ancha: en el computador usa hasta 1240 px (paneles en dos columnas); sin ella,
+ * 820 px, que es cómodo para leer formularios y listas.
  */
-export function Pantalla({ children, onRefrescar, refrescando = false }) {
+export function Pantalla({ children, onRefrescar, refrescando = false, ancha = false }) {
   const c = useColores();
   return (
     <View style={{ flex: 1, backgroundColor: c.fondo }}>
@@ -19,8 +21,8 @@ export function Pantalla({ children, onRefrescar, refrescando = false }) {
     <FondoDecorado />
     <ScrollView
       style={{ flex: 1 }}
-      // En el computador el contenido no pasa de 820 px de ancho y queda centrado
-      contentContainerStyle={{ padding: 16, paddingBottom: 40, gap: 14, width: '100%', maxWidth: 820, alignSelf: 'center' }}
+      // En el computador el contenido no pasa de 820 px (o 1240 px si es "ancha") y queda centrado
+      contentContainerStyle={{ padding: 16, paddingBottom: 40, gap: 14, width: '100%', maxWidth: ancha ? 1240 : 820, alignSelf: 'center' }}
       keyboardShouldPersistTaps="handled"
       refreshControl={onRefrescar ? <RefreshControl refreshing={refrescando} onRefresh={onRefrescar} tintColor={c.primario} /> : undefined}
     >
@@ -178,7 +180,7 @@ export function Segmentos({ opciones, valor, onCambio }) {
               backgroundColor: activo && !c.rellenoDegradado ? c.primario : 'transparent', overflow: 'hidden' }}>
             {activo && <RellenoPrimario />}
             {conIconos && o.icono && <Ionicons name={o.icono} size={17} color={activo ? (c.rellenoDegradado ? c.sobrePrimario : c.primarioTexto) : c.textoSuave} />}
-            <Text style={{ color: activo ? (c.rellenoDegradado ? c.sobrePrimario : c.primarioTexto) : c.textoSuave, fontWeight: '700', fontSize: 14 }}>{o.titulo}</Text>
+            <Text style={{ color: activo ? (c.rellenoDegradado ? c.sobrePrimario : c.primarioTexto) : c.textoSuave, fontWeight: '700', fontSize: 14, textAlign: 'center' }}>{o.titulo}</Text>
           </Pressable>
         );
       })}
@@ -401,3 +403,21 @@ export function Separador() {
 const estilos = StyleSheet.create({
   fila: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, alignItems: 'center' },
 });
+
+/**
+ * Dos columnas en el computador (desde 1000 px) y una sola en el celular.
+ *   <Columnas izquierda={<>...</>} derecha={<>...</>} />
+ * proporcion: cuánto más ancha es la izquierda que la derecha.
+ */
+export function Columnas({ izquierda, derecha, proporcion = 1.35 }) {
+  const { width } = useWindowDimensions();
+  if (width < 1000) {
+    return <View style={{ gap: 14 }}>{izquierda}{derecha}</View>;
+  }
+  return (
+    <View style={{ flexDirection: 'row', gap: 18, alignItems: 'flex-start' }}>
+      <View style={{ flex: proporcion, gap: 14, minWidth: 0 }}>{izquierda}</View>
+      <View style={{ flex: 1, gap: 14, minWidth: 0 }}>{derecha}</View>
+    </View>
+  );
+}

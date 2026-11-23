@@ -1,5 +1,5 @@
 // RF-04: lista de vehículos del usuario, con accesos directos a lo que más se usa.
-import { Image, Pressable, View } from 'react-native';
+import { Image, Pressable, View, useWindowDimensions } from 'react-native';
 import { router } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useDatos } from '../../api/useDatos';
@@ -13,6 +13,8 @@ import AnilloSalud from '../../components/AnilloSalud';
 
 export default function Vehiculos() {
   const c = useColores();
+  // En el computador las tarjetas van de a dos por fila
+  const enGrilla = useWindowDimensions().width >= 1000;
   const { datos: vehiculos, error, refrescar, refrescando } = useDatos('/vehiculos');
 
   if (error) return <Pantalla><Aviso>{error}</Aviso></Pantalla>;
@@ -29,13 +31,14 @@ export default function Vehiculos() {
   }
 
   return (
-    <Pantalla onRefrescar={refrescar} refrescando={refrescando}>
+    <Pantalla onRefrescar={refrescar} refrescando={refrescando} ancha>
       <Boton titulo="Registrar otro vehículo" icono="add-circle-outline" tipo="primario" onPress={() => router.push('/vehiculo/nuevo')} />
 
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 14 }}>
       {vehiculos.map((v) => {
         const estado = ESTADO_VEHICULO[v.estado];
         return (
-          <Tarjeta key={v.id} estilo={{ gap: 12, borderLeftWidth: 6, borderLeftColor: c[`${estado.clase}Barra`] }}>
+          <Tarjeta key={v.id} estilo={{ gap: 12, borderLeftWidth: 6, borderLeftColor: c[`${estado.clase}Barra`], flexBasis: enGrilla ? '48%' : '100%', flexGrow: 1 }}>
             <Pressable onPress={() => router.push(`/vehiculo/${v.id}`)} accessibilityRole="button" accessibilityLabel={`Ver ${v.placa}`}
               style={({ pressed }) => ({ flexDirection: 'row', gap: 12, alignItems: 'center', opacity: pressed ? 0.75 : 1 })}>
               {v.foto_url
@@ -66,6 +69,7 @@ export default function Vehiculos() {
           </Tarjeta>
         );
       })}
+      </View>
     </Pantalla>
   );
 }

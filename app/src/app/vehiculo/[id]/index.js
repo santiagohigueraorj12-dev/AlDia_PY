@@ -10,6 +10,7 @@ import { useDatos } from '../../../api/useDatos';
 import {
   Aviso, BarraDesgaste, Boton, Cargando, Cifra, ElementoLista, Etiqueta, Fila,
   Pantalla, Segmentos, Separador, Tarjeta, Texto, TituloSeccion, Vacio,
+  Columnas,
 } from '../../../components/ui';
 import { useColores } from '../../../tema';
 import { IlustracionTaller, IlustracionVehiculo } from '../../../components/Ilustraciones';
@@ -54,12 +55,12 @@ export default function DetalleVehiculo() {
 
   const estado = ESTADO_VEHICULO[vehiculo.estado];
   const sinUltimoCambio = vehiculo.partes.filter((p) => !p.ultimo_cambio_conocido && p.cambios_registrados === 0).length;
-  const anchoCifra = width >= 700 ? '22%' : '47%';
+  const dosColumnas = width >= 1000;
+  // En dos columnas las cifras van de a dos por fila (la columna es más angosta)
+  const anchoCifra = width >= 700 && !dosColumnas ? '22%' : '47%';
 
-  return (
-    <Pantalla onRefrescar={refrescar} refrescando={refrescando}>
-      <Stack.Screen options={{ title: vehiculo.placa }} />
-
+  const resumen = (
+    <>
       {/* Encabezado: qué vehículo es y cómo está, en una frase */}
       <Tarjeta estilo={{ flexDirection: 'row', flexWrap: 'wrap', gap: 14, alignItems: 'center' }}>
         <View style={{ width: 130, height: 86, borderRadius: 14, backgroundColor: c[`${estado.clase}Fondo`], alignItems: 'center', justifyContent: 'center' }}>
@@ -106,6 +107,10 @@ export default function DetalleVehiculo() {
         <Cifra icono="cash-outline" valor={vehiculo.costos.porKm === null ? '—' : pesos(vehiculo.costos.porKm)} texto="Cuesta cada km" ancho={anchoCifra} />
       </Fila>
 
+    </>
+  );
+  const contenido = (
+    <>
       <Segmentos opciones={SECCIONES} valor={seccion} onCambio={setSeccion} />
 
       {seccion === 'partes' && <Partes vehiculo={vehiculo} />}
@@ -127,6 +132,16 @@ export default function DetalleVehiculo() {
         <Separador />
         <ElementoLista icono="trash-outline" tono="vencida" titulo="Eliminar vehículo" detalle="Borra el vehículo y todo su historial" onPress={eliminar} />
       </Tarjeta>
+    </>
+  );
+
+  return (
+    <Pantalla onRefrescar={refrescar} refrescando={refrescando} ancha>
+      <Stack.Screen options={{ title: vehiculo.placa }} />
+      {/* Computador: resumen del vehículo a la izquierda y sus partes, historial y documentos a la derecha */}
+      {dosColumnas
+        ? <Columnas izquierda={resumen} derecha={contenido} proporcion={1} />
+        : <View style={{ gap: 14 }}>{resumen}{contenido}</View>}
     </Pantalla>
   );
 }

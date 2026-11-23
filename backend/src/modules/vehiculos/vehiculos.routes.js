@@ -53,15 +53,16 @@ const esquemas = {
   }),
   parte: z.object(intervalos),
   sugerencias: z.object({ parteIds: z.array(z.number().int()) }),
-  // RN-16: por cada parte, o "no lo sé" (desconocido) o el km y la fecha del último cambio
+  // RN-16: por cada parte, "no lo sé" (desconocido), "nunca se ha cambiado" (nunca) o el km y la fecha del último cambio
   ultimosCambios: z.object({
     partes: z.array(z.object({
       parte_id: z.number().int(),
       desconocido: z.boolean().optional(),
+      nunca: z.boolean().optional(),
       km: entero('el kilometraje', { opcional: true }),
       fecha: fecha('la fecha', { opcional: true }),
     }).superRefine((p, ctx) => {
-      if (p.desconocido) return;
+      if (p.desconocido || p.nunca) return;
       // El error se marca en el campo que falta, para mostrarlo debajo de él
       if (p.km === undefined) ctx.addIssue({ code: 'custom', path: ['km'], message: 'Escribe el kilometraje' });
       if (p.fecha === undefined) ctx.addIssue({ code: 'custom', path: ['fecha'], message: 'Elige la fecha' });

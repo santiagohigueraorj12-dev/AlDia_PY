@@ -1,7 +1,7 @@
 // Colores de la app en modo claro y oscuro (RNF-05).
-// Por defecto el modo se toma del celular o computador; el usuario puede cambiarlo
-// con el botón de sol / luna de la barra superior (components/BotonTema.js) y la
-// app recuerda su elección.
+// Por defecto la app se ve en modo CLARO (aunque el celular esté en oscuro); el usuario
+// puede cambiarlo con el botón de sol / luna de la barra superior (components/BotonTema.js)
+// y la app recuerda su elección.
 // Estados: verde = bien, amarillo = próxima, rojo = vencida (RNF-04).
 // Estilo visual: paleta "Carbono" (grafito + naranja de competencia), ver abajo.
 import { createContext, useContext, useEffect, useState } from 'react';
@@ -84,7 +84,7 @@ const TemaContext = createContext({ preferencia: 'sistema', setPreferencia: () =
 
 /** Envuelve toda la app (src/app/_layout.js) para que cualquier pantalla sepa el tema elegido. */
 export function TemaProvider({ children }) {
-  const [preferencia, setPreferencia] = useState('sistema');
+  const [preferencia, setPreferencia] = useState('claro');  // claro por defecto
   useEffect(() => {
     leerPreferencia().then((v) => { if (v === 'claro' || v === 'oscuro') setPreferencia(v); });
   }, []);

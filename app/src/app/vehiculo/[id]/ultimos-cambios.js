@@ -27,9 +27,14 @@ export default function UltimosCambios() {
       // Se parte de lo que ya está guardado: si el último cambio es conocido, se muestran sus datos
       const iniciales = {};
       for (const p of v.partes) {
-        iniciales[p.id] = p.ultimo_cambio_conocido
-          ? { sabe: true, km: String(p.ultimo_cambio_km), fecha: p.ultimo_cambio_fecha }
-          : { sabe: false, km: '', fecha: '' };
+        // "Nunca se ha cambiado" se guarda como dato conocido en 0 km y en la fecha de matrícula
+        const nunca = Boolean(p.ultimo_cambio_conocido) && Number(p.ultimo_cambio_km) === 0
+          && String(p.ultimo_cambio_fecha).slice(0, 10) === String(v.fecha_matricula).slice(0, 10);
+        iniciales[p.id] = nunca
+          ? { sabe: false, nunca: true, km: '', fecha: '' }
+          : p.ultimo_cambio_conocido
+            ? { sabe: true, nunca: false, km: String(p.ultimo_cambio_km), fecha: p.ultimo_cambio_fecha }
+            : { sabe: false, nunca: false, km: '', fecha: '' };
       }
       setRespuestas(iniciales);
     }).catch((e) => setError(e.message));
@@ -54,9 +59,9 @@ export default function UltimosCambios() {
         datos: {
           partes: partes.map((p) => {
             const r = respuestas[p.id];
-            return r.sabe
-              ? { parte_id: p.id, km: r.km, fecha: r.fecha || undefined }
-              : { parte_id: p.id, desconocido: true };
+            if (r.sabe) return { parte_id: p.id, km: r.km, fecha: r.fecha || undefined };
+            if (r.nunca) return { parte_id: p.id, nunca: true };
+            return { parte_id: p.id, desconocido: true };
           }),
         },
       });
@@ -74,8 +79,9 @@ export default function UltimosCambios() {
         <Texto variante="subtitulo">¿Cuándo cambiaste {parteId ? 'esta parte' : 'cada parte'}?</Texto>
         <Texto variante="suave">
           Si sabes en qué kilometraje y fecha se cambió por última vez, indícalo para que el desgaste sea real.
-          Si no lo sabes, se cuenta desde la matrícula ({fecha(vehiculo.fecha_matricula)}): en un vehículo
-          usado saldrá para revisar, que es lo más seguro.
+          Si es la original de fábrica, elige "Nunca se ha cambiado": se cuenta desde la matrícula
+          ({fecha(vehiculo.fecha_matricula)}). Si no lo sabes, también se cuenta desde la matrícula, pero
+          saldrá para revisar, que es lo más seguro.
         </Texto>
       </Tarjeta>
 

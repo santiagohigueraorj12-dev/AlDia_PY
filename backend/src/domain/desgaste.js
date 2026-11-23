@@ -121,11 +121,26 @@ function ultimoCambioDesconocido(fechaMatricula) {
   return { km: 0, fecha: fechaMatricula };
 }
 
+/**
+ * RN-16: la parte NUNCA se ha cambiado (sigue siendo la original de fábrica).
+ * Se cuenta desde la matrícula igual que "no lo sé", pero es un dato CONOCIDO:
+ * el desgaste es real y no se pide revisarla.
+ */
+function ultimoCambioNunca(fechaMatricula) {
+  return { km: 0, fecha: fechaMatricula, conocido: true };
+}
+
+/** ¿Lo guardado corresponde a "nunca se ha cambiado"? (conocido, en 0 km y en la fecha de matrícula) */
+function esNuncaCambiada(parte, fechaMatricula) {
+  return Boolean(parte.ultimo_cambio_conocido) && Number(parte.ultimo_cambio_km) === 0 && String(parte.ultimo_cambio_fecha).slice(0, 10) === String(fechaMatricula).slice(0, 10);
+}
+
 function redondear(n) {
   return Math.round(n * 10) / 10;
 }
 
 module.exports = {
+  ultimoCambioNunca, esNuncaCambiada,
   UMBRAL_PROXIMA, UMBRAL_VENCIDA,
   estadoPorDesgaste, calcularDesgaste, ordenarPorUrgencia, sugerenciasServicio,
   validarUltimoCambio, ultimoCambioDesconocido,

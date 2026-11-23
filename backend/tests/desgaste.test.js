@@ -5,7 +5,7 @@ const { test, describe } = require('node:test');
 const assert = require('node:assert/strict');
 const {
   calcularDesgaste, estadoPorDesgaste, ordenarPorUrgencia, sugerenciasServicio,
-  validarUltimoCambio, ultimoCambioDesconocido,
+  validarUltimoCambio, ultimoCambioDesconocido, ultimoCambioNunca, esNuncaCambiada,
 } = require('../src/domain/desgaste');
 
 const aceiteMoto = {
@@ -126,5 +126,18 @@ describe('RN-16: último cambio de un vehículo con uso', () => {
     const { km, fecha } = ultimoCambioDesconocido('2026-10-01');
     const aceite = { intervalo_km: 3000, intervalo_meses: 3, ultimo_cambio_km: km, ultimo_cambio_fecha: fecha };
     assert.equal(calcularDesgaste(aceite, 50, { hoy: '2026-10-06' }).estado, 'bien');
+  });
+});
+
+describe('RN-16: la parte nunca se ha cambiado', () => {
+  test('CP-DES-24 se cuenta desde la matrícula como dato conocido', () => {
+    assert.deepEqual(ultimoCambioNunca('2024-03-20'), { km: 0, fecha: '2024-03-20', conocido: true });
+  });
+
+  test('CP-DES-25 se reconoce lo guardado como "nunca" solo si es conocido, en 0 km y en la matrícula', () => {
+    const base = { ultimo_cambio_km: 0, ultimo_cambio_fecha: '2024-03-20' };
+    assert.equal(esNuncaCambiada({ ...base, ultimo_cambio_conocido: 1 }, '2024-03-20'), true);
+    assert.equal(esNuncaCambiada({ ...base, ultimo_cambio_conocido: 0 }, '2024-03-20'), false);  // "no lo sé"
+    assert.equal(esNuncaCambiada({ ...base, ultimo_cambio_km: 5000, ultimo_cambio_conocido: 1 }, '2024-03-20'), false);
   });
 });
