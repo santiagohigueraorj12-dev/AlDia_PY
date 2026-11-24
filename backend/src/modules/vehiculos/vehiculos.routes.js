@@ -68,6 +68,45 @@ const esquemas = {
       if (p.fecha === undefined) ctx.addIssue({ code: 'custom', path: ['fecha'], message: 'Elige la fecha' });
     })).min(1),
   }),
+  // RN-20: mes de la próxima revisión ('AAAA-MM'); el rango se valida en domain/desgaste.js
+  revision: z.object({
+    mes: z.string({ required_error: 'Elige el mes de la próxima revisión' }).min(1, 'Elige el mes de la próxima revisión'),
+    nota: textoOpcional('la nota', { max: 255 }),
+  }),
+  // RF-28: novedad (daño, golpe u otra). Llega como FormData porque puede traer una foto.
+  novedad: z.object({
+    tipo: z.enum(['dano', 'accidente', 'otro'], { errorMap: () => ({ message: 'Elige qué pasó' }) }),
+    parte_id: z.preprocess((v) => (v === '' || v === null || v === undefined ? undefined : aEntero(v)), z.number().int().positive().optional()),
+    titulo: textoOpcional('qué se dañó', { max: 120 }),
+    descripcion: textoOpcional('la descripción', { max: 1000 }),
+    fecha: fecha('la fecha', { noFutura: true }),
+    km: entero('el kilometraje'),
+    arreglada: z.preprocess((v) => v === true || v === 'true', z.boolean()).default(false),
+    arreglo_fecha: fecha('la fecha del arreglo', { opcional: true, noFutura: true }),
+    arreglo_km: entero('el kilometraje del arreglo', { opcional: true }),
+    lugar: textoOpcional('el lugar', { max: 120 }),
+    costo: entero('el costo', { opcional: true }),
+    marca_referencia: textoOpcional('la marca', { max: 120 }),
+  }),
+  // Editar un daño (FormData: puede traer una foto nueva)
+  edicionNovedad: z.object({
+    tipo: z.enum(['dano', 'accidente', 'otro'], { errorMap: () => ({ message: 'Elige qué pasó' }) }),
+    titulo: textoOpcional('qué se dañó', { max: 120 }),
+    descripcion: textoOpcional('la descripción', { max: 1000 }),
+    fecha: fecha('la fecha', { noFutura: true }),
+    km: entero('el kilometraje'),
+    arreglo_fecha: fecha('la fecha del arreglo', { opcional: true, noFutura: true }),
+    arreglo_km: entero('el kilometraje del arreglo', { opcional: true }),
+    lugar: textoOpcional('el lugar', { max: 120 }),
+    costo: entero('el costo', { opcional: true }),
+  }),
+  arreglo: z.object({
+    fecha: fecha('la fecha del arreglo', { noFutura: true }),
+    km: entero('el kilometraje'),
+    lugar: textoOpcional('el lugar', { max: 120 }),
+    costo: entero('el costo', { opcional: true }).transform((v) => v ?? 0),
+    marca_referencia: textoOpcional('la marca', { max: 120 }),
+  }),
   servicio: z.object({
     fecha: fecha('la fecha del servicio', { noFutura: true }),
     km: entero('el kilometraje'),
@@ -105,10 +144,29 @@ vehiculos.get('/:id/servicios', c.historial);
 // Documentos del vehículo (RF-12)
 vehiculos.post('/:id/documentos', ...registrarEnVehiculo);
 
+// Novedades: daños, fallas o golpes (RF-28)
+vehiculos.get('/:id/novedades', c.listarNovedades);
+vehiculos.post('/:id/novedades', subirArchivo.single('foto'), validar(esquemas.novedad), c.crearNovedad);
+vehiculos.get('/:id/revisiones', c.revisiones);
+
 const partes = Router();
 
 partes.put('/:id', validar(esquemas.parte), c.actualizarParte);
 partes.delete('/:id', c.quitarParte);
 partes.get('/:id/historial', c.historialParte);
+partes.post('/:id/revision', validar(esquemas.revision), c.revisarParte);  // RF-27: "Revisé y está bien"
 
-module.exports = { vehiculos, partes };
+// Daños (novedades): CRUD completo
+//   Crear:      POST /api/vehiculos/:id/novedades
+//   Consultar:  GET /api/novedades (todos) · GET /api/novedades/:id · GET /api/vehiculos/:id/novedades
+//   Editar:     PUT /api/novedades/:id  ·  marcar arreglado: POST /api/novedades/:id/arreglar
+//   Eliminar:   DELETE /api/novedades/:id
+const novedades = Router();
+
+novedades.get('/', c.listarDanos);
+novedades.get('/:id', c.verNovedad);
+novedades.put('/:id', subirArchivo.single('foto'), validar(esquemas.edicionNovedad), c.editarNovedad);
+novedades.post('/:id/arreglar', validar(esquemas.arreglo), c.arreglarNovedad);
+novedades.delete('/:id', c.eliminarNovedad);
+
+module.exports = { vehiculos, partes, novedades };

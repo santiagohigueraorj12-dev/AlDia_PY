@@ -9,7 +9,9 @@ Archivos en [`app/assets/logo/`](app/assets/logo/) (ícono SVG y PNG, versiones 
 
 Aplicación para controlar el **mantenimiento de motos y carros**, que funciona en el **celular y en el computador**. Calcula el desgaste de cada parte
 (aceite, frenos, llantas…) según los kilómetros y el tiempo, avisa cuándo toca cada cambio, lleva el costo
-del mantenimiento y controla el vencimiento del SOAT, la revisión técnico-mecánica y el impuesto.
+del mantenimiento y controla el vencimiento del SOAT, la revisión técnico-mecánica y el impuesto. Si una parte se revisa
+y está bien (por ejemplo, la batería), se marca así y se elige el mes de la próxima revisión; y los daños o golpes que pasan
+sin aviso se registran como novedades hasta arreglarlos.
 
 **En línea:** <https://aldia-ru4q.onrender.com> · **Creadores:** Simon Higuera y Santiago Higuera · **Contacto:** aldiatuvehiculo@gmail.com
 
@@ -92,7 +94,7 @@ La carpeta `database/` separa la creación del esquema y sus modificaciones:
 La tabla **`migraciones`** anota cuáles ya se ejecutaron. El backend procesa los archivos en orden alfabético:
 primero crea las tablas y después las actualiza. Los scripts agrupados reconocen tablas y cambios existentes para
 no borrar ni duplicar datos. Para futuros cambios, **no se editan migraciones ya aplicadas**: se agrega una nueva
-con el número siguiente (`003_...sql`) y se ejecuta con `npm run bd:migrar` (o al encender el backend). En HeidiSQL
+con el número siguiente (`005_...sql`) y se ejecuta con `npm run bd:migrar` (o al encender el backend). En HeidiSQL
 se ve el resultado: la base `aldia` con sus tablas.
 
 ### Usuarios de prueba
@@ -107,11 +109,11 @@ para circular" (revisión técnico-mecánica vencida, SOAT por vencer y kilometr
 ### Pruebas unitarias
 ```bash
 cd backend
-npm test                    # 129 pruebas: reglas de negocio, perfil, fechas, errores, validaciones, asistente y documentación
+npm test                    # 159 pruebas: reglas de negocio, revisiones y novedades, salud, perfil, fechas, errores, validaciones, asistente, correos y documentación
 npm run test:cobertura      # con porcentaje de cobertura
 
 cd ../app
-npm test                    # 26 pruebas: formatos, lista "Lo que debes hacer" y documentación por vehículo
+npm test                    # 28 pruebas: formatos, lista "Lo que debes hacer" y documentación por vehículo
 ```
 Cada prueba tiene un identificador fijo (por ejemplo `CP-DES-02`). La documentación de pruebas sigue la norma
 **ISO/IEC/IEEE 29119-3** y está en `docs/pruebas/`:

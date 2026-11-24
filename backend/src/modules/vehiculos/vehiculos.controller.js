@@ -27,9 +27,21 @@ module.exports = {
   registrarServicio: async (req, res) => res.status(201).json(await servicio.registrarServicio(usuario(req), id(req), req.body)),
   historial: async (req, res) => res.json(await servicio.historial(usuario(req), id(req))),
 
+  revisarParte: async (req, res) => res.json(await servicio.revisarParte(usuario(req), id(req), req.body)),
+  revisiones: async (req, res) => res.json(await servicio.revisionesDeVehiculo(usuario(req), id(req))),
+  listarNovedades: async (req, res) => res.json(await servicio.listarNovedades(usuario(req), id(req))),
+  crearNovedad: async (req, res) => res.status(201).json(await servicio.crearNovedad(usuario(req), id(req), req.body, urlDeArchivo(req.file))),
+  arreglarNovedad: async (req, res) => res.json(await servicio.arreglarNovedad(usuario(req), id(req), req.body)),
+  eliminarNovedad: async (req, res) => res.json(await servicio.eliminarNovedad(usuario(req), id(req))),
+  listarDanos: async (req, res) => res.json(await servicio.listarNovedadesDelUsuario(usuario(req))),
+  verNovedad: async (req, res) => res.json(await servicio.verNovedad(usuario(req), id(req))),
+  editarNovedad: async (req, res) => res.json(await servicio.editarNovedad(usuario(req), id(req), req.body, urlDeArchivo(req.file))),
+
   hojaDeVida: async (req, res) => {
     const vehiculo = await servicio.detalle(usuario(req), id(req));
     const servicios = await servicio.historial(usuario(req), id(req));
-    generarHojaDeVida(res, vehiculo, servicios);
+    const revisiones = await servicio.revisionesDeVehiculo(usuario(req), id(req));
+    const novedades = await servicio.listarNovedades(usuario(req), id(req));
+    generarHojaDeVida(res, vehiculo, servicios, { revisiones, novedades });
   },
 };

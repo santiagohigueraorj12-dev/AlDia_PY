@@ -15,7 +15,22 @@ async function alertasDePartes(v, fechaHoy) {
     // El "ciclo" es el período desde el último cambio de la parte. Al registrar
     // un cambio empieza un ciclo nuevo y las alertas se pueden volver a enviar.
     const ciclo = `parte:${parte.id}:${parte.ultimo_cambio_fecha}:${parte.ultimo_cambio_km}`;
-    const { estado, porcentaje } = parte.desgaste;
+    const { estado, porcentaje, revision } = parte.desgaste;
+
+    // RN-20: parte revisada en buen estado. Solo se avisa cuando llega el mes elegido,
+    // y se pide revisarla (no se afirma que esté gastada).
+    if (revision) {
+      if (estado === 'vencida') {
+        await notificaciones.crear(v.usuario_id, {
+          tipo: 'parte',
+          titulo: `Toca revisar: ${parte.nombre} (${v.placa})`,
+          mensaje: `Elegiste revisarla en ${formatoColombia(revision.revisarEn).slice(3)}. Revísala: si sigue bien, marca "Revisé y está bien"; si no, regístrala como cambiada.`,
+          enlace: `/vehiculo/${v.id}/parte?parteId=${parte.id}`,
+          clave: `parte:${parte.id}:revision:${revision.fecha}:${revision.revisarEn}`,
+        });
+      }
+      continue;
+    }
 
     if (estado === 'proxima') {
       await notificaciones.crear(v.usuario_id, {

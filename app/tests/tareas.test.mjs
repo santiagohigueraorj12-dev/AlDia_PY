@@ -74,4 +74,19 @@ describe('Lista "Lo que debes hacer"', () => {
   test('CP-TAR-08 sin licencia registrada no hay tarea de licencia', () => {
     assert.ok(!armarTareas(panel(), { estadoLicencia: null }).some((t) => t.clave === 'licencia'));
   });
+
+  test('CP-TAR-09 una novedad pendiente pide arreglarla y abre "Marcar como arreglado"', () => {
+    const p = panel({ novedadesPendientes: [{ id: 7, tipo: 'dano', titulo: 'Batería', fecha: enDias(-2), vehiculoId: 1, placa: 'ABC12D' }] });
+    const t = armarTareas(p).find((x) => x.clave === 'novedad-7');
+    assert.equal(t.titulo, 'Arreglar: batería · ABC12D');
+    assert.equal(t.ruta, '/vehiculo/1/novedad?novedadId=7');
+  });
+
+  test('CP-TAR-10 una parte revisada pide revisarla (no cambiarla) y abre la parte', () => {
+    const p = panel({ partesUrgentes: [{ id: 12, nombre: 'Batería', vehiculoId: 1, placa: 'ABC12D', conocido: true,
+      desgaste: { estado: 'vencida', diasRestantes: -3, revision: { fecha: enDias(-180), revisarEn: enDias(-3) } } }] });
+    const t = armarTareas(p).find((x) => x.clave === 'parte-12');
+    assert.equal(t.titulo, 'Revisar batería · ABC12D');
+    assert.equal(t.ruta, '/vehiculo/1/parte?parteId=12');
+  });
 });

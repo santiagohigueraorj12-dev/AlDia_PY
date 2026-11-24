@@ -17,12 +17,13 @@ import { useSesion } from '../context/SesionContext';
 import { useColores } from '../tema';
 import { RellenoPrimario } from './Decoracion';
 
-const RUTAS_CON_PESTANAS = ['/', '/vehiculos', '/documentos', '/calendario', '/notificaciones', '/cuenta', '/admin'];
+const RUTAS_CON_PESTANAS = ['/', '/vehiculos', '/danos', '/documentos', '/calendario', '/notificaciones', '/cuenta', '/admin'];
 
 export default function AsistenteFlotante() {
   const c = useColores();
   const ruta = usePathname();
   const insets = useSafeAreaInsets();
+  const pestanasAbajo = useWindowDimensions().width < 900;  // en el computador las pestañas van arriba
   const [abierto, setAbierto] = useState(false);
 
   // ¿Dónde se muestra el botón?
@@ -31,7 +32,7 @@ export default function AsistenteFlotante() {
   if (!enDetalle && !conPestanas) return null;
 
   // Sobre las pestañas de abajo, o en la esquina si no hay pestañas
-  const abajo = (conPestanas ? 72 : 20) + insets.bottom;
+  const abajo = (conPestanas && pestanasAbajo ? 72 : 20) + insets.bottom;
 
   return (
     <>

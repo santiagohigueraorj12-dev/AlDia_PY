@@ -4,7 +4,7 @@
 // correo con sus notificaciones nuevas: así se entera aunque no abra la app.
 // - Solo se envían alertas de los últimos 3 días (no correos con avisos viejos).
 // - Cada notificación se marca correo_enviado = TRUE para no repetirla.
-// - Sin Brevo configurado no se hace nada y quedan pendientes.
+// - Sin Gmail configurado no se hace nada y quedan pendientes.
 // =====================================================================
 const { query } = require('../../config/db');
 const config = require('../../config/env');

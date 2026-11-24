@@ -2,10 +2,10 @@
 // secciones de partes, historial de servicios y documentos.
 // Las acciones (registrar cambio, km, parte, documento) abren otras pantallas.
 import { useState } from 'react';
-import { Pressable, Text, View, useWindowDimensions } from 'react-native';
+import { Image, Pressable, Text, View, useWindowDimensions } from 'react-native';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { api, descargarYCompartir } from '../../../api/cliente';
+import { api, descargarYCompartir, urlArchivo } from '../../../api/cliente';
 import { useDatos } from '../../../api/useDatos';
 import {
   Aviso, BarraDesgaste, Boton, Cargando, Cifra, ElementoLista, Etiqueta, Fila,
@@ -20,12 +20,13 @@ import Placa from '../../../components/Placa';
 import { avisar, confirmar } from '../../../utils/dialogos';
 import {
   ESTADO_DOCUMENTO, ESTADO_PARTE, ESTADO_VEHICULO, EXPLICACION_VEHICULO, NOMBRE_DOCUMENTO,
-  fecha, km, pesos, porcentaje, queHacerParte,
+  TIPO_NOVEDAD, fecha, km, pesos, porcentaje, queHacerParte,
 } from '../../../utils/formato';
 
 const SECCIONES = [
   { id: 'partes', titulo: 'Partes', icono: 'construct-outline' },
   { id: 'servicios', titulo: 'Historial', icono: 'time-outline' },
+  { id: 'novedades', titulo: 'Daños', icono: 'warning-outline' },
   { id: 'documentos', titulo: 'Documentos', icono: 'document-text-outline' },
 ];
 
@@ -82,8 +83,17 @@ export default function DetalleVehiculo() {
       <Fila estilo={{ gap: 10 }}>
         <Accion icono="construct" titulo="Registrar cambio" texto="Cambiaste una parte" principal onPress={() => router.push(`/vehiculo/${id}/servicio`)} />
         <Accion icono="speedometer" titulo="Actualizar km" texto="Lo que marca el tablero" onPress={() => router.push(`/vehiculo/${id}/kilometraje`)} />
+        <Accion icono="warning" titulo="Registrar daño" texto="Algo se dañó o falló" onPress={() => router.push(`/vehiculo/${id}/novedad`)} />
         <Accion icono="download" titulo="Hoja de vida" texto="Descargar en PDF" onPress={hojaDeVida} />
       </Fila>
+
+      {/* RN-21: daños o golpes sin arreglar */}
+      {vehiculo.novedadesPendientes.map((n) => (
+        <Aviso key={n.id} tipo="error"
+          accion={<Boton titulo="Ya se arregló" icono="checkmark" pequeno onPress={() => router.push(`/vehiculo/${id}/novedad?novedadId=${n.id}`)} />}>
+          Pendiente por arreglar: {n.titulo} (desde el {fecha(n.fecha)}).
+        </Aviso>
+      ))}
 
       {vehiculo.kmEstimado && (
         <Aviso tipo="aviso" accion={<Boton titulo="Actualizar km" icono="speedometer" pequeno onPress={() => router.push(`/vehiculo/${id}/kilometraje`)} />}>
@@ -114,6 +124,7 @@ export default function DetalleVehiculo() {
 
       {seccion === 'partes' && <Partes vehiculo={vehiculo} />}
       {seccion === 'servicios' && <Servicios vehiculoId={id} />}
+      {seccion === 'novedades' && <Novedades vehiculoId={id} />}
       {seccion === 'documentos' && <Documentos vehiculo={vehiculo} />}
 
       {/* Opciones menos usadas, al final para no confundir */}
@@ -155,7 +166,7 @@ function Accion({ icono, titulo, texto, onPress, principal = false }) {
   return (
     <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={titulo}
       style={({ pressed }) => ({
-        flexBasis: '30%', flexGrow: 1, minWidth: 140, backgroundColor: fondo, borderColor: degradado ? 'transparent' : principal ? c.primario : c.borde, borderWidth: 1, overflow: 'hidden',
+        flexBasis: '22%', flexGrow: 1, minWidth: 140, alignSelf: 'stretch', backgroundColor: fondo, borderColor: degradado ? 'transparent' : principal ? c.primario : c.borde, borderWidth: 1, overflow: 'hidden',
         borderRadius: 12, padding: 12, gap: 6, opacity: pressed ? 0.75 : 1,
       })}>
       {degradado && <RellenoPrimario />}
@@ -241,6 +252,50 @@ function Servicios({ vehiculoId }) {
       ))}
     </Tarjeta>
   ));
+}
+
+/** RF-28: daños del vehículo (daños, fallas y golpes), pendientes primero. En el código: novedades. */
+function Novedades({ vehiculoId }) {
+  const { datos: novedades, cargar } = useDatos(`/vehiculos/${vehiculoId}/novedades`);
+  if (!novedades) return <Cargando />;
+
+  async function eliminar(n) {
+    if (!(await confirmar('Eliminar daño', `¿Eliminar "${n.titulo}" del historial?`, 'Eliminar'))) return;
+    await api(`/novedades/${n.id}`, { metodo: 'DELETE' });
+    cargar();
+  }
+
+  return (
+    <View style={{ gap: 12 }}>
+      <Boton titulo="Registrar un daño" icono="add-circle-outline" tipo="primario" onPress={() => router.push(`/vehiculo/${vehiculoId}/novedad`)} />
+      {novedades.length === 0 && (
+        <Vacio icono="shield-checkmark-outline" titulo="Sin daños"
+          texto="Si algo se daña, falla o tienes un golpe, regístralo aquí para no olvidar arreglarlo y que quede en la hoja de vida." />
+      )}
+      {novedades.map((n) => {
+        const pendiente = n.estado === 'pendiente';
+        return (
+          <Tarjeta key={n.id} estilo={{ gap: 6 }}>
+            <Fila estilo={{ justifyContent: 'space-between' }}>
+              <Texto variante="negrita" estilo={{ flexShrink: 1 }}>{n.titulo}</Texto>
+              <Etiqueta estado={pendiente ? { texto: 'Pendiente', clase: 'vencida' } : { texto: 'Arreglado', clase: 'bien' }} />
+            </Fila>
+            <Texto variante="pequeno">{TIPO_NOVEDAD[n.tipo]} · {fecha(n.fecha)} · {km(n.km)}</Texto>
+            {n.descripcion && <Texto>{n.descripcion}</Texto>}
+            {n.foto_url && <Image source={{ uri: urlArchivo(n.foto_url) }} style={{ width: '100%', height: 180, borderRadius: 8 }} resizeMode="cover" accessibilityLabel={`Foto de ${n.titulo}`} />}
+            {!pendiente && (
+              <Texto variante="suave">Arreglado el {fecha(n.arreglada_en)}{n.lugar ? ` en ${n.lugar}` : ''} · {pesos(n.costo)}</Texto>
+            )}
+            <Fila estilo={{ gap: 8 }}>
+              {pendiente && <Boton titulo="Ya se arregló" icono="checkmark" pequeno tipo="primario" onPress={() => router.push(`/vehiculo/${vehiculoId}/novedad?novedadId=${n.id}`)} />}
+              <Boton titulo="Editar" icono="create-outline" pequeno onPress={() => router.push(`/vehiculo/${vehiculoId}/novedad?editarId=${n.id}`)} />
+              <Boton titulo="Eliminar" icono="trash-outline" pequeno tipo="peligro" onPress={() => eliminar(n)} />
+            </Fila>
+          </Tarjeta>
+        );
+      })}
+    </View>
+  );
 }
 
 /** RF-12: SOAT, revisión técnico-mecánica e impuesto. */

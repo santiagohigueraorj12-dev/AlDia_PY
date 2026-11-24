@@ -145,8 +145,10 @@ async function registrarCambio(conn, { servicioId, parteId, costo, marcaReferenc
     [servicioId, parteId, costo, marcaReferencia || null],
   );
   // RN-09: el desgaste vuelve a 0 % porque el "último cambio" pasa a ser este.
+  // RN-20: una revisión anterior deja de contar (la parte es nueva).
   await conn.query(
-    'UPDATE partes_vehiculo SET ultimo_cambio_km = ?, ultimo_cambio_fecha = ?, ultimo_cambio_conocido = TRUE WHERE id = ?',
+    `UPDATE partes_vehiculo SET ultimo_cambio_km = ?, ultimo_cambio_fecha = ?, ultimo_cambio_conocido = TRUE,
+            ultima_revision_fecha = NULL, ultima_revision_km = NULL, revisar_en = NULL WHERE id = ?`,
     [km, fecha, parteId],
   );
 }
@@ -180,13 +182,122 @@ function historialParte(parteId) {
   );
 }
 
-/** RF-10: total gastado en cambios de partes. */
-function costoMantenimiento(vehiculoId) {
-  return queryUno(
+/**
+ * RF-10: total gastado en cambios de partes, más (RN-21) lo pagado por arreglar
+ * novedades que no eran de una parte del plan (las de una parte ya quedan
+ * como un cambio dentro de un servicio).
+ */
+async function costoMantenimiento(vehiculoId) {
+  const partes = await queryUno(
     `SELECT COALESCE(SUM(c.costo), 0) AS total, COUNT(*) AS cambios FROM cambios_parte c
      JOIN servicios s ON s.id = c.servicio_id WHERE s.vehiculo_id = ?`,
     [vehiculoId],
   );
+  const novedades = await queryUno(
+    `SELECT COALESCE(SUM(costo), 0) AS total FROM novedades
+     WHERE vehiculo_id = ? AND estado = 'arreglada' AND servicio_id IS NULL`,
+    [vehiculoId],
+  );
+  return { total: Number(partes.total) + Number(novedades.total), cambios: partes.cambios };
+}
+
+// --- Revisiones de partes (RF-27, RN-20) ---
+
+async function registrarRevision(conn, { parteId, fecha, km, revisarEn, nota }) {
+  await conn.query(
+    'INSERT INTO revisiones_parte (parte_id, fecha, km, revisar_en, nota) VALUES (?, ?, ?, ?, ?)',
+    [parteId, fecha, km, revisarEn, nota || null],
+  );
+  await conn.query(
+    'UPDATE partes_vehiculo SET ultima_revision_fecha = ?, ultima_revision_km = ?, revisar_en = ? WHERE id = ?',
+    [fecha, km, revisarEn, parteId],
+  );
+}
+
+function revisionesDeParte(parteId) {
+  return query('SELECT id, fecha, km, revisar_en, nota FROM revisiones_parte WHERE parte_id = ? ORDER BY fecha DESC, id DESC', [parteId]);
+}
+
+function revisionesDeVehiculo(vehiculoId) {
+  return query(
+    `SELECT r.id, r.fecha, r.km, r.revisar_en, r.nota, p.nombre AS parte
+     FROM revisiones_parte r JOIN partes_vehiculo p ON p.id = r.parte_id
+     WHERE p.vehiculo_id = ? ORDER BY r.fecha DESC, r.id DESC`,
+    [vehiculoId],
+  );
+}
+
+// --- Novedades del vehículo (RF-28, RN-21) ---
+
+function listarNovedades(vehiculoId) {
+  return query(
+    `SELECT n.*, p.nombre AS parte FROM novedades n LEFT JOIN partes_vehiculo p ON p.id = n.parte_id
+     WHERE n.vehiculo_id = ? ORDER BY (n.estado = 'pendiente') DESC, n.fecha DESC, n.id DESC`,
+    [vehiculoId],
+  );
+}
+
+/** Panel de daños: los de todos los vehículos del usuario, pendientes primero. */
+function listarNovedadesDelUsuario(usuarioId) {
+  return query(
+    `SELECT n.*, p.nombre AS parte, v.placa, t.nombre AS tipo_vehiculo
+     FROM novedades n JOIN vehiculos v ON v.id = n.vehiculo_id
+     JOIN tipos_vehiculo t ON t.id = v.tipo_vehiculo_id
+     LEFT JOIN partes_vehiculo p ON p.id = n.parte_id
+     WHERE v.usuario_id = ? ORDER BY (n.estado = 'pendiente') DESC, n.fecha DESC, n.id DESC`,
+    [usuarioId],
+  );
+}
+
+function novedadesPendientes(vehiculoId) {
+  return query(
+    `SELECT id, tipo, titulo, fecha, parte_id FROM novedades
+     WHERE vehiculo_id = ? AND estado = 'pendiente' ORDER BY fecha, id`,
+    [vehiculoId],
+  );
+}
+
+function buscarNovedad(id) {
+  return queryUno('SELECT * FROM novedades WHERE id = ?', [id]);
+}
+
+async function crearNovedad(conn, d) {
+  const r = await conn.query(
+    `INSERT INTO novedades (vehiculo_id, parte_id, tipo, titulo, descripcion, fecha, km, estado, foto_url,
+                            arreglada_en, arreglada_km, lugar, costo)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [d.vehiculoId, d.parteId || null, d.tipo, d.titulo, d.descripcion || null, d.fecha, d.km, d.estado, d.fotoUrl || null,
+      d.arregladaEn || null, d.arregladaKm ?? null, d.lugar || null, d.costo ?? null],
+  );
+  return r.insertId;
+}
+
+function marcarArreglada(conn, id, { fecha, km, lugar, costo, servicioId }) {
+  return conn.query(
+    `UPDATE novedades SET estado = 'arreglada', arreglada_en = ?, arreglada_km = ?, lugar = ?, costo = ?, servicio_id = ?
+     WHERE id = ?`,
+    [fecha, km, lugar || null, costo ?? 0, servicioId || null, id],
+  );
+}
+
+/** Editar los datos de la novedad (y los del arreglo si ya está arreglada). */
+function actualizarNovedad(conn, id, d) {
+  return conn.query(
+    `UPDATE novedades SET tipo = ?, titulo = ?, descripcion = ?, fecha = ?, km = ?, foto_url = COALESCE(?, foto_url),
+            arreglada_en = ?, arreglada_km = ?, lugar = ?, costo = ? WHERE id = ?`,
+    [d.tipo, d.titulo, d.descripcion || null, d.fecha, d.km, d.fotoUrl || null,
+      d.arregladaEn || null, d.arregladaKm ?? null, d.lugar || null, d.costo ?? null, id],
+  );
+}
+
+/** Si el arreglo quedó como servicio (daño de una parte): se actualizan su lugar y el costo del cambio. */
+async function actualizarServicioDeNovedad(conn, { servicioId, parteId, lugar, costo }) {
+  await conn.query('UPDATE servicios SET lugar = ? WHERE id = ?', [lugar || null, servicioId]);
+  await conn.query('UPDATE cambios_parte SET costo = ? WHERE servicio_id = ? AND parte_id = ?', [costo ?? 0, servicioId, parteId]);
+}
+
+function eliminarNovedad(id) {
+  return query('DELETE FROM novedades WHERE id = ?', [id]);
 }
 
 function reglaRtm(tipoId) {
@@ -198,4 +309,7 @@ module.exports = {
   lecturas, registrarLectura,
   copiarPlanBase, partesActivas, fijarUltimoCambio, buscarParte, crearParte, actualizarParte, desactivarParte, ultimoCostoPorParte,
   crearServicio, registrarCambio, historialServicios, historialParte, costoMantenimiento, reglaRtm,
+  registrarRevision, revisionesDeParte, revisionesDeVehiculo,
+  listarNovedades, listarNovedadesDelUsuario, novedadesPendientes, buscarNovedad, crearNovedad, marcarArreglada,
+  actualizarNovedad, actualizarServicioDeNovedad, eliminarNovedad,
 };

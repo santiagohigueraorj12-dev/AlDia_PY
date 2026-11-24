@@ -80,6 +80,10 @@ async function datosCompletos(id) {
          JOIN vehiculos v ON v.id = d.vehiculo_id WHERE v.usuario_id = ? ORDER BY r.id`, [id]),
     notificaciones: await query(
       'SELECT id, tipo, titulo, mensaje, leida, creado_en FROM notificaciones WHERE usuario_id = ? ORDER BY id', [id]),
+    revisionesDePartes: await query(
+      `SELECT r.* FROM revisiones_parte r JOIN partes_vehiculo p ON p.id = r.parte_id
+         JOIN vehiculos v ON v.id = p.vehiculo_id WHERE v.usuario_id = ? ORDER BY r.id`, [id]),
+    novedades: await delVehiculo('novedades'),
     archivosAdjuntos: await query(
       'SELECT id, nombre, tipo, tamano, creado_en FROM archivos WHERE usuario_id = ? ORDER BY creado_en', [id]),
   };

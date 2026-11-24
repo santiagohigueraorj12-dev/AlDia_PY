@@ -41,7 +41,7 @@ const SECCIONES = [
     titulo: '5. Dónde se guardan y cómo se protegen',
     icono: 'lock-closed-outline',
     parrafos: [
-      'La aplicación funciona en servidores en la nube: Render (aplicación), Aiven (base de datos) y Brevo (envío de correos). Estos proveedores pueden estar fuera de Colombia y actúan solo como encargados que guardan o transmiten la información por cuenta de AlDía.',
+      'La aplicación funciona en servidores en la nube: Render (aplicación), Aiven (base de datos) y Google (envío de correos con Gmail). Estos proveedores pueden estar fuera de Colombia y actúan solo como encargados que guardan o transmiten la información por cuenta de AlDía.',
       'La conexión con la base de datos va cifrada, las contraseñas se guardan con cifrado de una sola vía (bcrypt), la sesión usa tokens que vencen y el inicio de sesión se bloquea tras varios intentos fallidos.',
     ],
   },

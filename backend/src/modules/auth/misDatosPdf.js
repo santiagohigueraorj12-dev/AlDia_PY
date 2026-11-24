@@ -70,6 +70,18 @@ function generarMisDatos(res, d) {
     return [placa[x.vehiculo_id] || '—', NOMBRES[x.tipo] || '—', formatoColombia(r.fecha_pago), formatoColombia(r.fecha_vencimiento), pesos(r.valor)];
   }));
 
+  seccion(doc, 'Revisiones de partes');
+  tabla(doc, [{ titulo: 'Fecha', ancho: 80 }, { titulo: 'Placa', ancho: 70 }, { titulo: 'Parte', ancho: 170 }, { titulo: 'Próxima revisión', ancho: 192 }],
+    (d.revisionesDePartes || []).map((r) => {
+      const p = d.partes.find((x) => x.id === r.parte_id) || {};
+      return [formatoColombia(r.fecha), placa[p.vehiculo_id] || '—', p.nombre || '—', formatoColombia(r.revisar_en).slice(3)];
+    }));
+
+  seccion(doc, 'Daños, fallas y golpes');
+  tabla(doc, [{ titulo: 'Fecha', ancho: 70 }, { titulo: 'Placa', ancho: 60 }, { titulo: 'Detalle', ancho: 220 }, { titulo: 'Estado', ancho: 92 }, { titulo: 'Costo', ancho: 70, alinear: 'right' }],
+    (d.novedades || []).map((n) => [formatoColombia(n.fecha), placa[n.vehiculo_id], [n.titulo, n.descripcion].filter(Boolean).join(': '),
+      n.estado === 'arreglada' ? 'Arreglada' : 'Pendiente', n.estado === 'arreglada' ? pesos(n.costo) : '—']));
+
   seccion(doc, 'Lecturas de kilometraje');
   tabla(doc, [{ titulo: 'Fecha', ancho: 170 }, { titulo: 'Placa', ancho: 150 }, { titulo: 'Kilometraje', ancho: 192, alinear: 'right' }],
     d.lecturasKilometraje.map((l) => [fechaHora(l.fecha), placa[l.vehiculo_id], km(l.km)]));

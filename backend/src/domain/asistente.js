@@ -33,8 +33,14 @@ const nombreVehiculo = (v) => `tu ${String(v.tipo).toLowerCase()} ${v.placa}`;
 
 /** Explica cuánto le falta a una parte o si ya está vencida. */
 function situacionParte(p) {
-  if (!p.ultimo_cambio_conocido) return 'no sabemos cuándo se cambió: revísala en tu próximo servicio';
   const d = p.desgaste;
+  // RN-20: la revisó y estaba bien; ahora manda la fecha que eligió
+  if (d.revision) {
+    return d.estado === 'vencida'
+      ? 'llegó el mes que elegiste para revisarla: revísala o cámbiala'
+      : `la revisaste y está bien; toca revisarla de nuevo el ${formatoColombia(d.revision.revisarEn)}`;
+  }
+  if (!p.ultimo_cambio_conocido) return 'no sabemos cuándo se cambió: revísala en tu próximo servicio';
   if (d.estado === 'vencida') return `${porcentaje(d.porcentaje)}: ya está vencida, cámbiala lo antes posible`;
   const falta = d.kmRestantes !== null ? `${km(d.kmRestantes)} o ${dias(d.diasRestantes)}` : dias(d.diasRestantes);
   return `${porcentaje(d.porcentaje)}: faltan ${falta}`;
@@ -74,10 +80,14 @@ function puedoCircular(v, hoy) {
     const parte = v.partes.find((p) => p.codigo === codigo);
     if (parte && parte.desgaste.estado === 'vencida') items.push({ texto: `${parte.nombre}: ${situacionParte(parte)}.`, estado: 'vencida' });
   }
+  // RN-21: daños o golpes registrados que siguen sin arreglar
+  for (const nov of v.novedadesPendientes || []) {
+    items.push({ texto: `${nov.titulo}: pendiente por arreglar desde el ${formatoColombia(nov.fecha)}.`, estado: 'vencida' });
+  }
 
   const textos = {
     no_apto: `No. ${mayuscula(nombreVehiculo(v))} no está apto para circular porque tiene documentos obligatorios vencidos:`,
-    requiere_atencion: `Sí, pero con cuidado: ${nombreVehiculo(v)} requiere atención en partes de seguridad:`,
+    requiere_atencion: `Sí, pero con cuidado: ${nombreVehiculo(v)} requiere atención:`,
     al_dia: `Sí. ${mayuscula(nombreVehiculo(v))} está al día:`,
   };
   return { texto: textos[v.estado], items };

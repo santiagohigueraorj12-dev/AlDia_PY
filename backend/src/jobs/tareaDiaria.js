@@ -27,7 +27,7 @@ async function ejecutar() {
   }
   console.log(`[Tarea diaria] ${vehiculos.length} vehículos revisados en ${Date.now() - inicio} ms`);
 
-  // Resumen por correo de las alertas nuevas (solo si Brevo está configurado)
+  // Resumen por correo de las alertas nuevas (solo si Gmail está configurado)
   const { enviados } = await enviarResumenes();
   if (enviados) console.log(`[Tarea diaria] ${enviados} resúmenes enviados por correo`);
 }

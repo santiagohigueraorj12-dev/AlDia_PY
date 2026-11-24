@@ -47,7 +47,8 @@ export default function Calendario() {
   const porDia = {};
   for (const e of eventos || []) (porDia[e.fecha] ||= []).push(e);
   const cambios = (eventos || []).filter((e) => e.tipo === 'parte').length;
-  const vencimientos = (eventos || []).length - cambios;
+  const revisiones = (eventos || []).filter((e) => e.tipo === 'revision').length;
+  const vencimientos = (eventos || []).length - cambios - revisiones;
 
   return (
     <Pantalla onRefrescar={refrescar} refrescando={refrescando}>
@@ -68,7 +69,7 @@ export default function Calendario() {
 
       {eventos && eventos.length > 0 && (
         <Aviso tipo="info">
-          Este mes: {cambios} cambio{cambios === 1 ? '' : 's'} de partes y {vencimientos} vencimiento{vencimientos === 1 ? '' : 's'} de documentos.
+          Este mes: {cambios} cambio{cambios === 1 ? '' : 's'} de partes{revisiones > 0 ? `, ${revisiones} revisi${revisiones === 1 ? 'ón' : 'ones'}` : ''} y {vencimientos} vencimiento{vencimientos === 1 ? '' : 's'} de documentos.
           Toca uno para ir al vehículo.
         </Aviso>
       )}
@@ -88,18 +89,21 @@ export default function Calendario() {
             </Fila>
             <Tarjeta estilo={{ gap: 2, paddingVertical: 6 }}>
               {lista.map((e, i) => {
-                const estado = e.tipo === 'parte' ? ESTADO_PARTE[e.estado] : ESTADO_DOCUMENTO[e.estado];
+                const esParte = e.tipo === 'parte' || e.tipo === 'revision';
+                const estado = esParte ? ESTADO_PARTE[e.estado] : ESTADO_DOCUMENTO[e.estado];
+                // RN-20: revisión elegida por el usuario (no es un cambio)
+                const revision = e.tipo === 'revision';
                 return (
                   <View key={i}>
                     {i > 0 && <Separador />}
                     <ElementoLista
-                      icono={e.tipo === 'parte' ? 'construct' : 'document-text'}
-                      tono={estado.clase}
-                      titulo={e.tipo === 'parte' ? `Cambio de ${e.titulo.toLowerCase()}` : e.titulo}
-                      detalle={e.placa}
-                      onPress={() => router.push(`/vehiculo/${e.vehiculoId}`)}
+                      icono={revision ? 'search' : esParte ? 'construct' : 'document-text'}
+                      tono={revision && e.estado === 'bien' ? 'azul' : estado.clase}
+                      titulo={revision ? e.titulo : esParte ? `Cambio de ${e.titulo.toLowerCase()}` : e.titulo}
+                      detalle={revision ? `${e.placa} · revisión que elegiste` : e.placa}
+                      onPress={() => router.push(revision ? `/vehiculo/${e.vehiculoId}/parte?parteId=${e.parteId}` : `/vehiculo/${e.vehiculoId}`)}
                     >
-                      <Etiqueta estado={estado} />
+                      <Etiqueta estado={revision && e.estado === 'bien' ? { texto: 'Revisión', clase: 'azul' } : estado} />
                     </ElementoLista>
                   </View>
                 );

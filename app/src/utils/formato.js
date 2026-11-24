@@ -70,12 +70,17 @@ export const ESTADO_DOCUMENTO = {
 /** Frase corta, en palabras simples, que explica el estado de un vehículo. */
 export const EXPLICACION_VEHICULO = {
   al_dia: 'Todo en orden. No tienes nada pendiente.',
-  requiere_atencion: 'Tiene partes o documentos que debes atender pronto.',
+  requiere_atencion: 'Tiene partes vencidas o un daño sin arreglar que debes atender pronto.',
   no_apto: 'Tiene un documento obligatorio vencido: no debería circular hasta renovarlo.',
 };
 
 /** Qué tiene que hacer el usuario con una parte, según su estado. */
 export function queHacerParte(desgaste, conocido = true) {
+  // RN-20: la revisaste y estaba bien; manda el mes que elegiste
+  if (desgaste.revision) {
+    if (desgaste.estado === 'vencida') return 'Llegó el mes que elegiste: revísala otra vez o cámbiala';
+    return `La revisaste y está bien: revisarla en ${mesAnio(desgaste.revision.revisarEn)}`;
+  }
   if (!conocido) return 'No sabemos cuándo se cambió: revísala en tu próximo servicio';
   if (desgaste.estado === 'vencida') return 'Ya le tocaba el cambio: cámbiala lo antes posible';
   const km = desgaste.kmRestantes !== null && desgaste.kmRestantes !== undefined ? `${Number(desgaste.kmRestantes).toLocaleString('es-CO')} km o ` : '';
@@ -83,5 +88,28 @@ export function queHacerParte(desgaste, conocido = true) {
   if (desgaste.estado === 'proxima') return `Cámbiala pronto: faltan ${km}${dias}`;
   return `Está bien: faltan ${km}${dias}`;
 }
+
+
+/** '2027-06-01' o '2027-06' -> 'junio de 2027' */
+export function mesAnio(texto) {
+  const [a, m] = String(texto).split('-');
+  return `${MESES[Number(m) - 1]} de ${a}`;
+}
+
+/** Próximos n meses para elegir la revisión: [{ valor: '2027-01', texto: 'Enero de 2027' }, ...] */
+export function proximosMeses(n = 36) {
+  const hoy = new Date();
+  const lista = [];
+  for (let i = 1; i <= n; i += 1) {
+    const d = new Date(hoy.getFullYear(), hoy.getMonth() + i, 1);
+    const valor = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    const texto = mesAnio(valor);
+    lista.push({ valor, texto: texto.charAt(0).toUpperCase() + texto.slice(1) });
+  }
+  return lista;
+}
+
+/** RF-28: qué pasó en un daño (novedad) */
+export const TIPO_NOVEDAD = { dano: 'Daño o falla', accidente: 'Accidente o golpe', otro: 'Otro' };
 
 export const NOMBRE_DOCUMENTO = { soat: 'SOAT', rtm: 'Revisión técnico-mecánica', impuesto: 'Impuesto vehicular' };

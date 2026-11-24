@@ -51,9 +51,35 @@ export function armarTareas(panel, usuario = null) {
     });
   }
 
+  // Daños sin arreglar (RN-21, en el código: novedades)
+  for (const n of panel.novedadesPendientes || []) {
+    tareas.push({
+      clave: `novedad-${n.id}`,
+      prioridad: 1,
+      icono: n.tipo === 'accidente' ? 'car-sport' : 'warning', tono: 'vencida',
+      titulo: `Arreglar: ${n.titulo.toLowerCase()} · ${n.placa}`,
+      detalle: `Lo registraste el ${fecha(n.fecha)}. Cuando lo arregles, márcalo como arreglado.`,
+      boton: 'Ya se arregló', iconoBoton: 'checkmark',
+      ruta: `/vehiculo/${n.vehiculoId}/novedad?novedadId=${n.id}`,
+    });
+  }
+
   // Partes vencidas o próximas
   for (const p of panel.partesUrgentes) {
     const vencida = p.desgaste.estado === 'vencida';
+    // RN-20: parte que el usuario revisó en buen estado y ya llegó el mes elegido
+    if (p.desgaste.revision) {
+      tareas.push({
+        clave: `parte-${p.id}`,
+        prioridad: vencida ? 3 : 5,
+        icono: 'search', tono: 'proxima',
+        titulo: `Revisar ${p.nombre.toLowerCase()} · ${p.placa}`,
+        detalle: vencida ? 'Llegó el mes que elegiste para revisarla.' : 'Se acerca el mes que elegiste para revisarla.',
+        boton: 'Ver parte', iconoBoton: 'arrow-forward',
+        ruta: `/vehiculo/${p.vehiculoId}/parte?parteId=${p.id}`,
+      });
+      continue;
+    }
     tareas.push({
       clave: `parte-${p.id}`,
       prioridad: vencida ? 1 : 4,

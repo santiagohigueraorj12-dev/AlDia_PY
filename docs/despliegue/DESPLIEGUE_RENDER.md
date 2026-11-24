@@ -152,8 +152,8 @@ Usa un Gmail del proyecto (ej.: `aldia.app@gmail.com`), no el personal.
 | `CORREO_REMITENTE` | El Gmail con el que autorizaste |
 
 **Save changes**. Desde entonces "¿Olvidaste tu contraseña?" envía un enlace (vale 1 hora) y cada día
-quien tenga avisos nuevos recibe **un** correo con el resumen. Si también está `BREVO_API_KEY`,
-se usa Gmail y Brevo queda sin usar.
+quien tenga avisos nuevos recibe **un** correo con el resumen. Los correos salen solo
+por la API de Gmail (Google Cloud).
 
 > El usuario de demostración `demo@aldia.co` no existe en producción: el backend lo
 > elimina al encender. Para conservarlo (por ejemplo, en una prueba) agrega `DEMO=true`.

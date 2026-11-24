@@ -14,7 +14,7 @@ const { requiereSesion, requiereAdmin } = require('./middlewares/auth');
 const { manejadorErrores, rutaNoEncontrada } = require('./middlewares/errores');
 
 const authRoutes = require('./modules/auth/auth.routes');
-const { vehiculos, partes } = require('./modules/vehiculos/vehiculos.routes');
+const { vehiculos, partes, novedades } = require('./modules/vehiculos/vehiculos.routes');
 const { router: documentos } = require('./modules/documentos/documentos.routes');
 const panelRoutes = require('./modules/panel/panel.routes');
 const notificacionesRoutes = require('./modules/notificaciones/notificaciones.routes');
@@ -78,6 +78,7 @@ app.use('/api', requiereSesion);
 app.get('/api/tipos-vehiculo', async (req, res) => res.json(await query('SELECT id, nombre FROM tipos_vehiculo ORDER BY id')));
 app.use('/api/vehiculos', vehiculos);
 app.use('/api/partes', partes);
+app.use('/api/novedades', novedades);
 app.use('/api/documentos', documentos);
 app.use('/api/panel', panelRoutes);
 app.use('/api/notificaciones', notificacionesRoutes);

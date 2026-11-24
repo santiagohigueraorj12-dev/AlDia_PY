@@ -1,21 +1,15 @@
 // =====================================================================
 // Envío de correos de AlDía (recuperar contraseña y resumen diario de avisos).
 //
-// Se usa el primer proveedor que esté configurado:
-//
-//  1. Gmail (API de Gmail, desde Google Cloud) — RECOMENDADO
-//     El correo sale por los servidores de Gmail con la dirección del
-//     remitente autorizada, así que llega a la bandeja de entrada (no a spam).
-//     Gratis, hasta ~500 correos al día.
+// Los correos salen por la API de Gmail (Google Cloud): el correo sale por los
+// servidores de Gmail con la dirección del remitente autorizada, así que llega
+// a la bandeja de entrada (no a spam). Gratis, hasta ~500 correos al día.
 //       GMAIL_CLIENT_ID       ID de cliente OAuth (Google Cloud → Credenciales)
 //       GMAIL_CLIENT_SECRET   secreto de ese cliente
 //       GMAIL_REFRESH_TOKEN   token de actualización (OAuth Playground)
 //       CORREO_REMITENTE      el Gmail que autorizó el token
 //
-//  2. Brevo (respaldo). Con un remitente @gmail.com puede caer en spam.
-//       BREVO_API_KEY, CORREO_REMITENTE
-//
-//  Sin ninguno, el correo solo se escribe en la consola (computador local).
+//  Sin esos datos, el correo solo se escribe en la consola (computador local).
 //
 // Se usa HTTPS y no SMTP porque los servidores gratuitos en la nube suelen
 // bloquear los puertos de correo.
@@ -24,10 +18,9 @@
 const config = require('../config/env');
 
 function proveedor() {
-  const { gmail, apiKey, remitente } = config.correo;
+  const { gmail, remitente } = config.correo;
   if (!remitente) return null;
   if (gmail.clientId && gmail.clientSecret && gmail.refreshToken) return 'gmail';
-  if (apiKey) return 'brevo';
   return null;
 }
 
@@ -98,24 +91,6 @@ async function enviarConGmail(mensaje) {
 }
 
 // ---------------------------------------------------------------------
-// Brevo
-// ---------------------------------------------------------------------
-async function enviarConBrevo({ para, nombre, asunto, html, texto }) {
-  const respuesta = await fetch('https://api.brevo.com/v3/smtp/email', {
-    method: 'POST',
-    headers: { 'api-key': config.correo.apiKey, 'content-type': 'application/json', accept: 'application/json' },
-    body: JSON.stringify({
-      sender: { name: 'AlDía', email: config.correo.remitente },
-      to: [{ email: para, name: nombre || para }],
-      subject: asunto,
-      htmlContent: html,
-      textContent: texto,
-    }),
-  });
-  if (!respuesta.ok) throw new Error(`Brevo respondió ${respuesta.status}: ${(await respuesta.text()).slice(0, 200)}`);
-}
-
-// ---------------------------------------------------------------------
 
 /** Versión en texto plano del HTML (los filtros de spam desconfían de correos solo HTML). */
 function htmlATexto(html) {
@@ -137,13 +112,12 @@ function htmlATexto(html) {
 async function enviarCorreo({ para, nombre, asunto, html }) {
   const via = proveedor();
   if (!via) {
-    console.log(`[Correo sin enviar: no hay Gmail ni Brevo configurado] Para: ${para} · Asunto: ${asunto}`);
+    console.log(`[Correo sin enviar: Gmail no está configurado] Para: ${para} · Asunto: ${asunto}`);
     return false;
   }
   const mensaje = { para, nombre, asunto, html, texto: htmlATexto(html) };
   try {
-    if (via === 'gmail') await enviarConGmail(mensaje);
-    else await enviarConBrevo(mensaje);
+    await enviarConGmail(mensaje);
     return true;
   } catch (error) {
     console.error(`[Correo] No se pudo enviar con ${via}:`, error.message);

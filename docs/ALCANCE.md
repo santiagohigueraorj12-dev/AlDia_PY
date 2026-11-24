@@ -52,6 +52,8 @@ gasta en mantenimiento y controla el vencimiento de los documentos del vehículo
 | RN-17 | El asistente funciona con reglas definidas: sus preguntas son fijas y cada respuesta se arma solo con los datos registrados del vehículo elegido (desgaste, documentos, costos y kilometraje), uno a la vez. Si falta un dato, lo dice en vez de inventarlo. No usa internet ni servicios externos. | `domain/asistente.js` |
 | RN-18 | Datos del perfil: todos son opcionales. El usuario debe tener al menos 16 años; el tipo y el número de documento van juntos (la cédula y la tarjeta de identidad solo tienen números); la categoría y el vencimiento de la licencia van juntos y la licencia no puede vencer en más de 10 años. La licencia muestra su estado igual que un documento (vigente, por vencer a 30 días o vencida) y aparece en "Lo que debes hacer" cuando está por vencer o vencida. | `domain/perfil.js` |
 | RN-19 | Salud del vehículo de 0 a 100 %: partes (bien 100, próxima 50, vencida 0) pesan 70 % y documentos (vigente 100, por vencer 50, vencido 0) 30 %. No contradice el estado: no apto, máximo 49 %; requiere atención, máximo 79 %. Verde desde 80 %. | `domain/salud.js` |
+| RN-20 | Revisión de una parte ("Revisé y está bien"): el usuario elige el mes de la próxima revisión (del mes siguiente hasta 36 meses). Hasta el día 1 de ese mes la parte está bien y su barra avanza con el tiempo (80 %: próxima; el día elegido: vencida, toca revisarla). No es un cambio: sin costo, no borra el último cambio y los km no cuentan. Un cambio posterior anula la revisión. | `domain/desgaste.js` → `validarMesRevision()`, `calcularDesgaste()` |
+| RN-21 | Una novedad (daño, falla o golpe) pendiente pone el vehículo en "requiere atención" (salvo que sea no apto). Fecha y km no futuros ni mayores al actual; el arreglo no puede ser antes de la novedad. Al arreglar una novedad de una parte del plan se registra el cambio de esa parte; si no, el costo queda en la novedad. | `domain/vehiculo.js` → `estadoVehiculo()` |
 
 ## Requisitos funcionales
 **Usuarios**
@@ -92,6 +94,8 @@ gasta en mantenimiento y controla el vencimiento de los documentos del vehículo
 - RF-24: Consultar la política de tratamiento de datos (Ley 1581) antes de registrarse y desde Mi cuenta.
 - RF-25: Ver la salud de cada vehículo y de todos en conjunto (anillo de 0 a 100 %, RN-19).
 - RF-26: Ver la gráfica de gastos de los últimos 12 meses y en qué se va la plata.
+- RF-27: Marcar una parte como revisada en buen estado y elegir el mes de la próxima revisión (aparece en el calendario, RN-20).
+- RF-28: Panel de daños (CRUD): registrar, consultar, editar, marcar como arreglados y eliminar los daños del vehículo (falla o golpe, con foto opcional) (RN-21).
 
 **Asistente**
 - RF-21: Consultar el asistente de preguntas: un botón flotante abre una ventana donde el usuario elige un vehículo y una de 7 preguntas frecuentes (qué le toca cambiar, si puede circular, cuándo vencen sus documentos, qué viene este mes, cuánto ha gastado, cuánto costará el próximo mantenimiento y cuántos km lleva). Solo con sesión iniciada.

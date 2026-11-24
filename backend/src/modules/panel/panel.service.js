@@ -9,7 +9,7 @@ const { hoy, inicioMes, finMes } = require('../../utils/fechas');
 const { NOMBRES, resumenDocumentacion } = require('../../domain/documentos');
 const vehiculosService = require('../vehiculos/vehiculos.service');
 
-/** Lo gastado en el mes: cambios de partes + pagos de documentos. */
+/** Lo gastado en el mes: cambios de partes (y arreglos de novedades, RN-21) + pagos de documentos. */
 async function gastoDelMes(usuarioId, mes) {
   const desde = inicioMes(mes);
   const hasta = finMes(mes);
@@ -19,6 +19,13 @@ async function gastoDelMes(usuarioId, mes) {
      WHERE v.usuario_id = ? AND s.fecha BETWEEN ? AND ?`,
     [usuarioId, desde, hasta],
   );
+  // Arreglos de novedades que no eran de una parte del plan
+  const arreglos = await queryUno(
+    `SELECT COALESCE(SUM(n.costo), 0) AS total FROM novedades n JOIN vehiculos v ON v.id = n.vehiculo_id
+     WHERE v.usuario_id = ? AND n.estado = 'arreglada' AND n.servicio_id IS NULL AND n.arreglada_en BETWEEN ? AND ?`,
+    [usuarioId, desde, hasta],
+  );
+  partes.total = Number(partes.total) + Number(arreglos.total);
   const documentos = await queryUno(
     `SELECT COALESCE(SUM(r.valor), 0) AS total FROM renovaciones_documento r
      JOIN documentos d ON d.id = r.documento_id JOIN vehiculos v ON v.id = d.vehiculo_id
@@ -39,7 +46,7 @@ async function resumen(usuarioId) {
       .filter((p) => p.desgaste.estado !== 'bien')
       .map((p) => ({
         id: p.id, nombre: p.nombre, desgaste: p.desgaste, costoEstimado: p.costoEstimado,
-        conocido: Boolean(p.ultimo_cambio_conocido), vehiculoId: v.id, placa: v.placa,
+        conocido: Boolean(p.ultimo_cambio_conocido) || p.cambios_registrados > 0, vehiculoId: v.id, placa: v.placa,
       })))
     .sort((a, b) => b.desgaste.porcentaje - a.desgaste.porcentaje);
 
@@ -50,6 +57,10 @@ async function resumen(usuarioId) {
       .map((d) => ({ id: d.id, tipo: d.tipo, nombre: NOMBRES[d.tipo], fecha_vencimiento: d.fecha_vencimiento, estado: d.estado, vehiculoId: v.id, placa: v.placa })))
     .sort((a, b) => a.fecha_vencimiento.localeCompare(b.fecha_vencimiento));
   const documentacion = resumenDocumentacion(vehiculos);
+
+  // RN-21: novedades (daños o golpes) que siguen sin arreglar
+  const novedadesPendientes = vehiculos.flatMap((v) => v.novedadesPendientes
+    .map((n) => ({ ...n, vehiculoId: v.id, placa: v.placa })));
 
   // Costo estimado de las partes que tocaría cambiar este mes
   const finDeMes = finMes(fechaHoy);
@@ -66,6 +77,7 @@ async function resumen(usuarioId) {
     salud: saludGeneral(vehiculos.map((v) => v.salud)),  // RN-19: anillo de Inicio
     partesUrgentes,
     documentosPorVencer,
+    novedadesPendientes,
     documentacion,
     gastoMes: await gastoDelMes(usuarioId, fechaHoy),
     estimadoMes,
@@ -75,6 +87,7 @@ async function resumen(usuarioId) {
 /**
  * RF-15: eventos del calendario de un mes.
  *  - Cambios de partes estimados (fechaEstimada calculada con km y tiempo)
+ *  - Revisiones de partes (RN-20): el mes que eligió el usuario
  *  - Vencimientos de documentos
  * Las partes ya vencidas se muestran hoy, porque el cambio está pendiente.
  */
@@ -88,7 +101,11 @@ async function calendario(usuarioId, mes) {
     for (const p of v.partes) {
       const fecha = p.desgaste.fechaEstimada;
       if (fecha >= desde && fecha <= hasta) {
-        eventos.push({ fecha, tipo: 'parte', titulo: p.nombre, placa: v.placa, vehiculoId: v.id, estado: p.desgaste.estado });
+        const revision = p.desgaste.motivo === 'revision';
+        eventos.push({
+          fecha, tipo: revision ? 'revision' : 'parte', titulo: revision ? `Revisar ${p.nombre.toLowerCase()}` : p.nombre,
+          placa: v.placa, vehiculoId: v.id, parteId: p.id, estado: p.desgaste.estado,
+        });
       }
     }
     for (const d of v.documentos) {
@@ -114,6 +131,14 @@ async function gastos(usuarioId) {
       GROUP BY mes, p.nombre`,
     [usuarioId, desde, fechaHoy],
   );
+  // RN-21: arreglos de novedades que no eran de una parte del plan (se agrupan por lo que se dañó)
+  const arreglos = await query(
+    `SELECT DATE_FORMAT(n.arreglada_en, '%Y-%m') AS mes, n.titulo AS nombre, SUM(n.costo) AS total
+       FROM novedades n JOIN vehiculos v ON v.id = n.vehiculo_id
+      WHERE v.usuario_id = ? AND n.estado = 'arreglada' AND n.servicio_id IS NULL AND n.arreglada_en BETWEEN ? AND ?
+      GROUP BY mes, n.titulo`,
+    [usuarioId, desde, fechaHoy],
+  );
   const documentos = await query(
     `SELECT DATE_FORMAT(r.fecha_pago, '%Y-%m') AS mes, d.tipo, SUM(r.valor) AS total
        FROM renovaciones_documento r
@@ -123,7 +148,7 @@ async function gastos(usuarioId) {
       GROUP BY mes, d.tipo`,
     [usuarioId, desde, fechaHoy],
   );
-  return resumenGastos(partes, documentos, fechaHoy);
+  return resumenGastos([...partes, ...arreglos], documentos, fechaHoy);
 }
 
 module.exports = { resumen, calendario, gastos };

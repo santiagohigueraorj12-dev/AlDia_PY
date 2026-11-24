@@ -1,5 +1,5 @@
 // =====================================================================
-// REGLAS DE DESGASTE DE PARTES  (RN-06, RN-07, RN-08, RN-10)
+// REGLAS DE DESGASTE DE PARTES  (RN-06, RN-07, RN-08, RN-10, RN-20)
 // Funciones puras: reciben datos y devuelven resultados, sin tocar la BD.
 // =====================================================================
 const { hoy: hoyBogota, sumarMeses, sumarDias, diasEntre } = require('../utils/fechas');
@@ -26,6 +26,9 @@ function estadoPorDesgaste(porcentaje) {
  * @param {object} opciones { hoy: 'AAAA-MM-DD', promedioDiarioKm: number|null }
  */
 function calcularDesgaste(parte, kmActual, { hoy = hoyBogota(), promedioDiarioKm = null } = {}) {
+  // RN-20: si la parte se revisó después de su último cambio, manda la revisión
+  if (tieneRevisionVigente(parte)) return desgastePorRevision(parte, hoy);
+
   // --- Por kilómetros ---
   const kmRecorridos = Math.max(0, kmActual - parte.ultimo_cambio_km);
   const porcentajeKm = parte.intervalo_km ? (kmRecorridos / parte.intervalo_km) * 100 : 0;
@@ -63,6 +66,59 @@ function calcularDesgaste(parte, kmActual, { hoy = hoyBogota(), promedioDiarioKm
     fechaLimiteTiempo,
     fechaEstimada,
   };
+}
+
+// ---------------------------------------------------------------------
+// RN-20: REVISIÓN DE UNA PARTE ("Revisé y está bien")
+// Hay partes que se cambian cuando se dañan, no por calendario (la batería,
+// los bombillos...). El usuario la revisa, la encuentra bien y elige el mes en
+// que quiere volver a revisarla. Desde la revisión hasta ese mes la parte está
+// "bien" y la barra avanza con el tiempo: al 80 % pasa a "próxima" y el día
+// elegido a "vencida" (toca revisarla de nuevo o cambiarla).
+// No es un cambio: no tiene costo ni borra la fecha del último cambio real.
+// Si después se registra un cambio de la parte, la revisión deja de contar.
+// ---------------------------------------------------------------------
+const MESES_MAXIMOS_REVISION = 36;
+
+/** ¿La parte tiene una revisión posterior (o igual) a su último cambio? */
+function tieneRevisionVigente(parte) {
+  if (!parte.revisar_en || !parte.ultima_revision_fecha) return false;
+  return String(parte.ultima_revision_fecha).slice(0, 10) >= String(parte.ultimo_cambio_fecha).slice(0, 10);
+}
+
+/** Desgaste de una parte revisada: avanza de la fecha de revisión a la fecha elegida. */
+function desgastePorRevision(parte, hoy) {
+  const desde = String(parte.ultima_revision_fecha).slice(0, 10);
+  const hasta = String(parte.revisar_en).slice(0, 10);
+  const diasTotales = Math.max(1, diasEntre(desde, hasta));
+  const diasTranscurridos = Math.max(0, diasEntre(desde, hoy));
+  const porcentaje = (diasTranscurridos / diasTotales) * 100;
+  return {
+    porcentaje: redondear(porcentaje),
+    porcentajeKm: 0,
+    porcentajeTiempo: redondear(porcentaje),
+    motivo: 'revision',
+    estado: estadoPorDesgaste(porcentaje),
+    kmRestantes: null,
+    diasRestantes: diasEntre(hoy, hasta),
+    fechaLimiteTiempo: hasta,
+    fechaEstimada: hasta < hoy ? hoy : hasta,
+    revision: { fecha: desde, km: parte.ultima_revision_km, revisarEn: hasta },
+  };
+}
+
+/**
+ * RN-20: el usuario elige el MES de la próxima revisión ('AAAA-MM').
+ * Debe ser un mes futuro y como máximo 36 meses adelante.
+ * Devuelve la fecha de la revisión (el día 1 de ese mes).
+ */
+function validarMesRevision(mes, hoy = hoyBogota()) {
+  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(String(mes))) return { valido: false, mensaje: 'Elige el mes de la próxima revisión.' };
+  const mesActual = hoy.slice(0, 7);
+  if (mes <= mesActual) return { valido: false, mensaje: 'Elige un mes a partir del próximo.' };
+  const maximo = sumarMeses(`${mesActual}-01`, MESES_MAXIMOS_REVISION).slice(0, 7);
+  if (mes > maximo) return { valido: false, mensaje: `Elige un mes dentro de los próximos ${MESES_MAXIMOS_REVISION} meses.` };
+  return { valido: true, fecha: `${mes}-01` };
 }
 
 /** RF-06: ordena las partes de la más a la menos urgente. */
@@ -140,7 +196,7 @@ function redondear(n) {
 }
 
 module.exports = {
-  ultimoCambioNunca, esNuncaCambiada,
+  ultimoCambioNunca, esNuncaCambiada, tieneRevisionVigente, validarMesRevision, MESES_MAXIMOS_REVISION,
   UMBRAL_PROXIMA, UMBRAL_VENCIDA,
   estadoPorDesgaste, calcularDesgaste, ordenarPorUrgencia, sugerenciasServicio,
   validarUltimoCambio, ultimoCambioDesconocido,

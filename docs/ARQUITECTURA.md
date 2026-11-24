@@ -39,7 +39,7 @@ Las tablas no se crean a mano. Al encender el backend, `src/config/prepararBD.js
 
 Los scripts iniciales son compatibles con bases existentes: las tablas se crean solo cuando faltan y las columnas
 del perfil o el cambio de modelo/año se aplican solo cuando hacen falta. Para futuros cambios se **agrega** una
-migración nueva numerada desde `003_...sql`, nunca se editan migraciones ya aplicadas. A mano: `npm run bd:migrar`.
+migración nueva numerada desde `005_...sql`, nunca se editan migraciones ya aplicadas. A mano: `npm run bd:migrar`.
 
 ## Ejemplo: ¿qué pasa al registrar un cambio de aceite?
 
@@ -108,7 +108,12 @@ con `AppError.campo('km', 'mensaje')`.
 | GET/PUT/DELETE | `/api/vehiculos/:id` | Detalle / editar / eliminar |
 | POST/GET | `/api/vehiculos/:id/kilometraje` | Actualizar km / historial |
 | POST | `/api/vehiculos/:id/partes` | Agregar parte al plan |
-| PUT/DELETE | `/api/partes/:id` · GET `/api/partes/:id/historial` | Ajustar / quitar / historial |
+| PUT/DELETE | `/api/partes/:id` · GET `/api/partes/:id/historial` | Ajustar / quitar / historial (cambios y revisiones) |
+| POST | `/api/partes/:id/revision` | "Revisé y está bien": mes de la próxima revisión (RF-27) |
+| GET/POST | `/api/vehiculos/:id/novedades` · GET `/api/vehiculos/:id/revisiones` | Novedades del vehículo (RF-28) y revisiones de sus partes |
+| GET | `/api/novedades` · `/api/novedades/:id` | Panel de daños (todos los vehículos) / un daño |
+| PUT/DELETE | `/api/novedades/:id` | Editar / eliminar un daño |
+| POST | `/api/novedades/:id/arreglar` | Marcar un daño como arreglado |
 | POST | `/api/vehiculos/:id/servicios/sugerencias` | Sugerencia del filtro (RN-10) |
 | POST/GET | `/api/vehiculos/:id/servicios` | Registrar cambio / historial |
 | GET | `/api/vehiculos/:id/hoja-de-vida` | PDF |
@@ -116,7 +121,7 @@ con `AppError.campo('km', 'mensaje')`.
 | GET/DELETE | `/api/documentos/:id` · POST `/api/documentos/:id/renovar` | Historial / eliminar / renovar |
 | GET | `/api/panel` · `/api/panel/calendario?mes=AAAA-MM` | Panel (con la salud de cada vehículo, RN-19) y calendario |
 | GET | `/api/panel/gastos` | Gastos de los últimos 12 meses (RF-26) |
-| GET | `/api/auth/mis-datos` | Descargar mis datos (RF-23) |
+| GET | `/api/auth/mis-datos` · `/api/auth/mis-datos/pdf` | Descargar mis datos en JSON o PDF (RF-23) |
 | GET | `/api/archivos/:id` | Foto o PDF guardado en la base de datos (sin sesión; id UUID) |
 | GET/POST | `/api/notificaciones` · `/contador` · `/:id/leer` · `/leer-todas` | Notificaciones |
 | GET | `/api/asistente/preguntas` · `/api/asistente/vehiculos/:id/:pregunta` | Asistente: lista de preguntas y respuesta sobre un vehículo (RF-21) |

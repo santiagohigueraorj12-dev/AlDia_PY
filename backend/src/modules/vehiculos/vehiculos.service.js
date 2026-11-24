@@ -1,5 +1,5 @@
 // =====================================================================
-// LÓGICA DE VEHÍCULOS Y PARTES  (RF-04 a RF-11)
+// LÓGICA DE VEHÍCULOS Y PARTES  (RF-04 a RF-11, RF-27, RF-28)
 // Aquí se aplican las reglas de negocio: las fórmulas están en domain/
 // y las consultas SQL en vehiculos.repository.js.
 // =====================================================================
@@ -8,6 +8,7 @@ const AppError = require('../../utils/AppError');
 const { hoy, ahora } = require('../../utils/fechas');
 const {
   calcularDesgaste, ordenarPorUrgencia, sugerenciasServicio, validarUltimoCambio, ultimoCambioDesconocido, ultimoCambioNunca,
+  validarMesRevision,
 } = require('../../domain/desgaste');
 const { validarNuevoKm, promedioDiario, kmParaCalculo } = require('../../domain/kilometraje');
 const { estadoVehiculo, costoPorKm, fechaPrimeraRtm } = require('../../domain/vehiculo');
@@ -58,9 +59,12 @@ async function armarVehiculo(vehiculo, fechaHoy = hoy()) {
     ...d, estado: estadoDocumento(d.fecha_vencimiento, fechaHoy),
   }));
 
+  // Novedades sin arreglar (RN-21): ponen el vehículo en "requiere atención"
+  const pendientes = await repo.novedadesPendientes(vehiculo.id);
+
   // Costos (RF-10, RN-12)
   const mantenimiento = await repo.costoMantenimiento(vehiculo.id);
-  const estado = estadoVehiculo(partes, documentos, fechaHoy);  // RN-11
+  const estado = estadoVehiculo(partes, documentos, fechaHoy, pendientes.length);  // RN-11, RN-21
 
   return {
     ...vehiculo,
@@ -77,6 +81,7 @@ async function armarVehiculo(vehiculo, fechaHoy = hoy()) {
     },
     partes,
     documentos,
+    novedadesPendientes: pendientes,
     costos: {
       mantenimiento: mantenimiento.total,
       cambios: mantenimiento.cambios,
@@ -244,7 +249,163 @@ async function fijarUltimosCambios(usuarioId, vehiculoId, partes) {
 
 async function historialParte(usuarioId, parteId) {
   const parte = await parteDelUsuario(usuarioId, parteId);
-  return { parte, historial: await repo.historialParte(parteId) };
+  return { parte, historial: await repo.historialParte(parteId), revisiones: await repo.revisionesDeParte(parteId) };
+}
+
+// --- Revisión de una parte: "Revisé y está bien" (RF-27, RN-20) ---
+
+/**
+ * El usuario revisó la parte, está en buen estado y elige el mes de la próxima
+ * revisión ('AAAA-MM'). Se guarda con la fecha de hoy y el km actual.
+ */
+async function revisarParte(usuarioId, parteId, { mes, nota }) {
+  const parte = await parteDelUsuario(usuarioId, parteId);
+  const vehiculo = await vehiculoDelUsuario(usuarioId, parte.vehiculo_id);
+  const validacion = validarMesRevision(mes, hoy());
+  if (!validacion.valido) throw AppError.campo('mes', validacion.mensaje);
+  await transaccion((conn) => repo.registrarRevision(conn, {
+    parteId, fecha: hoy(), km: vehiculo.km_actual, revisarEn: validacion.fecha, nota,
+  }));
+  return detalle(usuarioId, parte.vehiculo_id);
+}
+
+// --- Novedades: daños, fallas o golpes (RF-28, RN-21) ---
+
+async function novedadDelUsuario(usuarioId, novedadId) {
+  const novedad = await repo.buscarNovedad(novedadId);
+  if (!novedad) throw AppError.noEncontrado('Daño no encontrado');
+  await vehiculoDelUsuario(usuarioId, novedad.vehiculo_id);
+  return novedad;
+}
+
+async function listarNovedades(usuarioId, vehiculoId) {
+  await vehiculoDelUsuario(usuarioId, vehiculoId);
+  return repo.listarNovedades(vehiculoId);
+}
+
+/** Validaciones comunes de fecha y km (no futura, no antes de la matrícula, no más que el km del vehículo). */
+function validarFechaKm({ fecha, km }, vehiculo, prefijo = '') {
+  if (fecha > hoy()) throw AppError.campo(`${prefijo}fecha`, 'La fecha no puede ser futura');
+  if (fecha < vehiculo.fecha_matricula) throw AppError.campo(`${prefijo}fecha`, 'La fecha no puede ser anterior a la matrícula del vehículo');
+  if (km > vehiculo.km_actual) {
+    throw AppError.campo(`${prefijo}km`, `No puede ser mayor al kilometraje actual del vehículo (${vehiculo.km_actual.toLocaleString('es-CO')} km). Si ya recorrió más, actualiza primero el kilometraje.`);
+  }
+}
+
+/**
+ * Al arreglar una novedad de una parte del plan se registra un servicio con el
+ * cambio de esa parte: su desgaste vuelve a 0 % (RN-09) y el costo entra a los
+ * gastos como cualquier cambio. Si no es de una parte, el costo queda en la novedad.
+ */
+async function arreglarDentro(conn, novedad, vehiculo, { fecha, km, lugar, costo, marca_referencia }) {
+  let servicioId = null;
+  if (novedad.parte_id) {
+    const parte = await repo.buscarParte(novedad.parte_id);
+    if (parte) {
+      if (km < parte.ultimo_cambio_km) throw AppError.campo('km', `"${parte.nombre}" se cambió por última vez a los ${parte.ultimo_cambio_km.toLocaleString('es-CO')} km: el kilometraje no puede ser menor.`);
+      if (fecha < parte.ultimo_cambio_fecha) throw AppError.campo('fecha', `"${parte.nombre}" se cambió por última vez el ${parte.ultimo_cambio_fecha.split('-').reverse().join('/')}: la fecha no puede ser anterior.`);
+      servicioId = await repo.crearServicio(conn, { vehiculoId: vehiculo.id, fecha, km, lugar });
+      await repo.registrarCambio(conn, { servicioId, parteId: parte.id, costo: costo ?? 0, marcaReferencia: marca_referencia, km, fecha });
+    }
+  }
+  await repo.marcarArreglada(conn, novedad.id, { fecha, km, lugar, costo: costo ?? 0, servicioId });
+}
+
+async function crearNovedad(usuarioId, vehiculoId, datos, fotoUrl) {
+  const vehiculo = await vehiculoDelUsuario(usuarioId, vehiculoId);
+  let titulo = datos.titulo;
+  if (datos.parte_id) {
+    const parte = (await repo.partesActivas(vehiculoId)).find((p) => p.id === datos.parte_id);
+    if (!parte) throw AppError.campo('parte_id', 'Esa parte no pertenece a este vehículo');
+    titulo = titulo || parte.nombre;
+  }
+  if (!titulo) throw AppError.campo('titulo', 'Escribe qué se dañó');
+  validarFechaKm(datos, vehiculo);
+
+  const arreglo = {
+    fecha: datos.arreglo_fecha ?? datos.fecha, km: datos.arreglo_km ?? datos.km,
+    lugar: datos.lugar, costo: datos.costo, marca_referencia: datos.marca_referencia,
+  };
+  if (datos.arreglada) {
+    validarFechaKm(arreglo, vehiculo, 'arreglo_');
+    if (arreglo.fecha < datos.fecha) throw AppError.campo('arreglo_fecha', 'El arreglo no puede ser antes del daño');
+  }
+
+  await transaccion(async (conn) => {
+    const id = await repo.crearNovedad(conn, {
+      vehiculoId, parteId: datos.parte_id, tipo: datos.tipo, titulo, descripcion: datos.descripcion,
+      fecha: datos.fecha, km: datos.km, estado: 'pendiente', fotoUrl,
+    });
+    if (datos.arreglada) await arreglarDentro(conn, { id, parte_id: datos.parte_id }, vehiculo, arreglo);
+  });
+  return detalle(usuarioId, vehiculoId);
+}
+
+async function arreglarNovedad(usuarioId, novedadId, datos) {
+  const novedad = await novedadDelUsuario(usuarioId, novedadId);
+  if (novedad.estado === 'arreglada') throw new AppError('Este daño ya está marcado como arreglado');
+  const vehiculo = await vehiculoDelUsuario(usuarioId, novedad.vehiculo_id);
+  validarFechaKm(datos, vehiculo);
+  if (datos.fecha < novedad.fecha) throw AppError.campo('fecha', 'El arreglo no puede ser antes del daño');
+  await transaccion((conn) => arreglarDentro(conn, novedad, vehiculo, datos));
+  return detalle(usuarioId, novedad.vehiculo_id);
+}
+
+/** Panel de daños: todos los del usuario (READ del CRUD). */
+function listarNovedadesDelUsuario(usuarioId) {
+  return repo.listarNovedadesDelUsuario(usuarioId);
+}
+
+async function verNovedad(usuarioId, novedadId) {
+  const novedad = await novedadDelUsuario(usuarioId, novedadId);
+  return (await repo.listarNovedades(novedad.vehiculo_id)).find((n) => n.id === novedad.id);
+}
+
+/**
+ * Editar un daño (UPDATE del CRUD). La parte no se cambia (si se eligió mal,
+ * se elimina y se registra de nuevo).
+ * Si ya está arreglado como cambio de una parte (tiene servicio), la fecha y el km
+ * del arreglo no se editan porque son el "último cambio" de la parte; sí el lugar y el costo.
+ */
+async function editarNovedad(usuarioId, novedadId, datos, fotoUrl) {
+  const novedad = await novedadDelUsuario(usuarioId, novedadId);
+  const vehiculo = await vehiculoDelUsuario(usuarioId, novedad.vehiculo_id);
+  const titulo = datos.titulo || novedad.titulo;
+  validarFechaKm(datos, vehiculo);
+
+  const arreglada = novedad.estado === 'arreglada';
+  const conServicio = arreglada && novedad.servicio_id;
+  let arreglo = { arregladaEn: null, arregladaKm: null, lugar: null, costo: null };
+  if (arreglada) {
+    arreglo = {
+      arregladaEn: conServicio ? novedad.arreglada_en : (datos.arreglo_fecha ?? novedad.arreglada_en),
+      arregladaKm: conServicio ? novedad.arreglada_km : (datos.arreglo_km ?? novedad.arreglada_km),
+      lugar: datos.lugar, costo: datos.costo ?? 0,
+    };
+    if (!conServicio) validarFechaKm({ fecha: arreglo.arregladaEn, km: arreglo.arregladaKm }, vehiculo, 'arreglo_');
+    if (arreglo.arregladaEn < datos.fecha) throw AppError.campo('fecha', 'El daño no puede ser después de su arreglo');
+  }
+
+  await transaccion(async (conn) => {
+    await repo.actualizarNovedad(conn, novedad.id, {
+      tipo: datos.tipo, titulo, descripcion: datos.descripcion, fecha: datos.fecha, km: datos.km, fotoUrl, ...arreglo,
+    });
+    if (conServicio) {
+      await repo.actualizarServicioDeNovedad(conn, { servicioId: novedad.servicio_id, parteId: novedad.parte_id, lugar: arreglo.lugar, costo: arreglo.costo });
+    }
+  });
+  return verNovedad(usuarioId, novedad.id);
+}
+
+async function eliminarNovedad(usuarioId, novedadId) {
+  const novedad = await novedadDelUsuario(usuarioId, novedadId);
+  await repo.eliminarNovedad(novedadId);  // el servicio que se registró al arreglarla se conserva
+  return detalle(usuarioId, novedad.vehiculo_id);
+}
+
+async function revisionesDeVehiculo(usuarioId, vehiculoId) {
+  await vehiculoDelUsuario(usuarioId, vehiculoId);
+  return repo.revisionesDeVehiculo(vehiculoId);
 }
 
 // --- Servicios: cambio de una o varias partes (RF-08, RN-09, RN-10) ---
@@ -298,4 +459,6 @@ module.exports = {
   armarVehiculo, listar, detalle, crear, actualizar, eliminar, actualizarKm, lecturas,
   agregarParte, actualizarParte, quitarParte, historialParte, fijarUltimosCambios,
   sugerencias, registrarServicio, historial,
+  revisarParte, revisionesDeVehiculo, listarNovedades, crearNovedad, arreglarNovedad, eliminarNovedad,
+  listarNovedadesDelUsuario, verNovedad, editarNovedad,
 };

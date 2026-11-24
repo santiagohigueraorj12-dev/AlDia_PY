@@ -6,12 +6,15 @@ const { NOMBRES } = require('../../domain/documentos');
 const ESTADOS_VEHICULO = { al_dia: 'Al día', requiere_atencion: 'Requiere atención', no_apto: 'No apto para circular' };
 const ESTADOS_PARTE = { bien: 'Bien', proxima: 'Próxima a cambio', vencida: 'Vencida' };
 const ESTADOS_DOCUMENTO = { vigente: 'Vigente', por_vencer: 'Por vencer', vencido: 'VENCIDO' };
+const TIPOS_NOVEDAD = { dano: 'Daño o falla', accidente: 'Accidente o golpe', otro: 'Otro' };
+const mesAnio = (f) => formatoColombia(f).slice(3);  // '01/06/2027' -> '06/2027'
 
 /**
  * @param {object} vehiculo armado por vehiculos.service.armarVehiculo
  * @param {object[]} servicios historial de servicios con sus cambios
+ * @param {{ revisiones: object[], novedades: object[] }} extra revisiones (RF-27) y novedades (RF-28)
  */
-function generarHojaDeVida(res, vehiculo, servicios) {
+function generarHojaDeVida(res, vehiculo, servicios, { revisiones = [], novedades = [] } = {}) {
   const doc = crearPdf(res, `hoja-de-vida-${vehiculo.placa}.pdf`);
   encabezado(doc, `Hoja de vida del vehículo ${vehiculo.placa}`, `${vehiculo.tipo} ${vehiculo.marca} ${vehiculo.linea} ${vehiculo.modelo}`);
 
@@ -40,7 +43,7 @@ function generarHojaDeVida(res, vehiculo, servicios) {
     p.nombre,
     `${p.intervalo_km ? `${p.intervalo_km.toLocaleString('es-CO')} km / ` : ''}${p.intervalo_meses} meses`,
     `${formatoColombia(p.ultimo_cambio_fecha)} - ${p.ultimo_cambio_km.toLocaleString('es-CO')} km`,
-    p.ultimo_cambio_conocido ? `${p.desgaste.porcentaje}%` : 'Desconocido',
+    p.desgaste.revision ? `Revisar ${mesAnio(p.desgaste.revision.revisarEn)}` : p.ultimo_cambio_conocido ? `${p.desgaste.porcentaje}%` : 'Desconocido',
     ESTADOS_PARTE[p.desgaste.estado],
   ]));
 
@@ -66,6 +69,28 @@ function generarHojaDeVida(res, vehiculo, servicios) {
     { titulo: 'Vence', ancho: 100 },
     { titulo: 'Estado', ancho: 162 },
   ], vehiculo.documentos.map((d) => [NOMBRES[d.tipo], formatoColombia(d.fecha_vencimiento), ESTADOS_DOCUMENTO[d.estado]]));
+
+  seccion(doc, 'Revisiones (partes revisadas en buen estado)');
+  tabla(doc, [
+    { titulo: 'Fecha', ancho: 70 },
+    { titulo: 'Km', ancho: 75 },
+    { titulo: 'Parte', ancho: 150 },
+    { titulo: 'Próxima revisión', ancho: 95 },
+    { titulo: 'Nota', ancho: 122 },
+  ], revisiones.map((r) => [formatoColombia(r.fecha), `${r.km.toLocaleString('es-CO')} km`, r.parte, mesAnio(r.revisar_en), r.nota || '—']));
+
+  seccion(doc, 'Daños, fallas y golpes');
+  tabla(doc, [
+    { titulo: 'Fecha', ancho: 62 },
+    { titulo: 'Qué pasó', ancho: 80 },
+    { titulo: 'Detalle', ancho: 170 },
+    { titulo: 'Estado', ancho: 135 },
+    { titulo: 'Costo', ancho: 65, alinear: 'right' },
+  ], novedades.map((n) => [
+    formatoColombia(n.fecha), TIPOS_NOVEDAD[n.tipo], [n.titulo, n.descripcion].filter(Boolean).join(': '),
+    n.estado === 'arreglada' ? `Arreglada el ${formatoColombia(n.arreglada_en)}` : 'PENDIENTE',
+    n.estado === 'arreglada' ? pesos(n.costo) : '—',
+  ]));
 
   doc.end();
 }

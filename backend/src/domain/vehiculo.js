@@ -1,5 +1,5 @@
 // =====================================================================
-// REGLAS DEL VEHÍCULO  (RN-11, RN-12, RN-14)
+// REGLAS DEL VEHÍCULO  (RN-11, RN-12, RN-14, RN-21)
 // =====================================================================
 const { sumarMeses } = require('../utils/fechas');
 
@@ -9,14 +9,16 @@ const DOCUMENTOS_OBLIGATORIOS = ['soat', 'rtm'];        // RN-11
 /**
  * RN-11: estado general del vehículo.
  *  - "no_apto"           -> SOAT o revisión técnico-mecánica vencidos.
- *  - "requiere_atencion" -> pastillas de freno o llantas vencidas.
+ *  - "requiere_atencion" -> pastillas de freno o llantas vencidas, o
+ *                           (RN-21) una novedad (daño o golpe) pendiente por arreglar.
  *  - "al_dia"            -> ninguna de las anteriores.
  *
  * @param {object[]} partes con .codigo y .desgaste.estado
  * @param {object[]} documentos con .tipo ('soat', 'rtm', 'impuesto') y .fecha_vencimiento
  * @param {string} hoy 'AAAA-MM-DD'
+ * @param {number} novedadesPendientes cuántas novedades siguen sin arreglar (RN-21)
  */
-function estadoVehiculo(partes, documentos, hoy) {
+function estadoVehiculo(partes, documentos, hoy, novedadesPendientes = 0) {
   const documentoVencido = documentos.some(
     (d) => DOCUMENTOS_OBLIGATORIOS.includes(d.tipo) && d.fecha_vencimiento < hoy,
   );
@@ -26,6 +28,7 @@ function estadoVehiculo(partes, documentos, hoy) {
     (p) => PARTES_CRITICAS.includes(p.codigo) && p.desgaste.estado === 'vencida',
   );
   if (parteCriticaVencida) return 'requiere_atencion';
+  if (novedadesPendientes > 0) return 'requiere_atencion';  // RN-21
 
   return 'al_dia';
 }

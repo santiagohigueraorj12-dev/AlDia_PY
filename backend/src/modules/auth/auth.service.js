@@ -50,7 +50,7 @@ async function iniciarSesion({ correo, password }) {
 
 /**
  * RF-02: recuperar contraseña.
- * Envía al correo un enlace con el código (vale 1 hora). Sin Brevo configurado
+ * Envía al correo un enlace con el código (vale 1 hora). Sin Gmail configurado
  * (computador local) el código se escribe en la consola y, en desarrollo,
  * también se devuelve en la respuesta.
  * La respuesta es la misma exista o no el correo, para no revelar quién tiene cuenta.
