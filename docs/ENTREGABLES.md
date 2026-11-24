@@ -11,7 +11,7 @@ Sustentación: 26 de noviembre de 2026.
 | 4 | Plan de respaldo | [Plan de respaldo](respaldo/AlDia_Plan_de_Respaldo.pdf) · `respaldar.bat` y `restaurar.bat` | ALD-PR-01 |
 | 5 | Manual de usuario | [Manual de usuario](manuales/AlDia_Manual_de_Usuario.pdf) (con capturas de la app) | ALD-MU-01 |
 | 6 | Manual de instalación | [Manual de instalación y despliegue](manuales/AlDia_Manual_de_Instalacion_y_Despliegue.pdf) | ALD-MI-01 |
-| 7 | Otros | [Manual técnico](manuales/AlDia_Manual_Tecnico.pdf) (ALD-MT-01) · [Documento de análisis](AlDia_Documento_de_analisis.pdf) · [Arquitectura](ARQUITECTURA.md) · código fuente en GitHub | — |
+| 7 | Otros | [Manual técnico](manuales/AlDia_Manual_Tecnico.pdf) (ALD-MT-01) · [Documento de análisis](analisis/AlDia_Documento_de_analisis.pdf) · [Arquitectura](ARQUITECTURA.md) · código fuente en GitHub | — |
 
 Todos los documentos están en Word (.docx) y PDF en la misma carpeta.
 
