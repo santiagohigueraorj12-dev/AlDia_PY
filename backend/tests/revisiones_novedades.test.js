@@ -41,9 +41,12 @@ describe('RN-20: revisión de una parte ("Revisé y está bien")', () => {
     assert.equal(d.estado, 'vencida');
     assert.equal(d.fechaEstimada, '2027-06-10');
   });
-  test('CP-REV-06 los km no cuentan mientras la revisión esté vigente', () => {
-    const cadena = { ...revisada, intervalo_km: 10000 };
-    assert.equal(calcularDesgaste(cadena, 40000, { hoy: '2026-12-02' }).estado, 'bien');
+  test('CP-REV-06 en una parte con intervalo de km, los km desde la revisión siguen contando', () => {
+    const kit = { ...revisada, intervalo_km: 20000 };
+    assert.equal(calcularDesgaste(kit, 18000 + 5000, { hoy: '2026-12-02' }).estado, 'bien');        // 25 %
+    const d = calcularDesgaste(kit, 18000 + 21000, { hoy: '2026-12-02' });                          // 105 %
+    assert.equal(d.estado, 'vencida');
+    assert.equal(d.kmRestantes, -1000);
   });
   test('CP-REV-07 si la parte se cambió después de la revisión, la revisión deja de contar', () => {
     const cambiada = { ...revisada, ultimo_cambio_fecha: '2027-01-15', ultimo_cambio_km: 19000 };

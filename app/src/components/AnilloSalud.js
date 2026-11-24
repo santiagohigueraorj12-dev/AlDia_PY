@@ -55,7 +55,7 @@ export default function AnilloSalud({ porcentaje, nivel, tamano = 96, claro = fa
       <Text style={{ color: colorTexto, fontWeight: '800', fontSize: Math.round(tamano * (conTexto ? 0.26 : 0.3)) }}>
         {Math.round(valor)}<Text style={{ fontSize: Math.round(tamano * 0.14) }}>%</Text>
       </Text>
-      {conTexto && <Text style={{ color: colorTexto, opacity: 0.85, fontSize: Math.round(tamano * 0.12), fontWeight: '600', marginTop: -2 }}>{texto}</Text>}
+      {conTexto && <Text style={{ color: claro ? colorTexto : c.azul, opacity: 0.9, fontSize: Math.round(tamano * 0.12), fontWeight: '600', marginTop: -2 }}>{texto}</Text>}
     </View>
   );
 }

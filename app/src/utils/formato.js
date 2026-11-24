@@ -71,7 +71,7 @@ export const ESTADO_DOCUMENTO = {
 export const EXPLICACION_VEHICULO = {
   al_dia: 'Todo en orden. No tienes nada pendiente.',
   requiere_atencion: 'Tiene partes vencidas o un daño sin arreglar que debes atender pronto.',
-  no_apto: 'Tiene un documento obligatorio vencido: no debería circular hasta renovarlo.',
+  no_apto: 'Tiene un documento obligatorio vencido o un daño que no deja usarlo: no debería circular.',
 };
 
 /** Qué tiene que hacer el usuario con una parte, según su estado. */

@@ -16,9 +16,9 @@ SET @usuario = LAST_INSERT_ID();
 -- MOTO: registrada hace 6 meses con 12.000 km; hoy tiene 15.400 km.
 -- ---------------------------------------------------------------------
 INSERT INTO vehiculos (usuario_id, tipo_vehiculo_id, marca, linea, modelo, placa, fecha_matricula,
-                       km_inicial, km_actual, km_actualizado_en, creado_en)
+                       km_inicial, km_actual, km_actualizado_en, creado_en, subtipo, cilindraje)
 VALUES (@usuario, 1, 'Yamaha', 'NMAX 155', 2024, 'ABC12D', CURDATE() - INTERVAL 20 MONTH,
-        12000, 15400, NOW() - INTERVAL 3 DAY, @hace6meses);
+        12000, 15400, NOW() - INTERVAL 3 DAY, @hace6meses, 'automatica', 155);
 SET @moto = LAST_INSERT_ID();
 
 INSERT INTO lecturas_km (vehiculo_id, km, fecha) VALUES
@@ -27,10 +27,10 @@ INSERT INTO lecturas_km (vehiculo_id, km, fecha) VALUES
   (@moto, 14500, NOW() - INTERVAL 2 MONTH),
   (@moto, 15400, NOW() - INTERVAL 3 DAY);
 
--- Se copia el plan base de motos (RN-05)
+-- Se copia el plan base de motos automáticas (RN-05): la NMAX es una scooter con correa CVT
 INSERT INTO partes_vehiculo (vehiculo_id, codigo, nombre, intervalo_km, intervalo_meses, ultimo_cambio_km, ultimo_cambio_fecha)
 SELECT @moto, codigo, nombre, intervalo_km, intervalo_meses, 12000, @hace6meses
-FROM plan_base_partes WHERE tipo_vehiculo_id = 1;
+FROM plan_base_partes WHERE tipo_vehiculo_id = 1 AND (subtipo IS NULL OR subtipo = 'automatica');
 
 -- Las pastillas se cambiaron mucho antes -> quedan VENCIDAS ("Requiere atención", RN-11)
 UPDATE partes_vehiculo SET ultimo_cambio_km = 5300 WHERE vehiculo_id = @moto AND codigo = 'pastillas_freno';
@@ -58,9 +58,9 @@ INSERT INTO documentos (vehiculo_id, tipo, fecha_vencimiento) VALUES (@moto, 'rt
 -- CARRO: kilometraje sin actualizar hace 20 días -> se estima (RN-04)
 -- ---------------------------------------------------------------------
 INSERT INTO vehiculos (usuario_id, tipo_vehiculo_id, marca, linea, modelo, placa, fecha_matricula,
-                       km_inicial, km_actual, km_actualizado_en, creado_en)
+                       km_inicial, km_actual, km_actualizado_en, creado_en, cilindraje)
 VALUES (@usuario, 2, 'Renault', 'Logan', 2019, 'JKL345', '2019-03-15',
-        68000, 74500, NOW() - INTERVAL 20 DAY, @hace6meses);
+        68000, 74500, NOW() - INTERVAL 20 DAY, @hace6meses, 1600);
 SET @carro = LAST_INSERT_ID();
 
 INSERT INTO lecturas_km (vehiculo_id, km, fecha) VALUES

@@ -87,13 +87,32 @@ export function RellenoPrimario() {
   return c.rellenoDegradado ? <Degradado estilo={StyleSheet.absoluteFill} /> : null;
 }
 
-/** Fondo del encabezado de la app: grafito con una línea naranja abajo. */
-export function FondoEncabezado() {
+/** Línea de marca: degradado del naranja al azul, los dos colores del logo. */
+export function LineaMarca({ alto = 3, estilo }) {
   const c = useColores();
+  const id = `l${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
+  return (
+    <View style={[{ height: alto, width: '100%' }, estilo]} pointerEvents="none">
+      <Svg width="100%" height={alto} preserveAspectRatio="none" viewBox="0 0 100 1">
+        <Defs>
+          <LinearGradient id={id} x1="0" y1="0" x2="1" y2="0">
+            <Stop offset="0" stopColor={c.acento} />
+            <Stop offset="0.55" stopColor={c.acento} />
+            <Stop offset="1" stopColor={c.secundario} />
+          </LinearGradient>
+        </Defs>
+        <Rect x="0" y="0" width="100" height="1" fill={`url(#${id})`} />
+      </Svg>
+    </View>
+  );
+}
+
+/** Fondo del encabezado de la app, con la línea naranja→azul abajo. */
+export function FondoEncabezado() {
   return (
     <View style={StyleSheet.absoluteFill}>
       <Degradado estilo={StyleSheet.absoluteFill} />
-      <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 2, backgroundColor: c.acento }} />
+      <LineaMarca alto={2} estilo={{ position: 'absolute', left: 0, right: 0, bottom: 0 }} />
     </View>
   );
 }

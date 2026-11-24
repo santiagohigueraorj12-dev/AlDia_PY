@@ -78,7 +78,7 @@ export default function Danos() {
       <Fila estilo={{ height: ancho >= 1000 ? '100%' : undefined }}>
         <Cifra icono="alert-circle-outline" valor={String(pendientes.length)} texto="Pendientes por arreglar" ancho={anchoCifra} tono="vencida" />
         <Cifra icono="checkmark-circle-outline" valor={String(arreglados.length)} texto="Arreglados" ancho={anchoCifra} tono="bien" />
-        <Cifra icono="wallet-outline" valor={pesos(gastado)} texto="Gastado en arreglos" ancho={anchoCifra} />
+        <Cifra icono="wallet-outline" valor={pesos(gastado)} texto="Gastado en arreglos" tono="azul" ancho={anchoCifra} />
       </Fila>
         </View>
       </View>
@@ -103,6 +103,7 @@ export default function Danos() {
               <Etiqueta estado={pendiente ? { texto: 'Pendiente', clase: 'vencida' } : { texto: 'Arreglado', clase: 'bien' }} />
             </Fila>
             <Texto variante="pequeno">{TIPO_NOVEDAD[d.tipo]} · {fecha(d.fecha)} · {km(d.km)}</Texto>
+            {pendiente && Boolean(d.impide_circular) && <Etiqueta estado={{ texto: 'No deja usar el vehículo', clase: 'vencida' }} />}
             {d.descripcion && <Texto>{d.descripcion}</Texto>}
             {d.foto_url && <Image source={{ uri: urlArchivo(d.foto_url) }} style={{ width: '100%', height: 180, borderRadius: 8 }} resizeMode="cover" accessibilityLabel={`Foto de ${d.titulo}`} />}
             {!pendiente && (

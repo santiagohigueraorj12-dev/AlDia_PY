@@ -47,4 +47,10 @@ describe('Documentación por vehículo', () => {
     assert.equal(proximo.estadoDocumentacion.clase, 'proxima');
     assert.equal(alDia.estadoDocumentacion.clase, 'bien');
   });
+
+  test('CP-DOC-MOD-04 a una moto de hasta 125 cc no le falta el impuesto (RN-22)', () => {
+    const [moto] = armarDocumentacion([{ id: 1, placa: 'XYZ12A', exentoImpuesto: true, documentos: [{ tipo: 'soat', estado: 'vigente', fecha_vencimiento: '2027-01-01' }, { tipo: 'rtm', estado: 'vigente', fecha_vencimiento: '2027-01-01' }] }]);
+    assert.equal(moto.faltantes, 0);
+    assert.ok(!moto.documentos.some((d) => d.tipo === 'impuesto'));
+  });
 });

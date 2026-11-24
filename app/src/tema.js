@@ -27,6 +27,7 @@ const claro = {
   secundario: '#2563eb',     // azul del logo: segundo color de las gráficas y adornos
   azul: '#1d4ed8',           // azul del logo para íconos e información: 6,7:1 sobre blanco
   azulSuave: '#e8effd', azulFondo: '#e8effd',  // azulFondo: para etiquetas (como bienFondo)
+  azulBorde: '#b9cdf5',      // borde de los botones secundarios
   rellenoDegradado: false,   // botones de color sólido, sin degradado
   sobrePrimario: '#ffffff',
   // Modo claro: encabezados, saludo y cifras en blanco con un toque cálido y letras oscuras (etiquetas de estado ≥ 5:1)
@@ -58,6 +59,7 @@ const oscuro = {
   secundario: '#60a5fa',     // azul del logo, más claro para el fondo oscuro
   azul: '#7cb4fb',           // 8,6:1 sobre las tarjetas oscuras
   azulSuave: '#16233a', azulFondo: '#16233a',
+  azulBorde: '#2d4a78',
   rellenoDegradado: false,
   sobrePrimario: '#111318',
   degradado: ['#171b22', '#1b2029', '#222833'],

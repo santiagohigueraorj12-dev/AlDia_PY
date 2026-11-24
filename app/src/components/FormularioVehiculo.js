@@ -6,7 +6,7 @@ import { Image, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { api, archivoParaFormulario, urlArchivo } from '../api/cliente';
 import { useErrores } from '../api/useErrores';
-import { Aviso, Boton, Campo, EtiquetaCampo, Fila, MensajeCampo, NotaObligatorios, Pantalla, Tarjeta, Texto } from './ui';
+import { Aviso, Boton, Campo, EtiquetaCampo, Fila, MensajeCampo, NotaObligatorios, Pantalla, Segmentos, Tarjeta, Texto } from './ui';
 import CampoFecha from './CampoFecha';
 import { hoyISO } from '../utils/formato';
 
@@ -21,6 +21,8 @@ export default function FormularioVehiculo({ vehiculo, onGuardado }) {
     placa: vehiculo?.placa ?? '',
     fecha_matricula: vehiculo?.fecha_matricula ?? '',
     km_inicial: '',
+    subtipo: vehiculo?.subtipo ?? null,             // RN-05: moto de cambios o automática
+    cilindraje: vehiculo?.cilindraje ? String(vehiculo.cilindraje) : '',  // RN-22
   });
   const [foto, setFoto] = useState(null);  // { uri, nombre, tipo, web }
   const { errores, general, mostrar, limpiar, reiniciar, setGeneral } = useErrores();
@@ -50,7 +52,7 @@ export default function FormularioVehiculo({ vehiculo, onGuardado }) {
     setEnviando(true);
     // Se envía como FormData porque puede llevar la foto
     const formulario = new FormData();
-    const campos = editando ? ['marca', 'linea', 'modelo', 'placa', 'fecha_matricula'] : Object.keys(datos);
+    const campos = editando ? ['marca', 'linea', 'modelo', 'placa', 'fecha_matricula', 'subtipo', 'cilindraje'] : Object.keys(datos);
     campos.forEach((campo) => formulario.append(campo, String(datos[campo] ?? '')));
     if (foto) formulario.append('foto', archivoParaFormulario(foto));
 
@@ -65,6 +67,9 @@ export default function FormularioVehiculo({ vehiculo, onGuardado }) {
     }
   }
 
+  const tipoNombre = editando ? vehiculo.tipo : tipos.find((x) => x.id === datos.tipo_vehiculo_id)?.nombre;
+  const esMoto = tipoNombre === 'Moto';
+  const esCarro = tipoNombre === 'Carro';
   const fotoActual = foto?.uri || urlArchivo(vehiculo?.foto_url);
 
   return (
@@ -87,6 +92,20 @@ export default function FormularioVehiculo({ vehiculo, onGuardado }) {
           </View>
         )}
 
+        {esMoto && (
+          <View style={{ gap: 6 }}>
+            <EtiquetaCampo texto="¿Qué tipo de moto es?" obligatorio />
+            <Segmentos valor={datos.subtipo} onCambio={cambiar('subtipo')} opciones={[
+              { id: 'cambios', titulo: 'De cambios (cadena)', icono: 'cog-outline' },
+              { id: 'automatica', titulo: 'Automática (scooter)', icono: 'flash-outline' },
+            ]} />
+            <MensajeCampo error={errores.subtipo}
+              ayuda={editando && vehiculo?.subtipo && datos.subtipo !== vehiculo.subtipo
+                ? 'Al guardar se ajusta el plan: se quitan las partes del otro tipo de moto y se agregan las de este.'
+                : 'Las de cambios tienen cadena (kit de arrastre); las automáticas tienen correa CVT. Así cargamos las partes correctas.'} />
+          </View>
+        )}
+
         <Campo etiqueta="Marca" obligatorio placeholder="Ej.: Yamaha" value={datos.marca}
           onChangeText={cambiar('marca')} error={errores.marca} />
         <Campo etiqueta="Línea" obligatorio placeholder="Ej.: NMAX 155" value={datos.linea}
@@ -97,11 +116,14 @@ export default function FormularioVehiculo({ vehiculo, onGuardado }) {
               keyboardType="number-pad" maxLength={4} error={errores.modelo} />
           </View>
           <View style={{ flex: 1 }}>
-            <Campo etiqueta="Placa" obligatorio placeholder="Ej.: ABC12D" value={datos.placa}
+            <Campo etiqueta="Placa" obligatorio placeholder={esMoto ? 'Ej.: ABC12D' : esCarro ? 'Ej.: ABC123' : 'Ej.: ABC12D'} value={datos.placa}
               onChangeText={(t) => cambiar('placa')(t.toUpperCase())} autoCapitalize="characters" maxLength={8}
               error={errores.placa} />
           </View>
         </Fila>
+        <Campo etiqueta="Cilindraje en cc (opcional)" placeholder={esMoto ? 'Ej.: 125' : 'Ej.: 1.600'} value={datos.cilindraje}
+          onChangeText={cambiar('cilindraje')} keyboardType="number-pad" error={errores.cilindraje}
+          ayuda={esMoto ? 'Aparece en la licencia de tránsito. Las motos de hasta 125 cc no pagan impuesto vehicular.' : 'Aparece en la licencia de tránsito.'} />
         <CampoFecha etiqueta="Fecha de matrícula" obligatorio valor={datos.fecha_matricula} maxima={hoyISO()}
           onCambio={cambiar('fecha_matricula')} error={errores.fecha_matricula}
           ayuda="Aparece en la licencia de tránsito (tarjeta de propiedad)." />

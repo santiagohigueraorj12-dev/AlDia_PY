@@ -39,7 +39,7 @@ Las tablas no se crean a mano. Al encender el backend, `src/config/prepararBD.js
 
 Los scripts iniciales son compatibles con bases existentes: las tablas se crean solo cuando faltan y las columnas
 del perfil o el cambio de modelo/año se aplican solo cuando hacen falta. Para futuros cambios se **agrega** una
-migración nueva numerada desde `005_...sql`, nunca se editan migraciones ya aplicadas. A mano: `npm run bd:migrar`.
+migración nueva numerada desde `006_...sql`, nunca se editan migraciones ya aplicadas. A mano: `npm run bd:migrar`.
 
 ## Ejemplo: ¿qué pasa al registrar un cambio de aceite?
 
@@ -117,6 +117,7 @@ con `AppError.campo('km', 'mensaje')`.
 | POST | `/api/vehiculos/:id/servicios/sugerencias` | Sugerencia del filtro (RN-10) |
 | POST/GET | `/api/vehiculos/:id/servicios` | Registrar cambio / historial |
 | GET | `/api/vehiculos/:id/hoja-de-vida` | PDF |
+| POST | `/api/vehiculos/:id/transferir` | Transferir el vehículo a otra cuenta (RF-29) |
 | POST | `/api/vehiculos/:id/documentos` | Registrar SOAT/RTM/impuesto |
 | GET/DELETE | `/api/documentos/:id` · POST `/api/documentos/:id/renovar` | Historial / eliminar / renovar |
 | GET | `/api/panel` · `/api/panel/calendario?mes=AAAA-MM` | Panel (con la salud de cada vehículo, RN-19) y calendario |

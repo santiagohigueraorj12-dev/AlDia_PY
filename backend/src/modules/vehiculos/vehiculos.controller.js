@@ -33,6 +33,7 @@ module.exports = {
   crearNovedad: async (req, res) => res.status(201).json(await servicio.crearNovedad(usuario(req), id(req), req.body, urlDeArchivo(req.file))),
   arreglarNovedad: async (req, res) => res.json(await servicio.arreglarNovedad(usuario(req), id(req), req.body)),
   eliminarNovedad: async (req, res) => res.json(await servicio.eliminarNovedad(usuario(req), id(req))),
+  transferir: async (req, res) => res.json(await servicio.transferir(usuario(req), id(req), req.body)),
   listarDanos: async (req, res) => res.json(await servicio.listarNovedadesDelUsuario(usuario(req))),
   verNovedad: async (req, res) => res.json(await servicio.verNovedad(usuario(req), id(req))),
   editarNovedad: async (req, res) => res.json(await servicio.editarNovedad(usuario(req), id(req), req.body, urlDeArchivo(req.file))),

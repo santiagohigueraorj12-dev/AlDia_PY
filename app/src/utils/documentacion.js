@@ -6,6 +6,8 @@ const PRIORIDAD_ESTADO = { faltante: 0, vencido: 0, por_vencer: 1, vigente: 2 };
 export function armarDocumentacion(vehiculos) {
   return vehiculos.map((vehiculo) => {
     const documentos = Object.entries(NOMBRE_DOCUMENTO)
+      // RN-22: a una moto de hasta 125 cc no le falta el impuesto (no lo paga), salvo que lo haya registrado
+      .filter(([tipo]) => !(tipo === 'impuesto' && vehiculo.exentoImpuesto && !vehiculo.documentos.some((d) => d.tipo === 'impuesto')))
       .map(([tipo, nombre]) => {
         const registrado = vehiculo.documentos.find((doc) => doc.tipo === tipo);
         return {

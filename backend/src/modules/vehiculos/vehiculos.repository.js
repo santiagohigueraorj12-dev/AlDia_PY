@@ -28,20 +28,46 @@ function placaEnUso(placa, exceptoId = 0) {
 async function crear(conn, d) {
   const r = await conn.query(
     `INSERT INTO vehiculos (usuario_id, tipo_vehiculo_id, marca, linea, modelo, placa, fecha_matricula,
-                            km_inicial, km_actual, km_actualizado_en, foto_url)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?)`,
+                            km_inicial, km_actual, km_actualizado_en, foto_url, subtipo, cilindraje)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?)`,
     [d.usuario_id, d.tipo_vehiculo_id, d.marca, d.linea, d.modelo, d.placa, d.fecha_matricula,
-      d.km_inicial, d.km_inicial, d.foto_url],
+      d.km_inicial, d.km_inicial, d.foto_url, d.subtipo || null, d.cilindraje ?? null],
   );
   return r.insertId;
 }
 
-function actualizar(id, d) {
+function actualizar(conn, id, d) {
   // COALESCE: si no se envía foto nueva, se conserva la anterior
-  return query(
+  return conn.query(
     `UPDATE vehiculos SET marca = ?, linea = ?, modelo = ?, placa = ?, fecha_matricula = ?,
-            foto_url = COALESCE(?, foto_url) WHERE id = ?`,
-    [d.marca, d.linea, d.modelo, d.placa, d.fecha_matricula, d.foto_url, id],
+            foto_url = COALESCE(?, foto_url), subtipo = ?, cilindraje = ? WHERE id = ?`,
+    [d.marca, d.linea, d.modelo, d.placa, d.fecha_matricula, d.foto_url, d.subtipo || null, d.cilindraje ?? null, id],
+  );
+}
+
+/**
+ * RN-05: al cambiar el tipo de moto se desactivan las partes del otro tipo (se conserva
+ * su historial) y se agregan las del tipo nuevo que falten, contando desde hoy (0 %).
+ */
+async function ajustarPlanPorSubtipo(conn, vehiculoId, subtipo, km, fecha) {
+  await conn.query(
+    `UPDATE partes_vehiculo p JOIN plan_base_partes b ON b.tipo_vehiculo_id = 1 AND b.codigo = p.codigo
+        SET p.activa = FALSE
+      WHERE p.vehiculo_id = ? AND b.subtipo IS NOT NULL AND b.subtipo <> ?`,
+    [vehiculoId, subtipo],
+  );
+  await conn.query(
+    `UPDATE partes_vehiculo p JOIN plan_base_partes b ON b.tipo_vehiculo_id = 1 AND b.codigo = p.codigo
+        SET p.activa = TRUE
+      WHERE p.vehiculo_id = ? AND b.subtipo = ?`,
+    [vehiculoId, subtipo],
+  );
+  await conn.query(
+    `INSERT INTO partes_vehiculo (vehiculo_id, codigo, nombre, intervalo_km, intervalo_meses, ultimo_cambio_km, ultimo_cambio_fecha, ultimo_cambio_conocido)
+     SELECT ?, b.codigo, b.nombre, b.intervalo_km, b.intervalo_meses, ?, ?, FALSE FROM plan_base_partes b
+      WHERE b.tipo_vehiculo_id = 1 AND b.subtipo = ?
+        AND NOT EXISTS (SELECT 1 FROM partes_vehiculo p WHERE p.vehiculo_id = ? AND p.codigo = b.codigo)`,
+    [vehiculoId, km, fecha, subtipo, vehiculoId],
   );
 }
 
@@ -67,12 +93,14 @@ async function registrarLectura(conn, vehiculoId, km) {
  * RN-16: todas las partes arrancan con el último cambio "desconocido"
  * (contando desde la matrícula) hasta que el usuario indique el real.
  */
-function copiarPlanBase(conn, vehiculoId, tipoId, km, fecha) {
+function copiarPlanBase(conn, vehiculoId, tipoId, km, fecha, subtipo = null) {
+  // Partes de todas las motos (subtipo NULL) y las del tipo de moto elegido (cambios o automática)
   return conn.query(
     `INSERT INTO partes_vehiculo (vehiculo_id, codigo, nombre, intervalo_km, intervalo_meses,
                                   ultimo_cambio_km, ultimo_cambio_fecha, ultimo_cambio_conocido)
-     SELECT ?, codigo, nombre, intervalo_km, intervalo_meses, ?, ?, FALSE FROM plan_base_partes WHERE tipo_vehiculo_id = ?`,
-    [vehiculoId, km, fecha, tipoId],
+     SELECT ?, codigo, nombre, intervalo_km, intervalo_meses, ?, ?, FALSE FROM plan_base_partes
+      WHERE tipo_vehiculo_id = ? AND (subtipo IS NULL OR subtipo = ?)`,
+    [vehiculoId, km, fecha, tipoId, subtipo],
   );
 }
 
@@ -251,7 +279,7 @@ function listarNovedadesDelUsuario(usuarioId) {
 
 function novedadesPendientes(vehiculoId) {
   return query(
-    `SELECT id, tipo, titulo, fecha, parte_id FROM novedades
+    `SELECT id, tipo, titulo, fecha, parte_id, impide_circular FROM novedades
      WHERE vehiculo_id = ? AND estado = 'pendiente' ORDER BY fecha, id`,
     [vehiculoId],
   );
@@ -264,10 +292,10 @@ function buscarNovedad(id) {
 async function crearNovedad(conn, d) {
   const r = await conn.query(
     `INSERT INTO novedades (vehiculo_id, parte_id, tipo, titulo, descripcion, fecha, km, estado, foto_url,
-                            arreglada_en, arreglada_km, lugar, costo)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                            arreglada_en, arreglada_km, lugar, costo, impide_circular)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [d.vehiculoId, d.parteId || null, d.tipo, d.titulo, d.descripcion || null, d.fecha, d.km, d.estado, d.fotoUrl || null,
-      d.arregladaEn || null, d.arregladaKm ?? null, d.lugar || null, d.costo ?? null],
+      d.arregladaEn || null, d.arregladaKm ?? null, d.lugar || null, d.costo ?? null, Boolean(d.impideCircular)],
   );
   return r.insertId;
 }
@@ -284,9 +312,9 @@ function marcarArreglada(conn, id, { fecha, km, lugar, costo, servicioId }) {
 function actualizarNovedad(conn, id, d) {
   return conn.query(
     `UPDATE novedades SET tipo = ?, titulo = ?, descripcion = ?, fecha = ?, km = ?, foto_url = COALESCE(?, foto_url),
-            arreglada_en = ?, arreglada_km = ?, lugar = ?, costo = ? WHERE id = ?`,
+            arreglada_en = ?, arreglada_km = ?, lugar = ?, costo = ?, impide_circular = ? WHERE id = ?`,
     [d.tipo, d.titulo, d.descripcion || null, d.fecha, d.km, d.fotoUrl || null,
-      d.arregladaEn || null, d.arregladaKm ?? null, d.lugar || null, d.costo ?? null, id],
+      d.arregladaEn || null, d.arregladaKm ?? null, d.lugar || null, d.costo ?? null, Boolean(d.impideCircular), id],
   );
 }
 
@@ -294,6 +322,22 @@ function actualizarNovedad(conn, id, d) {
 async function actualizarServicioDeNovedad(conn, { servicioId, parteId, lugar, costo }) {
   await conn.query('UPDATE servicios SET lugar = ? WHERE id = ?', [lugar || null, servicioId]);
   await conn.query('UPDATE cambios_parte SET costo = ? WHERE servicio_id = ? AND parte_id = ?', [costo ?? 0, servicioId, parteId]);
+}
+
+/**
+ * RF-29: el vehículo pasa al nuevo dueño. Los archivos (fotos y PDF) del vehículo,
+ * sus documentos y sus daños también pasan a su nombre.
+ */
+async function transferir(conn, vehiculoId, deUsuarioId, aUsuarioId) {
+  await conn.query('UPDATE vehiculos SET usuario_id = ? WHERE id = ? AND usuario_id = ?', [aUsuarioId, vehiculoId, deUsuarioId]);
+  await conn.query(
+    `UPDATE archivos SET usuario_id = ?
+      WHERE usuario_id = ? AND (
+        CONCAT('/api/archivos/', id) IN (SELECT foto_url FROM vehiculos WHERE id = ? AND foto_url IS NOT NULL)
+        OR CONCAT('/api/archivos/', id) IN (SELECT archivo_url FROM documentos WHERE vehiculo_id = ? AND archivo_url IS NOT NULL)
+        OR CONCAT('/api/archivos/', id) IN (SELECT foto_url FROM novedades WHERE vehiculo_id = ? AND foto_url IS NOT NULL))`,
+    [aUsuarioId, deUsuarioId, vehiculoId, vehiculoId, vehiculoId],
+  );
 }
 
 function eliminarNovedad(id) {
@@ -307,9 +351,9 @@ function reglaRtm(tipoId) {
 module.exports = {
   listarDelUsuario, listarTodos, buscarDelUsuario, placaEnUso, crear, actualizar, eliminar,
   lecturas, registrarLectura,
-  copiarPlanBase, partesActivas, fijarUltimoCambio, buscarParte, crearParte, actualizarParte, desactivarParte, ultimoCostoPorParte,
+  copiarPlanBase, ajustarPlanPorSubtipo, partesActivas, fijarUltimoCambio, buscarParte, crearParte, actualizarParte, desactivarParte, ultimoCostoPorParte,
   crearServicio, registrarCambio, historialServicios, historialParte, costoMantenimiento, reglaRtm,
   registrarRevision, revisionesDeParte, revisionesDeVehiculo,
   listarNovedades, listarNovedadesDelUsuario, novedadesPendientes, buscarNovedad, crearNovedad, marcarArreglada,
-  actualizarNovedad, actualizarServicioDeNovedad, eliminarNovedad,
+  actualizarNovedad, actualizarServicioDeNovedad, eliminarNovedad, transferir,
 };

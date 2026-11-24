@@ -31,7 +31,8 @@ export default function Documento() {
 
   // Si el documento ya existe, se carga su historial de renovaciones
   useEffect(() => {
-    if (doc?.id) api(`/documentos/${doc.id}`).then((r) => setHistorial(r.historial)).catch(() => {});
+    // Se propone la nueva fecha: un año después del vencimiento (el SOAT y la técnico-mecánica duran un año)
+    if (doc?.id) api(`/documentos/${doc.id}`).then((r) => { setHistorial(r.historial); if (r.fechaSugerida) setVence((v) => v || r.fechaSugerida); }).catch(() => {});
   }, [doc?.id]);
 
   if (!vehiculo) return <Cargando />;
@@ -92,7 +93,7 @@ export default function Documento() {
         <CampoFecha etiqueta={doc ? 'Nueva fecha de vencimiento' : 'Fecha de vencimiento'} obligatorio valor={vence}
           onCambio={(f) => { setVence(f); limpiar('fecha_vencimiento'); }} minima={doc?.fecha_vencimiento}
           error={errores.fecha_vencimiento}
-          ayuda={doc ? `Debe ser posterior al ${fecha(doc.fecha_vencimiento)}.` : 'La fecha que aparece en el documento.'} />
+          ayuda={doc ? `Te proponemos un año después del vencimiento anterior (${fecha(doc.fecha_vencimiento)}); cámbiala si tu documento dice otra.` : 'La fecha que aparece en el documento.'} />
         <Campo etiqueta="Valor pagado ($)" placeholder="Ej.: 420.000" value={valor} keyboardType="number-pad"
           onChangeText={(t) => { setValor(t); limpiar('valor'); }} error={errores.valor} />
         <CampoFecha etiqueta="Fecha de pago" valor={fechaPago} maxima={hoyISO()}

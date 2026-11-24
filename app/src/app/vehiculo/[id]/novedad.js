@@ -78,6 +78,7 @@ function Formulario({ vehiculo, existente, parteInicial }) {
   const [titulo, setTitulo] = useState(existente && !existente.parte_id ? existente.titulo : '');
   const [descripcion, setDescripcion] = useState(existente?.descripcion ?? '');
   const [fecha, setFecha] = useState(existente?.fecha ?? hoyISO());
+  const [impide, setImpide] = useState(Boolean(existente?.impide_circular));  // RN-21
   const [km, setKm] = useState(String(existente?.km ?? vehiculo.km_actual));
   const [foto, setFoto] = useState(null);
   const [arreglada, setArreglada] = useState(false);
@@ -112,11 +113,12 @@ function Formulario({ vehiculo, existente, parteInicial }) {
     const formulario = new FormData();
     const campos = editando
       ? {
-        tipo, titulo: parte === OTRA ? titulo : '', descripcion, fecha, km,
+        tipo, titulo: parte === OTRA ? titulo : '', descripcion, fecha, km, impide_circular: String(impide),
         ...(yaArreglado ? { arreglo_fecha: arreglo.fecha, arreglo_km: arreglo.km, lugar: arreglo.lugar, costo: arreglo.costo } : {}),
       }
       : {
         tipo, parte_id: esParte ? parte : '', titulo: parte === OTRA ? titulo : '', descripcion, fecha, km, arreglada: String(arreglada),
+        impide_circular: String(impide),
         ...(arreglada ? {
           arreglo_fecha: arreglo.fecha, arreglo_km: arreglo.km, lugar: arreglo.lugar, costo: arreglo.costo, marca_referencia: arreglo.marca_referencia,
         } : {}),
@@ -160,6 +162,8 @@ function Formulario({ vehiculo, existente, parteInicial }) {
           onCambio={(v) => { setFecha(v); limpiar('fecha'); }} error={errores.fecha} />
         <Campo etiqueta="Kilometraje" obligatorio value={km} keyboardType="number-pad"
           onChangeText={(v) => { setKm(v); limpiar('km'); }} error={errores.km} />
+        <Casilla marcada={impide} onCambio={setImpide}>Este daño no me deja usar el vehículo (por ejemplo, frenos o luces que no sirven)</Casilla>
+        {impide && <Aviso tipo="aviso">Mientras no esté arreglado, el vehículo aparecerá como "No apto para circular".</Aviso>}
         {fotoActual && <Image source={{ uri: fotoActual }} style={{ width: '100%', height: 160, borderRadius: 8 }} />}
         <Boton titulo={fotoActual ? 'Cambiar foto' : 'Agregar una foto (opcional)'} icono="camera-outline" onPress={elegirFoto} />
         {errores.foto && <Aviso>{errores.foto}</Aviso>}

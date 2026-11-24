@@ -103,8 +103,9 @@ export default function Inicio() {
     <Fila>
       <Cifra valor={vencidas} texto="Partes vencidas" icono="alert-circle" tono={vencidas ? 'vencida' : 'bien'} ancho={anchoCifra} />
       <Cifra valor={proximas} texto="Próximas a cambio" icono="time" tono={proximas ? 'proxima' : 'bien'} ancho={anchoCifra} />
-      <Cifra valor={pesos(panel.gastoMes.total)} texto="Gastado este mes" icono="wallet" ancho={anchoCifra} />
-      <Cifra valor={pesos(panel.estimadoMes)} texto="Gasto estimado del mes" icono="calculator" ancho={anchoCifra} />
+      {/* Las cifras de plata van en azul (el segundo color del logo) */}
+      <Cifra valor={pesos(panel.gastoMes.total)} texto="Gastado este mes" icono="wallet" tono="azul" ancho={anchoCifra} />
+      <Cifra valor={pesos(panel.estimadoMes)} texto="Gasto estimado del mes" icono="calculator" tono="azul" ancho={anchoCifra} />
     </Fila>
   );
 

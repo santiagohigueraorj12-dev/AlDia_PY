@@ -10,13 +10,16 @@ const {
   calcularDesgaste, ordenarPorUrgencia, sugerenciasServicio, validarUltimoCambio, ultimoCambioDesconocido, ultimoCambioNunca,
   validarMesRevision,
 } = require('../../domain/desgaste');
-const { validarNuevoKm, promedioDiario, kmParaCalculo } = require('../../domain/kilometraje');
-const { estadoVehiculo, costoPorKm, fechaPrimeraRtm } = require('../../domain/vehiculo');
+const { validarNuevoKm, promedioDiario, kmParaCalculo, validarKmEnFecha } = require('../../domain/kilometraje');
+const { estadoVehiculo, costoPorKm, fechaPrimeraRtm, validarPlaca, exentoDeImpuesto } = require('../../domain/vehiculo');
 const { estadoDocumento } = require('../../domain/documentos');
 const { calcularSalud } = require('../../domain/salud');
 const documentosRepo = require('../documentos/documentos.repository');
 const alertas = require('../notificaciones/alertas.service');
 const repo = require('./vehiculos.repository');
+const bcrypt = require('bcryptjs');
+const authRepo = require('../auth/auth.repository');
+const notificaciones = require('../notificaciones/notificaciones.service');
 
 /** RN-01 / RNF-02: el vehículo debe ser del usuario; si no, respondemos 404. */
 async function vehiculoDelUsuario(usuarioId, vehiculoId) {
@@ -64,7 +67,7 @@ async function armarVehiculo(vehiculo, fechaHoy = hoy()) {
 
   // Costos (RF-10, RN-12)
   const mantenimiento = await repo.costoMantenimiento(vehiculo.id);
-  const estado = estadoVehiculo(partes, documentos, fechaHoy, pendientes.length);  // RN-11, RN-21
+  const estado = estadoVehiculo(partes, documentos, fechaHoy, pendientes);  // RN-11, RN-21
 
   return {
     ...vehiculo,
@@ -82,6 +85,7 @@ async function armarVehiculo(vehiculo, fechaHoy = hoy()) {
     partes,
     documentos,
     novedadesPendientes: pendientes,
+    exentoImpuesto: exentoDeImpuesto(vehiculo),  // RN-22: moto de hasta 125 cc
     costos: {
       mantenimiento: mantenimiento.total,
       cambios: mantenimiento.cambios,
@@ -107,7 +111,17 @@ async function detalle(usuarioId, id) {
  * RN-14: si la primera revisión técnico-mecánica todavía no ha llegado,
  * se registra el documento con la fecha calculada.
  */
+/** RN-02 y RN-05: la placa según el tipo y, en las motos, el tipo de moto (define su plan de partes). */
+function validarDatosPorTipo(datos, tipoVehiculoId) {
+  const placa = validarPlaca(datos.placa, tipoVehiculoId);
+  if (!placa.valido) throw AppError.campo('placa', placa.mensaje);
+  const esMoto = Number(tipoVehiculoId) === 1;
+  if (esMoto && !datos.subtipo) throw AppError.campo('subtipo', 'Elige si la moto es de cambios o automática');
+  if (!esMoto) datos.subtipo = null;
+}
+
 async function crear(usuarioId, datos, fotoUrl) {
+  validarDatosPorTipo(datos, datos.tipo_vehiculo_id);
   if (await repo.placaEnUso(datos.placa)) throw AppError.campo('placa', 'Ya hay un vehículo registrado con esa placa', 409);  // RN-02
 
   const fechaHoy = hoy();
@@ -117,10 +131,10 @@ async function crear(usuarioId, datos, fotoUrl) {
     const vehiculoId = await repo.crear(conn, { ...datos, usuario_id: usuarioId, foto_url: fotoUrl });
     await conn.query('INSERT INTO lecturas_km (vehiculo_id, km, fecha) VALUES (?, ?, NOW())', [vehiculoId, datos.km_inicial]);
     const desconocido = ultimoCambioDesconocido(datos.fecha_matricula);
-    await repo.copiarPlanBase(conn, vehiculoId, datos.tipo_vehiculo_id, desconocido.km, desconocido.fecha);
+    await repo.copiarPlanBase(conn, vehiculoId, datos.tipo_vehiculo_id, desconocido.km, desconocido.fecha, datos.subtipo);
 
     if (regla) {
-      const primeraRtm = fechaPrimeraRtm(datos.fecha_matricula, regla);
+      const primeraRtm = fechaPrimeraRtm(datos.fecha_matricula, regla, datos.tipo_vehiculo_id);
       if (primeraRtm > fechaHoy) {
         await documentosRepo.crear(conn, { vehiculoId, tipo: 'rtm', fechaVencimiento: primeraRtm, archivoUrl: null });
       }
@@ -131,9 +145,16 @@ async function crear(usuarioId, datos, fotoUrl) {
 }
 
 async function actualizar(usuarioId, id, datos, fotoUrl) {
-  await vehiculoDelUsuario(usuarioId, id);
+  const vehiculo = await vehiculoDelUsuario(usuarioId, id);
+  validarDatosPorTipo(datos, vehiculo.tipo_vehiculo_id);
   if (await repo.placaEnUso(datos.placa, id)) throw AppError.campo('placa', 'Ya hay un vehículo registrado con esa placa', 409);
-  await repo.actualizar(id, { ...datos, foto_url: fotoUrl });
+  await transaccion(async (conn) => {
+    await repo.actualizar(conn, id, { ...datos, foto_url: fotoUrl });
+    // RN-05: si cambió el tipo de moto, se ajusta el plan (se quitan las partes del otro tipo y se agregan las suyas)
+    if (Number(vehiculo.tipo_vehiculo_id) === 1 && datos.subtipo && datos.subtipo !== vehiculo.subtipo) {
+      await repo.ajustarPlanPorSubtipo(conn, id, datos.subtipo, vehiculo.km_actual, hoy());
+    }
+  });
   return detalle(usuarioId, id);
 }
 
@@ -217,6 +238,7 @@ async function fijarUltimosCambios(usuarioId, vehiculoId, partes) {
   const actuales = await repo.partesActivas(vehiculoId);
   const fechaHoy = hoy();
 
+  const lecturasKm = await repo.lecturas(vehiculoId);
   const cambios = partes.map((dato, i) => {
     const parte = actuales.find((p) => p.id === dato.parte_id);
     if (!parte) throw new AppError('Una de las partes no pertenece a este vehículo');
@@ -238,6 +260,8 @@ async function fijarUltimosCambios(usuarioId, vehiculoId, partes) {
       const campo = validacion.mensaje.includes('kilometraje') ? 'km' : 'fecha';
       throw AppError.campo(`partes.${i}.${campo}`, validacion.mensaje);
     }
+    const enFecha = validarKmEnFecha(lecturasKm, dato.fecha, dato.km);  // RN-09
+    if (!enFecha.valido) throw AppError.campo(`partes.${i}.km`, enFecha.mensaje);
     return { parteId: parte.id, km: dato.km, fecha: dato.fecha, conocido: true };
   });
 
@@ -283,13 +307,18 @@ async function listarNovedades(usuarioId, vehiculoId) {
   return repo.listarNovedades(vehiculoId);
 }
 
-/** Validaciones comunes de fecha y km (no futura, no antes de la matrícula, no más que el km del vehículo). */
-function validarFechaKm({ fecha, km }, vehiculo, prefijo = '') {
+/**
+ * Validaciones comunes de fecha y km: no futura, no antes de la matrícula, no más que el km
+ * del vehículo y (RN-09) que el km cuadre con las lecturas del odómetro de esa fecha.
+ */
+async function validarFechaKm({ fecha, km }, vehiculo, prefijo = '') {
   if (fecha > hoy()) throw AppError.campo(`${prefijo}fecha`, 'La fecha no puede ser futura');
   if (fecha < vehiculo.fecha_matricula) throw AppError.campo(`${prefijo}fecha`, 'La fecha no puede ser anterior a la matrícula del vehículo');
   if (km > vehiculo.km_actual) {
     throw AppError.campo(`${prefijo}km`, `No puede ser mayor al kilometraje actual del vehículo (${vehiculo.km_actual.toLocaleString('es-CO')} km). Si ya recorrió más, actualiza primero el kilometraje.`);
   }
+  const enFecha = validarKmEnFecha(await repo.lecturas(vehiculo.id), fecha, km);
+  if (!enFecha.valido) throw AppError.campo(`${prefijo}km`, enFecha.mensaje);
 }
 
 /**
@@ -320,21 +349,21 @@ async function crearNovedad(usuarioId, vehiculoId, datos, fotoUrl) {
     titulo = titulo || parte.nombre;
   }
   if (!titulo) throw AppError.campo('titulo', 'Escribe qué se dañó');
-  validarFechaKm(datos, vehiculo);
+  await validarFechaKm(datos, vehiculo);
 
   const arreglo = {
     fecha: datos.arreglo_fecha ?? datos.fecha, km: datos.arreglo_km ?? datos.km,
     lugar: datos.lugar, costo: datos.costo, marca_referencia: datos.marca_referencia,
   };
   if (datos.arreglada) {
-    validarFechaKm(arreglo, vehiculo, 'arreglo_');
+    await validarFechaKm(arreglo, vehiculo, 'arreglo_');
     if (arreglo.fecha < datos.fecha) throw AppError.campo('arreglo_fecha', 'El arreglo no puede ser antes del daño');
   }
 
   await transaccion(async (conn) => {
     const id = await repo.crearNovedad(conn, {
       vehiculoId, parteId: datos.parte_id, tipo: datos.tipo, titulo, descripcion: datos.descripcion,
-      fecha: datos.fecha, km: datos.km, estado: 'pendiente', fotoUrl,
+      fecha: datos.fecha, km: datos.km, estado: 'pendiente', fotoUrl, impideCircular: datos.impide_circular,
     });
     if (datos.arreglada) await arreglarDentro(conn, { id, parte_id: datos.parte_id }, vehiculo, arreglo);
   });
@@ -345,7 +374,7 @@ async function arreglarNovedad(usuarioId, novedadId, datos) {
   const novedad = await novedadDelUsuario(usuarioId, novedadId);
   if (novedad.estado === 'arreglada') throw new AppError('Este daño ya está marcado como arreglado');
   const vehiculo = await vehiculoDelUsuario(usuarioId, novedad.vehiculo_id);
-  validarFechaKm(datos, vehiculo);
+  await validarFechaKm(datos, vehiculo);
   if (datos.fecha < novedad.fecha) throw AppError.campo('fecha', 'El arreglo no puede ser antes del daño');
   await transaccion((conn) => arreglarDentro(conn, novedad, vehiculo, datos));
   return detalle(usuarioId, novedad.vehiculo_id);
@@ -371,7 +400,7 @@ async function editarNovedad(usuarioId, novedadId, datos, fotoUrl) {
   const novedad = await novedadDelUsuario(usuarioId, novedadId);
   const vehiculo = await vehiculoDelUsuario(usuarioId, novedad.vehiculo_id);
   const titulo = datos.titulo || novedad.titulo;
-  validarFechaKm(datos, vehiculo);
+  await validarFechaKm(datos, vehiculo);
 
   const arreglada = novedad.estado === 'arreglada';
   const conServicio = arreglada && novedad.servicio_id;
@@ -382,13 +411,14 @@ async function editarNovedad(usuarioId, novedadId, datos, fotoUrl) {
       arregladaKm: conServicio ? novedad.arreglada_km : (datos.arreglo_km ?? novedad.arreglada_km),
       lugar: datos.lugar, costo: datos.costo ?? 0,
     };
-    if (!conServicio) validarFechaKm({ fecha: arreglo.arregladaEn, km: arreglo.arregladaKm }, vehiculo, 'arreglo_');
+    if (!conServicio) await validarFechaKm({ fecha: arreglo.arregladaEn, km: arreglo.arregladaKm }, vehiculo, 'arreglo_');
     if (arreglo.arregladaEn < datos.fecha) throw AppError.campo('fecha', 'El daño no puede ser después de su arreglo');
   }
 
   await transaccion(async (conn) => {
     await repo.actualizarNovedad(conn, novedad.id, {
       tipo: datos.tipo, titulo, descripcion: datos.descripcion, fecha: datos.fecha, km: datos.km, fotoUrl, ...arreglo,
+      impideCircular: datos.impide_circular,
     });
     if (conServicio) {
       await repo.actualizarServicioDeNovedad(conn, { servicioId: novedad.servicio_id, parteId: novedad.parte_id, lugar: arreglo.lugar, costo: arreglo.costo });
@@ -401,6 +431,31 @@ async function eliminarNovedad(usuarioId, novedadId) {
   const novedad = await novedadDelUsuario(usuarioId, novedadId);
   await repo.eliminarNovedad(novedadId);  // el servicio que se registró al arreglarla se conserva
   return detalle(usuarioId, novedad.vehiculo_id);
+}
+
+/**
+ * RF-29 (RN-23): transferir el vehículo a otro usuario de AlDía, por ejemplo al venderlo.
+ * El vehículo pasa con TODO su historial (partes, cambios, documentos, daños y fotos),
+ * que es lo que le da valor a la hoja de vida. Se pide la contraseña del dueño actual
+ * y el correo debe ser de una cuenta activa distinta a la propia.
+ */
+async function transferir(usuarioId, vehiculoId, { correo, password }) {
+  const vehiculo = await vehiculoDelUsuario(usuarioId, vehiculoId);
+  const dueno = await authRepo.buscarPorId(usuarioId);
+  if (!(await bcrypt.compare(password, dueno.password_hash))) throw AppError.campo('password', 'La contraseña no es correcta');
+  const nuevo = await authRepo.buscarPorCorreo(correo);
+  if (!nuevo || !nuevo.activo) throw AppError.campo('correo', 'No hay una cuenta activa de AlDía con ese correo. Pídele al comprador que se registre primero.');
+  if (nuevo.id === usuarioId) throw AppError.campo('correo', 'Ese es tu propio correo');
+
+  await transaccion((conn) => repo.transferir(conn, vehiculoId, usuarioId, nuevo.id));
+  await notificaciones.crear(nuevo.id, {
+    tipo: 'documento',
+    titulo: `Recibiste el vehículo ${vehiculo.placa}`,
+    mensaje: `${dueno.nombre} te transfirió ${vehiculo.marca} ${vehiculo.linea} con todo su historial de mantenimiento. Revisa el kilometraje y los documentos.`,
+    enlace: `/vehiculo/${vehiculoId}`,
+    clave: `transferencia:${vehiculoId}:${Date.now()}`,
+  });
+  return { mensaje: `${vehiculo.placa} ahora es de ${nuevo.nombre}` };
 }
 
 async function revisionesDeVehiculo(usuarioId, vehiculoId) {
@@ -438,6 +493,10 @@ async function registrarServicio(usuarioId, vehiculoId, { fecha, km, lugar, camb
     }
   }
 
+  // RN-09: el km del servicio debe cuadrar con las lecturas del odómetro de esa fecha
+  const enFecha = validarKmEnFecha(await repo.lecturas(vehiculoId), fecha, km);
+  if (!enFecha.valido) throw AppError.campo('km', enFecha.mensaje);
+
   // --- Se guarda todo junto o nada (RNF-07) ---
   await transaccion(async (conn) => {
     const servicioId = await repo.crearServicio(conn, { vehiculoId, fecha, km, lugar });
@@ -460,5 +519,5 @@ module.exports = {
   agregarParte, actualizarParte, quitarParte, historialParte, fijarUltimosCambios,
   sugerencias, registrarServicio, historial,
   revisarParte, revisionesDeVehiculo, listarNovedades, crearNovedad, arreglarNovedad, eliminarNovedad,
-  listarNovedadesDelUsuario, verNovedad, editarNovedad,
+  listarNovedadesDelUsuario, verNovedad, editarNovedad, transferir,
 };

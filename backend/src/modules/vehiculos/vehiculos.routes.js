@@ -3,7 +3,7 @@ const { Router } = require('express');
 const validar = require('../../middlewares/validar');
 const { subirArchivo } = require('../../middlewares/subirArchivo');
 const {
-  z, texto, textoOpcional, entero, fecha, aEntero,
+  z, texto, textoOpcional, entero, fecha, aEntero, correo, passwordActual,
 } = require('../../utils/validaciones');
 const c = require('./vehiculos.controller');
 const { registrarEnVehiculo } = require('../documentos/documentos.routes');
@@ -24,6 +24,10 @@ const datosVehiculo = {
   modelo: entero('el modelo', { min: 1950, max: anioActual + 1 }),
   placa,
   fecha_matricula: fecha('la fecha de matrícula', { noFutura: true }),
+  // RN-05: solo motos. 'cambios' (con cadena) o 'automatica' (scooter con correa CVT)
+  subtipo: z.preprocess((v) => (v === '' || v === 'null' ? undefined : v), z.enum(['cambios', 'automatica'], { errorMap: () => ({ message: 'Elige si la moto es de cambios o automática' }) }).optional()),
+  // RN-22: cilindraje (opcional), para saber si una moto paga impuesto vehicular
+  cilindraje: entero('el cilindraje', { min: 49, max: 8000, opcional: true }),
 };
 
 // RN-05: los intervalos no pueden quedar en cero
@@ -82,6 +86,7 @@ const esquemas = {
     fecha: fecha('la fecha', { noFutura: true }),
     km: entero('el kilometraje'),
     arreglada: z.preprocess((v) => v === true || v === 'true', z.boolean()).default(false),
+    impide_circular: z.preprocess((v) => v === true || v === 'true', z.boolean()).default(false),  // RN-21
     arreglo_fecha: fecha('la fecha del arreglo', { opcional: true, noFutura: true }),
     arreglo_km: entero('el kilometraje del arreglo', { opcional: true }),
     lugar: textoOpcional('el lugar', { max: 120 }),
@@ -91,6 +96,7 @@ const esquemas = {
   // Editar un daño (FormData: puede traer una foto nueva)
   edicionNovedad: z.object({
     tipo: z.enum(['dano', 'accidente', 'otro'], { errorMap: () => ({ message: 'Elige qué pasó' }) }),
+    impide_circular: z.preprocess((v) => v === true || v === 'true', z.boolean()).default(false),
     titulo: textoOpcional('qué se dañó', { max: 120 }),
     descripcion: textoOpcional('la descripción', { max: 1000 }),
     fecha: fecha('la fecha', { noFutura: true }),
@@ -100,6 +106,8 @@ const esquemas = {
     lugar: textoOpcional('el lugar', { max: 120 }),
     costo: entero('el costo', { opcional: true }),
   }),
+  // RF-29: correo del nuevo dueño y contraseña del dueño actual
+  transferencia: z.object({ correo: correo(), password: passwordActual('Escribe tu contraseña para confirmar') }),
   arreglo: z.object({
     fecha: fecha('la fecha del arreglo', { noFutura: true }),
     km: entero('el kilometraje'),
@@ -127,6 +135,7 @@ vehiculos.get('/:id', c.detalle);
 vehiculos.put('/:id', subirArchivo.single('foto'), validar(esquemas.actualizar), c.actualizar);
 vehiculos.delete('/:id', c.eliminar);
 vehiculos.get('/:id/hoja-de-vida', c.hojaDeVida);    // RF-11
+vehiculos.post('/:id/transferir', validar(esquemas.transferencia), c.transferir);  // RF-29
 
 // Kilometraje (RF-05)
 vehiculos.post('/:id/kilometraje', validar(esquemas.km), c.actualizarKm);

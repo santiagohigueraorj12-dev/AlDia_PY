@@ -27,7 +27,7 @@ function estadoPorDesgaste(porcentaje) {
  */
 function calcularDesgaste(parte, kmActual, { hoy = hoyBogota(), promedioDiarioKm = null } = {}) {
   // RN-20: si la parte se revisó después de su último cambio, manda la revisión
-  if (tieneRevisionVigente(parte)) return desgastePorRevision(parte, hoy);
+  if (tieneRevisionVigente(parte)) return desgastePorRevision(parte, hoy, kmActual, promedioDiarioKm);
 
   // --- Por kilómetros ---
   const kmRecorridos = Math.max(0, kmActual - parte.ultimo_cambio_km);
@@ -75,6 +75,9 @@ function calcularDesgaste(parte, kmActual, { hoy = hoyBogota(), promedioDiarioKm
 // que quiere volver a revisarla. Desde la revisión hasta ese mes la parte está
 // "bien" y la barra avanza con el tiempo: al 80 % pasa a "próxima" y el día
 // elegido a "vencida" (toca revisarla de nuevo o cambiarla).
+// Si la parte también se gasta por kilómetros (ej.: el kit de arrastre), los km
+// recorridos DESDE LA REVISIÓN siguen contando contra su intervalo: lo que llegue
+// primero, la fecha elegida o los km.
 // No es un cambio: no tiene costo ni borra la fecha del último cambio real.
 // Si después se registra un cambio de la parte, la revisión deja de contar.
 // ---------------------------------------------------------------------
@@ -86,23 +89,35 @@ function tieneRevisionVigente(parte) {
   return String(parte.ultima_revision_fecha).slice(0, 10) >= String(parte.ultimo_cambio_fecha).slice(0, 10);
 }
 
-/** Desgaste de una parte revisada: avanza de la fecha de revisión a la fecha elegida. */
-function desgastePorRevision(parte, hoy) {
+/** Desgaste de una parte revisada: avanza de la fecha de revisión a la fecha elegida (y por km desde la revisión). */
+function desgastePorRevision(parte, hoy, kmActual = null, promedioDiarioKm = null) {
   const desde = String(parte.ultima_revision_fecha).slice(0, 10);
   const hasta = String(parte.revisar_en).slice(0, 10);
   const diasTotales = Math.max(1, diasEntre(desde, hasta));
   const diasTranscurridos = Math.max(0, diasEntre(desde, hoy));
-  const porcentaje = (diasTranscurridos / diasTotales) * 100;
+  const porcentajeTiempo = (diasTranscurridos / diasTotales) * 100;
+  // Kilómetros recorridos desde la revisión, contra el intervalo en km de la parte
+  const conKm = parte.intervalo_km && kmActual !== null && parte.ultima_revision_km !== null && parte.ultima_revision_km !== undefined;
+  const kmDesde = conKm ? Math.max(0, kmActual - parte.ultima_revision_km) : 0;
+  const porcentajeKm = conKm ? (kmDesde / parte.intervalo_km) * 100 : 0;
+  const kmRestantes = conKm ? parte.intervalo_km - kmDesde : null;
+  const porcentaje = Math.max(porcentajeTiempo, porcentajeKm);
+  let fechaEstimada = hasta;
+  if (kmRestantes !== null && promedioDiarioKm > 0) {
+    const fechaPorKm = sumarDias(hoy, Math.max(0, Math.ceil(kmRestantes / promedioDiarioKm)));
+    if (fechaPorKm < fechaEstimada) fechaEstimada = fechaPorKm;
+  }
+  if (fechaEstimada < hoy || porcentaje >= UMBRAL_VENCIDA) fechaEstimada = hoy;
   return {
     porcentaje: redondear(porcentaje),
-    porcentajeKm: 0,
-    porcentajeTiempo: redondear(porcentaje),
+    porcentajeKm: redondear(porcentajeKm),
+    porcentajeTiempo: redondear(porcentajeTiempo),
     motivo: 'revision',
     estado: estadoPorDesgaste(porcentaje),
-    kmRestantes: null,
+    kmRestantes,
     diasRestantes: diasEntre(hoy, hasta),
     fechaLimiteTiempo: hasta,
-    fechaEstimada: hasta < hoy ? hoy : hasta,
+    fechaEstimada,
     revision: { fecha: desde, km: parte.ultima_revision_km, revisarEn: hasta },
   };
 }

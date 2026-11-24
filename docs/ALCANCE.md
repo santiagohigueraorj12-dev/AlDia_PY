@@ -54,6 +54,8 @@ gasta en mantenimiento y controla el vencimiento de los documentos del vehículo
 | RN-19 | Salud del vehículo de 0 a 100 %: partes (bien 100, próxima 50, vencida 0) pesan 70 % y documentos (vigente 100, por vencer 50, vencido 0) 30 %. No contradice el estado: no apto, máximo 49 %; requiere atención, máximo 79 %. Verde desde 80 %. | `domain/salud.js` |
 | RN-20 | Revisión de una parte ("Revisé y está bien"): el usuario elige el mes de la próxima revisión (del mes siguiente hasta 36 meses). Hasta el día 1 de ese mes la parte está bien y su barra avanza con el tiempo (80 %: próxima; el día elegido: vencida, toca revisarla). No es un cambio: sin costo, no borra el último cambio y los km no cuentan. Un cambio posterior anula la revisión. | `domain/desgaste.js` → `validarMesRevision()`, `calcularDesgaste()` |
 | RN-21 | Una novedad (daño, falla o golpe) pendiente pone el vehículo en "requiere atención" (salvo que sea no apto). Fecha y km no futuros ni mayores al actual; el arreglo no puede ser antes de la novedad. Al arreglar una novedad de una parte del plan se registra el cambio de esa parte; si no, el costo queda en la novedad. | `domain/vehiculo.js` → `estadoVehiculo()` |
+| RN-22 | Las motos de hasta 125 cc no pagan impuesto vehicular (Ley 488 de 1998, art. 141): con el cilindraje registrado, no se les pide el impuesto. | `domain/vehiculo.js` → `exentoDeImpuesto()` |
+| RN-23 | Transferir un vehículo: contraseña del dueño y correo de una cuenta activa distinta; pasa con todo su historial y el nuevo dueño recibe una notificación. | `vehiculos.service.js` → `transferir()` |
 
 ## Requisitos funcionales
 **Usuarios**
@@ -95,6 +97,7 @@ gasta en mantenimiento y controla el vencimiento de los documentos del vehículo
 - RF-25: Ver la salud de cada vehículo y de todos en conjunto (anillo de 0 a 100 %, RN-19).
 - RF-26: Ver la gráfica de gastos de los últimos 12 meses y en qué se va la plata.
 - RF-27: Marcar una parte como revisada en buen estado y elegir el mes de la próxima revisión (aparece en el calendario, RN-20).
+- RF-29: Transferir el vehículo a otro usuario de AlDía con todo su historial (RN-23).
 - RF-28: Panel de daños (CRUD): registrar, consultar, editar, marcar como arreglados y eliminar los daños del vehículo (falla o golpe, con foto opcional) (RN-21).
 
 **Asistente**

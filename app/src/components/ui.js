@@ -72,7 +72,7 @@ export function Boton({ titulo, onPress, tipo = 'normal', icono, pequeno = false
   const c = useColores();
   const colores = {
     primario: { fondo: c.primario, texto: c.primarioTexto, borde: c.primario },
-    normal: { fondo: c.superficie, texto: c.texto, borde: c.borde },
+    normal: { fondo: c.superficie, texto: c.azul, borde: c.azulBorde },  // secundario: azul del logo
     peligro: { fondo: c.superficie, texto: c.vencida, borde: c.vencida },
     enlace: { fondo: 'transparent', texto: c.primario, borde: 'transparent' },
   }[tipo];
@@ -338,8 +338,8 @@ export function Cifra({ valor, texto, icono, tono = 'primario', ancho = '47%' })
   // Tarjeta grafito (como un indicador del tablero); el tono solo pinta el ícono y la barra lateral.
   // Colores vivos sobre grafito: contraste ≥ 4,5 (WCAG AA, RNF-05)
   const color = c.esOscuro
-    ? { vencida: '#f87171', proxima: '#fbbf24', bien: '#34d399', primario: '#ff7a2e', neutro: '#94a3b8' }[tono]
-    : { vencida: c.vencidaBarra, proxima: c.proximaBarra, bien: c.bienBarra, primario: c.primario, neutro: c.textoSuave }[tono];
+    ? { vencida: '#f87171', proxima: '#fbbf24', bien: '#34d399', primario: '#ff7a2e', neutro: '#94a3b8', azul: c.azul }[tono]
+    : { vencida: c.vencidaBarra, proxima: c.proximaBarra, bien: c.bienBarra, primario: c.primario, neutro: c.textoSuave, azul: c.secundario }[tono];
   return (
     <Degradado
       estilo={{ flexBasis: ancho, flexGrow: 1, alignSelf: 'stretch', borderRadius: 12, borderWidth: 1, borderColor: c.borde, boxShadow: `0 4px 14px ${c.sombra}` }}>

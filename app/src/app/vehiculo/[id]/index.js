@@ -101,6 +101,13 @@ export default function DetalleVehiculo() {
         </Aviso>
       )}
 
+      {/* RN-05: motos registradas antes de pedir el tipo de moto */}
+      {vehiculo.tipo === 'Moto' && !vehiculo.subtipo && (
+        <Aviso tipo="info" accion={<Boton titulo="Indicar tipo de moto" icono="create-outline" pequeno onPress={() => router.push(`/vehiculo/${id}/editar`)} />}>
+          Cuéntanos si tu moto es de cambios (con cadena) o automática (scooter) para ajustar sus partes.
+        </Aviso>
+      )}
+
       {/* RN-16: partes cuyo último cambio no se conoce (y que aún se pueden indicar) */}
       {sinUltimoCambio > 0 && (
         <Aviso tipo="info" accion={<Boton titulo="Indicar cuándo las cambié" icono="calendar" pequeno onPress={() => router.push(`/vehiculo/${id}/ultimos-cambios`)} />}>
@@ -111,9 +118,9 @@ export default function DetalleVehiculo() {
 
       <Fila>
         <Cifra icono="speedometer-outline" valor={km(vehiculo.km_actual)} texto="Último km registrado" ancho={anchoCifra} />
-        <Cifra icono="trending-up" valor={vehiculo.promedioDiarioKm === null ? '—' : km(vehiculo.promedioDiarioKm)} texto="Recorre por día" ancho={anchoCifra} />
+        <Cifra icono="trending-up" valor={vehiculo.promedioDiarioKm === null ? '—' : km(vehiculo.promedioDiarioKm)} texto="Recorre por día" tono="azul" ancho={anchoCifra} />
         <Cifra icono="wallet-outline" valor={pesos(vehiculo.costos.mantenimiento)} texto={`Gastado en ${vehiculo.costos.cambios} cambio${vehiculo.costos.cambios === 1 ? '' : 's'}`} ancho={anchoCifra} />
-        <Cifra icono="cash-outline" valor={vehiculo.costos.porKm === null ? '—' : pesos(vehiculo.costos.porKm)} texto="Cuesta cada km" ancho={anchoCifra} />
+        <Cifra icono="cash-outline" valor={vehiculo.costos.porKm === null ? '—' : pesos(vehiculo.costos.porKm)} texto="Cuesta cada km" tono="azul" ancho={anchoCifra} />
       </Fila>
 
     </>
@@ -139,6 +146,8 @@ export default function DetalleVehiculo() {
             <ElementoLista icono="calendar-outline" tono="azul" titulo="Indicar el último cambio de las partes" detalle="Cuándo las cambiaste antes de usar AlDía" onPress={() => router.push(`/vehiculo/${id}/ultimos-cambios`)} />
           </>
         )}
+        <Separador />
+        <ElementoLista icono="swap-horizontal-outline" tono="azul" titulo="Transferir a otro dueño" detalle="Si lo vendes: pasa con todo su historial a la cuenta del comprador" onPress={() => router.push(`/vehiculo/${id}/transferir`)} />
         <Separador />
         <ElementoLista icono="trash-outline" tono="vencida" titulo="Eliminar vehículo" detalle="Borra el vehículo y todo su historial" onPress={eliminar} />
       </Tarjeta>
@@ -186,7 +195,8 @@ function FilaParte({ parte: p, vehiculoId }) {
       <Fila estilo={{ justifyContent: 'space-between' }}>
         <Texto variante="negrita" estilo={{ flexShrink: 1 }}>{p.nombre}</Texto>
         <Fila estilo={{ gap: 6 }}>
-          <Texto variante="pequeno">{porcentaje(p.desgaste.porcentaje)}</Texto>
+          {/* Si no se sabe cuándo se cambió, el porcentaje no es real: se muestra "Sin dato" */}
+          <Texto variante="pequeno">{conocido ? porcentaje(p.desgaste.porcentaje) : 'Sin dato'}</Texto>
           <Etiqueta estado={ESTADO_PARTE[p.desgaste.estado]} />
         </Fila>
       </Fila>
@@ -281,6 +291,7 @@ function Novedades({ vehiculoId }) {
               <Etiqueta estado={pendiente ? { texto: 'Pendiente', clase: 'vencida' } : { texto: 'Arreglado', clase: 'bien' }} />
             </Fila>
             <Texto variante="pequeno">{TIPO_NOVEDAD[n.tipo]} · {fecha(n.fecha)} · {km(n.km)}</Texto>
+            {pendiente && Boolean(n.impide_circular) && <Etiqueta estado={{ texto: 'No deja usar el vehículo', clase: 'vencida' }} />}
             {n.descripcion && <Texto>{n.descripcion}</Texto>}
             {n.foto_url && <Image source={{ uri: urlArchivo(n.foto_url) }} style={{ width: '100%', height: 180, borderRadius: 8 }} resizeMode="cover" accessibilityLabel={`Foto de ${n.titulo}`} />}
             {!pendiente && (
@@ -304,6 +315,17 @@ function Documentos({ vehiculo }) {
     <Tarjeta estilo={{ gap: 2 }}>
       {['soat', 'rtm', 'impuesto'].map((tipo, i) => {
         const doc = vehiculo.documentos.find((d) => d.tipo === tipo);
+        // RN-22: moto de hasta 125 cc sin impuesto registrado
+        if (tipo === 'impuesto' && !doc && vehiculo.exentoImpuesto) {
+          return (
+            <View key={tipo}>
+              {i > 0 && <Separador />}
+              <ElementoLista icono="checkmark-circle-outline" tono="bien" titulo={NOMBRE_DOCUMENTO[tipo]}
+                detalle={`No lo paga: las motos de hasta 125 cc están exentas (Ley 488 de 1998). Cilindraje: ${vehiculo.cilindraje} cc`}
+                derecha={<Etiqueta estado={{ texto: 'Exenta', clase: 'bien' }} />} />
+            </View>
+          );
+        }
         const estado = doc ? ESTADO_DOCUMENTO[doc.estado] : null;
         return (
           <View key={tipo}>

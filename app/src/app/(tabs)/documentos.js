@@ -62,6 +62,9 @@ export default function Documentos() {
             derecha={<Etiqueta estado={vehiculo.estadoDocumentacion} />}
           />
           <Separador />
+          {vehiculo.exentoImpuesto && !vehiculo.documentos.some((d) => d.tipo === 'impuesto') && (
+            <Texto variante="pequeno">Impuesto vehicular: no lo paga (moto de {vehiculo.cilindraje} cc, exenta por la Ley 488 de 1998).</Texto>
+          )}
           {vehiculo.documentos.map((doc, indice) => {
             const estado = doc.estado === 'faltante' ? ESTADO_FALTANTE : ESTADO_DOCUMENTO[doc.estado];
             const detalle = doc.estado === 'faltante'

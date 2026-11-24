@@ -45,6 +45,7 @@ function Navegacion() {
           <Stack.Screen name="vehiculo/[id]/parte" options={{ title: 'Parte', presentation: 'modal' }} />
           <Stack.Screen name="vehiculo/[id]/documento" options={{ title: 'Documento', presentation: 'modal' }} />
           <Stack.Screen name="vehiculo/[id]/novedad" options={{ title: 'Daño', presentation: 'modal' }} />
+          <Stack.Screen name="vehiculo/[id]/transferir" options={{ title: 'Transferir vehículo', presentation: 'modal' }} />
           <Stack.Screen name="vehiculo/[id]/ultimos-cambios" options={{ title: 'Último cambio de las partes', presentation: 'modal' }} />
         </Stack.Protected>
 

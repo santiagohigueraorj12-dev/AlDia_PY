@@ -1,7 +1,8 @@
 // =====================================================================
-// REGLAS DE DOCUMENTOS DEL VEHÍCULO  (RN-13, RN-15)
+// REGLAS DE DOCUMENTOS DEL VEHÍCULO  (RN-13, RN-15, RN-22)
 // =====================================================================
-const { diasEntre } = require('../utils/fechas');
+const { diasEntre, sumarMeses } = require('../utils/fechas');
+const { exentoDeImpuesto } = require('./vehiculo');
 
 const NOMBRES = {
   soat: 'SOAT',
@@ -14,6 +15,7 @@ function resumenDocumentacion(vehiculos) {
   const documentos = vehiculos.flatMap((vehiculo) => {
     const registrados = vehiculo.documentos;
     const faltantes = Object.keys(NOMBRES)
+      .filter((tipo) => !(tipo === 'impuesto' && exentoDeImpuesto(vehiculo)))  // RN-22: moto de hasta 125 cc
       .filter((tipo) => !registrados.some((documento) => documento.tipo === tipo))
       .map((tipo) => ({ tipo, estado: 'faltante' }));
     return [...registrados, ...faltantes];
@@ -58,12 +60,38 @@ function umbralDeAlerta(fechaVencimiento, hoy) {
   return umbral === undefined ? null : umbral;
 }
 
-/** RN-15: la nueva fecha de vencimiento debe ser posterior a la anterior. */
-function validarRenovacion(fechaAnterior, fechaNueva) {
-  if (!fechaNueva || fechaNueva <= fechaAnterior) {
-    return { valido: false, mensaje: 'La nueva fecha de vencimiento debe ser posterior a la anterior.' };
+/**
+ * RN-15: tope del vencimiento. El SOAT y la técnico-mecánica duran un año (se deja
+ * un mes de margen: 13 meses); el impuesto es anual con fecha límite que fija cada
+ * departamento (18 meses). Se cuenta desde hoy o, si se renueva antes de que venza,
+ * desde el vencimiento anterior (el documento nuevo empieza cuando termina el viejo).
+ */
+const MESES_MAXIMOS = { soat: 13, rtm: 13, impuesto: 18 };
+function validarVencimiento(tipo, fecha, hoy, fechaAnterior = null) {
+  const desde = fechaAnterior && fechaAnterior > hoy ? fechaAnterior : hoy;
+  const maximo = sumarMeses(desde, MESES_MAXIMOS[tipo] || 18);
+  if (fecha > maximo) {
+    return { valido: false, mensaje: `${NOMBRES[tipo]} dura un año: la fecha de vencimiento no puede pasar del ${maximo.split('-').reverse().join('/')}.` };
   }
   return { valido: true };
 }
 
-module.exports = { NOMBRES, DIAS_ALERTA, estadoDocumento, umbralDeAlerta, validarRenovacion, resumenDocumentacion };
+/** RN-15: la nueva fecha de vencimiento debe ser posterior a la anterior (y respetar el tope). */
+function validarRenovacion(fechaAnterior, fechaNueva, tipo = null, hoy = null) {
+  if (!fechaNueva || fechaNueva <= fechaAnterior) {
+    return { valido: false, mensaje: 'La nueva fecha de vencimiento debe ser posterior a la anterior.' };
+  }
+  if (tipo && hoy) return validarVencimiento(tipo, fechaNueva, hoy, fechaAnterior);
+  return { valido: true };
+}
+
+/** Fecha que se propone al renovar: un año después del vencimiento anterior (o de hoy, si ya venció hace tiempo). */
+function fechaSugerida(fechaAnterior, hoy) {
+  const base = fechaAnterior && fechaAnterior >= sumarMeses(hoy, -1) ? fechaAnterior : hoy;
+  return sumarMeses(base, 12);
+}
+
+module.exports = {
+  NOMBRES, DIAS_ALERTA, MESES_MAXIMOS,
+  estadoDocumento, umbralDeAlerta, validarRenovacion, validarVencimiento, fechaSugerida, resumenDocumentacion,
+};
