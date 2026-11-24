@@ -103,12 +103,13 @@ export function Boton({ titulo, onPress, tipo = 'normal', icono, pequeno = false
 
 /**
  * Ícono dentro de un círculo de color.
- * tono: 'primario' | 'bien' | 'proxima' | 'vencida' | 'neutro'
+ * tono: 'primario' | 'azul' | 'bien' | 'proxima' | 'vencida' | 'neutro'
  */
 export function Icono({ nombre, tono = 'primario', tamano = 40 }) {
   const c = useColores();
   const colores = {
     primario: [c.primarioSuave, c.primario],
+    azul: [c.azulSuave, c.azul],         // azul del logo
     bien: [c.bienFondo, c.bien],
     proxima: [c.proximaFondo, c.proxima],
     vencida: [c.vencidaFondo, c.vencida],
@@ -128,7 +129,7 @@ export function TituloSeccion({ titulo, icono, accion }) {
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6 }}>
       {/* Ícono discreto y una barra naranja corta, como los indicadores de un tablero */}
       <View style={{ width: 3, height: 20, borderRadius: 2, backgroundColor: c.acento }} />
-      {icono && <Ionicons name={icono} size={18} color={c.textoSuave} />}
+      {icono && <Ionicons name={icono} size={18} color={c.azul} />}
       <Text style={{ flex: 1, fontSize: 17, fontWeight: '800', color: c.texto, letterSpacing: 0.2 }} accessibilityRole="header">{titulo}</Text>
       {accion}
     </View>
@@ -192,7 +193,7 @@ export function Segmentos({ opciones, valor, onCambio }) {
 export function Vacio({ icono = 'information-circle-outline', ilustracion, titulo, texto, boton }) {
   return (
     <Tarjeta estilo={{ alignItems: 'center', paddingVertical: 26, gap: 10 }}>
-      {ilustracion || <Icono nombre={icono} tono="neutro" tamano={56} />}
+      {ilustracion || <Icono nombre={icono} tono="azul" tamano={56} />}
       {titulo && <Texto variante="subtitulo" estilo={{ textAlign: 'center' }}>{titulo}</Texto>}
       {texto && <Texto variante="suave" estilo={{ textAlign: 'center', maxWidth: 420 }}>{texto}</Texto>}
       {boton}
@@ -357,8 +358,8 @@ export function Cifra({ valor, texto, icono, tono = 'primario', ancho = '47%' })
 export function Aviso({ tipo = 'error', children, accion }) {
   const c = useColores();
   if (!children) return null;
-  const clase = { error: 'vencida', ok: 'bien', aviso: 'proxima', info: 'primario' }[tipo];
-  const fondo = tipo === 'info' ? c.primarioSuave : c[`${clase}Fondo`];
+  const clase = { error: 'vencida', ok: 'bien', aviso: 'proxima', info: 'azul' }[tipo];
+  const fondo = tipo === 'info' ? c.azulSuave : c[`${clase}Fondo`];
   const icono = { error: 'alert-circle', ok: 'checkmark-circle', aviso: 'warning', info: 'information-circle' }[tipo];
   return (
     <View style={{ backgroundColor: fondo, borderRadius: 10, padding: 12, gap: 10 }} accessibilityRole="alert">

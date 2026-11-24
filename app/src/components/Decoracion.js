@@ -53,14 +53,20 @@ export function FondoDecorado() {
   const id = `f${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="none">
+      {/* brillo azul (el del logo) abajo a la izquierda, para equilibrar el naranja de arriba */}
       <Svg style={StyleSheet.absoluteFill} width="100%" height="100%" preserveAspectRatio="xMidYMin slice" viewBox="0 0 400 800">
         <Defs>
           <RadialGradient id={id} cx="85%" cy="0%" r="70%">
             <Stop offset="0" stopColor={c.acento} stopOpacity={c.esOscuro ? 0.16 : 0.07} />
             <Stop offset="1" stopColor={c.acento} stopOpacity={0} />
           </RadialGradient>
+          <RadialGradient id={`${id}a`} cx="0%" cy="100%" r="75%">
+            <Stop offset="0" stopColor={c.secundario} stopOpacity={c.esOscuro ? 0.14 : 0.07} />
+            <Stop offset="1" stopColor={c.secundario} stopOpacity={0} />
+          </RadialGradient>
         </Defs>
         <Rect x="0" y="0" width="400" height="800" fill={`url(#${id})`} />
+        <Rect x="0" y="0" width="400" height="800" fill={`url(#${id}a)`} />
         <G opacity={c.esOscuro ? 0.07 : 0.05}>
           {[0, 1, 2].map((i) => (
             <Line key={i} x1={360 + i * 16} y1={-20} x2={160 + i * 16} y2={420} stroke={c.texto} strokeWidth={i === 0 ? 10 : 3} />

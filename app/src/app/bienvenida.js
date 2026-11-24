@@ -112,11 +112,11 @@ export default function Bienvenida() {
               </View>
               {/* Ventajas en pastillas con ícono */}
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 8 }}>
-                {VENTAJAS.map((x) => (
+                {VENTAJAS.map((x, i) => (
                   <View key={x.texto} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: c.superficie, borderWidth: 1, borderColor: c.borde,
                     borderRadius: 99, paddingLeft: 5, paddingRight: 14, paddingVertical: 5, boxShadow: `0 4px 14px ${c.sombra}` }}>
-                    <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: c.primarioSuave, alignItems: 'center', justifyContent: 'center' }}>
-                      <Ionicons name={x.icono} size={15} color={c.primario} />
+                    <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: i === 1 ? c.azulSuave : c.primarioSuave, alignItems: 'center', justifyContent: 'center' }}>
+                      <Ionicons name={x.icono} size={15} color={i === 1 ? c.azul : c.primario} />
                     </View>
                     <Text style={{ fontSize: 14, fontWeight: '700', color: c.texto }}>{x.texto}</Text>
                   </View>
@@ -214,10 +214,11 @@ export default function Bienvenida() {
             <Text style={titulo}>Todo lo que hace por ti</Text>
             <Text style={subtitulo}>Lo que necesitas para cuidar tu vehículo, en una sola aplicación.</Text>
             <View style={rejilla}>
-              {FUNCIONES.map((f) => (
+              {FUNCIONES.map((f, i) => (
                 <View key={f.titulo} style={[tarjeta, columnas(grande ? 4 : 2), { backgroundColor: c.fondo, flexDirection: 'row', gap: 14, alignItems: 'flex-start' }]}>
-                  <View style={{ backgroundColor: c.primarioSuave, borderRadius: 12, padding: 11 }}>
-                    <Ionicons name={f.icono} size={24} color={c.primario} />
+                  {/* íconos alternados: naranja y azul, los dos colores del logo */}
+                  <View style={{ backgroundColor: i % 2 ? c.azulSuave : c.primarioSuave, borderRadius: 12, padding: 11 }}>
+                    <Ionicons name={f.icono} size={24} color={i % 2 ? c.azul : c.primario} />
                   </View>
                   <View style={{ flex: 1, gap: 4 }}>
                     <Text style={{ fontSize: 16.5, fontWeight: '800', color: c.texto }}>{f.titulo}</Text>

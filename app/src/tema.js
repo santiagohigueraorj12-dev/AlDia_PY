@@ -10,7 +10,7 @@ import * as SecureStore from 'expo-secure-store';
 
 // Paleta "Carbono": inspirada en los tableros de los carros deportivos.
 // Grafito casi negro, superficies neutras y UN solo acento naranja de competencia
-// (el mismo naranja del sol del logo). Los colores de estado son sobrios y solo
+// (el mismo naranja del sol del logo) y el azul del logo como segundo color. Los colores de estado son sobrios y solo
 // aparecen donde informan algo. Contrastes medidos con WCAG 2.1 (RNF-05).
 const claro = {
   esOscuro: false,
@@ -24,7 +24,9 @@ const claro = {
   primarioTexto: '#ffffff',
   primarioSuave: '#fdeee6',
   acento: '#ea580c',
-  secundario: '#334155',     // pizarra: segundo color de las gráficas
+  secundario: '#2563eb',     // azul del logo: segundo color de las gráficas y adornos
+  azul: '#1d4ed8',           // azul del logo para íconos e información: 6,7:1 sobre blanco
+  azulSuave: '#e8effd',
   rellenoDegradado: false,   // botones de color sólido, sin degradado
   sobrePrimario: '#ffffff',
   // Modo claro: encabezados, saludo y cifras en blanco con un toque cálido y letras oscuras (etiquetas de estado ≥ 5:1)
@@ -53,7 +55,9 @@ const oscuro = {
   primarioTexto: '#111318',  // texto oscuro sobre el naranja
   primarioSuave: '#2a1c13',
   acento: '#ff7a2e',
-  secundario: '#8f9bb0',
+  secundario: '#60a5fa',     // azul del logo, más claro para el fondo oscuro
+  azul: '#7cb4fb',           // 8,6:1 sobre las tarjetas oscuras
+  azulSuave: '#16233a',
   rellenoDegradado: false,
   sobrePrimario: '#111318',
   degradado: ['#171b22', '#1b2029', '#222833'],
