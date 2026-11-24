@@ -26,7 +26,10 @@ export default function Danos() {
   const { datos: vehiculos } = useDatos('/vehiculos');
   const [filtro, setFiltro] = useState('pendiente');
   const [vehiculo, setVehiculo] = useState(null);
-  const anchoCifra = useWindowDimensions().width < 640 ? '100%' : '31%';  // en el celular, una debajo de otra
+  const ancho = useWindowDimensions().width;
+  const anchoCifra = ancho < 640 || ancho >= 1000 ? '100%' : '31%';  // una debajo de otra en el celular y al lado del formulario en el computador
+  const porFila = ancho >= 1450 ? 3 : ancho >= 1000 ? 2 : 1;  // daños en rejilla en el computador
+  const anchoDano = porFila === 1 ? '100%' : porFila === 2 ? '48%' : '31%';
 
   if (error) return <Pantalla><Aviso>{error}</Aviso></Pantalla>;
   if (!danos || !vehiculos) return <Cargando />;
@@ -45,14 +48,12 @@ export default function Danos() {
   }
 
   return (
-    <Pantalla onRefrescar={refrescar} refrescando={refrescando}>
-      <Fila>
-        <Cifra icono="alert-circle-outline" valor={String(pendientes.length)} texto="Pendientes por arreglar" ancho={anchoCifra} tono="vencida" />
-        <Cifra icono="checkmark-circle-outline" valor={String(arreglados.length)} texto="Arreglados" ancho={anchoCifra} tono="bien" />
-        <Cifra icono="wallet-outline" valor={pesos(gastado)} texto="Gastado en arreglos" ancho={anchoCifra} />
-      </Fila>
+    <Pantalla onRefrescar={refrescar} refrescando={refrescando} ancha>
+      {/* Computador: registrar a la izquierda y las cifras a la derecha; celular: una debajo de otra */}
+      <View style={{ flexDirection: ancho >= 1000 ? 'row' : 'column', gap: 16, alignItems: 'stretch' }}>
+        <View style={{ flex: ancho >= 1000 ? 1.6 : undefined }}>
 
-      {/* Crear */}
+          {/* Crear */}
       <Tarjeta estilo={{ gap: 10 }}>
         <TituloSeccion titulo="Registrar un daño" icono="add-circle-outline" />
         <Texto variante="suave">Un pinchazo, un bombillo fundido, la batería que no prende o un golpe: anótalo para no olvidar arreglarlo.</Texto>
@@ -72,6 +73,16 @@ export default function Danos() {
         )}
       </Tarjeta>
 
+        </View>
+        <View style={{ flex: ancho >= 1000 ? 1 : undefined, gap: 12 }}>
+      <Fila estilo={{ height: ancho >= 1000 ? '100%' : undefined }}>
+        <Cifra icono="alert-circle-outline" valor={String(pendientes.length)} texto="Pendientes por arreglar" ancho={anchoCifra} tono="vencida" />
+        <Cifra icono="checkmark-circle-outline" valor={String(arreglados.length)} texto="Arreglados" ancho={anchoCifra} tono="bien" />
+        <Cifra icono="wallet-outline" valor={pesos(gastado)} texto="Gastado en arreglos" ancho={anchoCifra} />
+      </Fila>
+        </View>
+      </View>
+
       {/* Consultar, editar y eliminar */}
       <Segmentos opciones={FILTROS} valor={filtro} onCambio={setFiltro} />
       {lista.length === 0 && (
@@ -79,10 +90,11 @@ export default function Danos() {
           titulo={filtro === 'pendiente' ? 'Nada pendiente' : 'Sin daños registrados'}
           texto={filtro === 'pendiente' ? 'No tienes daños sin arreglar. ¡Bien!' : 'Cuando registres un daño aparecerá aquí.'} />
       )}
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16, alignItems: 'flex-start' }}>
       {lista.map((d) => {
         const pendiente = d.estado === 'pendiente';
         return (
-          <Tarjeta key={d.id} estilo={{ gap: 8 }}>
+          <Tarjeta key={d.id} estilo={{ gap: 8, flexBasis: anchoDano, flexGrow: porFila === 1 ? 1 : 0 }}>
             <Fila estilo={{ justifyContent: 'space-between' }}>
               <Fila estilo={{ gap: 10, flexShrink: 1 }}>
                 <Placa placa={d.placa} tipo={d.tipo_vehiculo} alto={30} />
@@ -104,6 +116,7 @@ export default function Danos() {
           </Tarjeta>
         );
       })}
+      </View>
     </Pantalla>
   );
 }

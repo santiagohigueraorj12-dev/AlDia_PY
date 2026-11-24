@@ -13,7 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useColores } from '../tema';
 import { useSesion } from '../context/SesionContext';
-import { ANCHO_PAGINA, margenLateral } from './ui';
+import { ANCHO_APP, margenLateral } from './ui';
 import BotonTema from './BotonTema';
 import LogoAlDia from './LogoAlDia';
 
@@ -92,7 +92,7 @@ export default function BarraPestanas({ state, descriptors, navigation, arriba, 
   if (arriba) {
     return (
       <View style={{ backgroundColor: c.superficie, borderBottomWidth: 2, borderBottomColor: c.acento, boxShadow: `0 4px 16px ${c.sombra}` }}>
-        <View style={{ width: '100%', maxWidth: ANCHO_PAGINA, alignSelf: 'center', paddingHorizontal: margenLateral(ancho), height: 64, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+        <View style={{ width: '100%', maxWidth: ANCHO_APP, alignSelf: 'center', paddingHorizontal: margenLateral(ancho), height: 64, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
           <Pressable onPress={() => navigation.navigate('index')} accessibilityRole="link" accessibilityLabel="Ir al inicio" style={{ marginRight: 22 }}>
             <LogoAlDia tamano={22} color={c.texto} colorDia={c.esOscuro ? '#ffd166' : c.primario} />
           </Pressable>

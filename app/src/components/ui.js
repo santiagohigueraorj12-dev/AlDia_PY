@@ -15,14 +15,19 @@ import { Aparecer, Siluetas, useProgreso } from './Animaciones';
  */
 export function Pantalla({ children, onRefrescar, refrescando = false, ancha = false }) {
   const c = useColores();
+  const { width } = useWindowDimensions();
   return (
     <View style={{ flex: 1, backgroundColor: c.fondo }}>
     {/* Fondo con figuras y dibujos suaves (queda quieto detrás del contenido) */}
     <FondoDecorado />
     <ScrollView
       style={{ flex: 1 }}
-      // En el computador el contenido no pasa de 820 px (o 1240 px si es "ancha") y queda centrado
-      contentContainerStyle={{ padding: 16, paddingBottom: 40, gap: 14, width: '100%', maxWidth: ancha ? 1240 : 820, alignSelf: 'center' }}
+      // En el computador el contenido no pasa de 820 px (formularios) o de 1680 px si es "ancha"
+      // (paneles), alineado con la barra de navegación de arriba
+      contentContainerStyle={{
+        padding: 16, paddingHorizontal: ancha ? margenLateral(width) : 16, paddingBottom: 40, gap: 14,
+        width: '100%', maxWidth: ancha ? ANCHO_APP : 820, alignSelf: 'center',
+      }}
       keyboardShouldPersistTaps="handled"
       refreshControl={onRefrescar ? <RefreshControl refreshing={refrescando} onRefresh={onRefrescar} tintColor={c.primario} /> : undefined}
     >
@@ -427,6 +432,8 @@ export function Columnas({ izquierda, derecha, proporcion = 1.35 }) {
 
 /** Ancho máximo de las páginas públicas (portada, iniciar sesión): aprovecha pantallas grandes. */
 export const ANCHO_PAGINA = 1440;
+/** Ancho máximo de la app con sesión (barra de navegación y paneles anchos). */
+export const ANCHO_APP = 1680;
 /** Margen a los lados según el ancho de la pantalla (celular, tableta o computador). */
 export function margenLateral(ancho) {
   return ancho >= 1200 ? 56 : ancho >= 800 ? 32 : 16;

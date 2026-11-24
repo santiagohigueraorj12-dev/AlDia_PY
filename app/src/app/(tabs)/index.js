@@ -57,6 +57,7 @@ export default function Inicio() {
       ? { texto: `${docs.porVencer} por vencer`, clase: 'proxima' }
       : { texto: 'Al día', clase: 'bien' };
   const dosColumnas = width >= 1000;
+  const tresColumnas = width >= 1450;  // pantallas grandes: tres columnas para aprovechar el ancho
   // En dos columnas las cifras van de a dos por fila (la columna es más angosta)
   const anchoCifra = width >= 700 && !dosColumnas ? '22%' : '47%';
 
@@ -120,7 +121,14 @@ export default function Inicio() {
   return (
     <Pantalla onRefrescar={refrescar} refrescando={refrescando} ancha>
       <Resumen nombre={nombre} pendientes={tareas.length} salud={panel.salud} vehiculos={panel.vehiculos} />
-      {dosColumnas ? (
+      {tresColumnas ? (
+        // Pantalla grande: tareas | cifras y gastos | perfil, documentos y vehículos
+        <View style={{ flexDirection: 'row', gap: 18, alignItems: 'flex-start' }}>
+          <View style={{ flex: 1.15, gap: 14, minWidth: 0 }}>{tarjetaTareas || <SinPendientes />}</View>
+          <View style={{ flex: 1, gap: 14, minWidth: 0 }}>{cifras}<GraficaGastos /></View>
+          <View style={{ flex: 1, gap: 14, minWidth: 0 }}>{perfil}{tarjetaDocumentos}{vehiculos}</View>
+        </View>
+      ) : dosColumnas ? (
         // Computador: tareas y gastos a la izquierda; perfil, documentos, cifras y vehículos a la derecha
         <Columnas
           izquierda={<>{tarjetaTareas}<GraficaGastos /></>}
@@ -136,6 +144,16 @@ export default function Inicio() {
         </View>
       )}
     </Pantalla>
+  );
+}
+
+/** Columna de tareas cuando no hay nada pendiente (pantallas grandes). */
+function SinPendientes() {
+  return (
+    <Tarjeta>
+      <TituloSeccion titulo="Lo que debes hacer" icono="checkbox-outline" />
+      <Vacio icono="checkmark-done-outline" titulo="Todo al día" texto="No tienes partes, documentos ni daños pendientes. Te avisaremos cuando algo lo necesite." />
+    </Tarjeta>
   );
 }
 
