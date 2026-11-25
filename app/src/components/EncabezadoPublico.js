@@ -26,17 +26,18 @@ export default function EncabezadoPublico({ ocultar, enlaces = [] }) {
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const ancha = width >= 800;
-  const angosta = width < 400;
+  const angosta = width < 430;      // celular: botones más pequeños
+  const muyAngosta = width < 370;   // celular pequeño: solo "Crear cuenta" (en la portada está "Ya tengo cuenta")
 
   return (
     <View style={{
       backgroundColor: c.superficie, borderBottomWidth: 1, borderBottomColor: c.borde,
-      paddingTop: insets.top + 12, paddingBottom: 12, paddingHorizontal: margenLateral(width),
+      paddingTop: insets.top + (angosta ? 8 : 12), paddingBottom: angosta ? 8 : 12, paddingHorizontal: angosta ? 12 : margenLateral(width),
     }}>
       {/* Usa el ancho de la pantalla (hasta 1440 px), igual que el contenido de la portada */}
       <View style={{ width: '100%', maxWidth: ANCHO_PAGINA, alignSelf: 'center', flexDirection: 'row', alignItems: 'center', gap: ancha ? 28 : 12 }}>
         <Pressable onPress={() => router.replace('/bienvenida')} accessibilityRole="link" accessibilityLabel="Ir al inicio">
-          <Logo tamano={angosta ? 18 : 22} />
+          <Logo tamano={muyAngosta ? 16 : angosta ? 18 : 22} />
         </Pressable>
 
         {ancha && (
@@ -50,13 +51,13 @@ export default function EncabezadoPublico({ ocultar, enlaces = [] }) {
         )}
 
         {/* Esquina superior derecha */}
-        <View style={{ marginLeft: 'auto', flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+        <View style={{ marginLeft: 'auto', flexDirection: 'row', gap: angosta ? 6 : 8, alignItems: 'center', flexShrink: 1 }}>
           <BotonTema sobreClaro />
-          {ocultar !== 'login' && (
-            <Boton titulo={angosta ? 'Entrar' : 'Iniciar sesión'} tipo="normal" onPress={() => router.push('/login')} />
+          {ocultar !== 'login' && !(muyAngosta && ocultar !== 'registro') && (
+            <Boton titulo={angosta ? 'Entrar' : 'Iniciar sesión'} tipo="normal" pequeno={angosta} onPress={() => router.push('/login')} />
           )}
           {ocultar !== 'registro' && (
-            <Boton titulo="Crear cuenta" tipo="primario" onPress={() => router.push('/registro')} />
+            <Boton titulo="Crear cuenta" tipo="primario" pequeno={angosta} onPress={() => router.push('/registro')} />
           )}
         </View>
       </View>

@@ -27,7 +27,7 @@ const SECCIONES = [
   { id: 'partes', titulo: 'Partes', icono: 'construct-outline' },
   { id: 'servicios', titulo: 'Historial', icono: 'time-outline' },
   { id: 'novedades', titulo: 'Daños', icono: 'warning-outline' },
-  { id: 'documentos', titulo: 'Documentos', icono: 'document-text-outline' },
+  { id: 'documentos', titulo: 'Documentos', corto: 'Docs', icono: 'document-text-outline' },
 ];
 
 export default function DetalleVehiculo() {
@@ -57,12 +57,30 @@ export default function DetalleVehiculo() {
   const estado = ESTADO_VEHICULO[vehiculo.estado];
   const sinUltimoCambio = vehiculo.partes.filter((p) => !p.ultimo_cambio_conocido && p.cambios_registrados === 0).length;
   const dosColumnas = width >= 1000;
+  const celular = width < 560;
   // En dos columnas las cifras van de a dos por fila (la columna es más angosta)
-  const anchoCifra = width >= 700 && !dosColumnas ? '22%' : '47%';
+  const anchoCifra = width < 360 ? '100%' : width >= 700 && !dosColumnas ? '22%' : '47%';  // celular muy pequeño: una debajo de otra
 
   const resumen = (
     <>
       {/* Encabezado: qué vehículo es y cómo está, en una frase */}
+      {celular ? (
+        // Celular: ilustración y anillo arriba; placa, estado y texto debajo, a todo el ancho
+        <Tarjeta estilo={{ gap: 10 }}>
+          <Fila estilo={{ justifyContent: 'space-between', flexWrap: 'nowrap' }}>
+            <View style={{ width: 120, height: 78, borderRadius: 14, backgroundColor: c[`${estado.clase}Fondo`], alignItems: 'center', justifyContent: 'center' }}>
+              <IlustracionVehiculo tipo={vehiculo.tipo} ancho={104} color={c[estado.clase]} />
+            </View>
+            {vehiculo.salud && <AnilloSalud porcentaje={vehiculo.salud.porcentaje} nivel={vehiculo.salud.nivel} tamano={78} />}
+          </Fila>
+          <Fila estilo={{ justifyContent: 'space-between' }}>
+            <Placa placa={vehiculo.placa} tipo={vehiculo.tipo} alto={40} />
+            <Etiqueta estado={estado} />
+          </Fila>
+          <Texto variante="suave">{vehiculo.marca} {vehiculo.linea} ({vehiculo.modelo}) · {km(vehiculo.kmCalculo)}{vehiculo.kmEstimado ? ' (aprox.)' : ''}</Texto>
+          <Texto estilo={{ fontSize: 14 }}>{EXPLICACION_VEHICULO[vehiculo.estado]}</Texto>
+        </Tarjeta>
+      ) : (
       <Tarjeta estilo={{ flexDirection: 'row', flexWrap: 'wrap', gap: 14, alignItems: 'center' }}>
         <View style={{ width: 130, height: 86, borderRadius: 14, backgroundColor: c[`${estado.clase}Fondo`], alignItems: 'center', justifyContent: 'center' }}>
           <IlustracionVehiculo tipo={vehiculo.tipo} ancho={112} color={c[estado.clase]} />
@@ -76,8 +94,9 @@ export default function DetalleVehiculo() {
           <Texto estilo={{ fontSize: 14 }}>{EXPLICACION_VEHICULO[vehiculo.estado]}</Texto>
         </View>
         {/* RN-19: qué tan al día está este vehículo */}
-        {vehiculo.salud && <AnilloSalud porcentaje={vehiculo.salud.porcentaje} nivel={vehiculo.salud.nivel} tamano={width < 500 ? 70 : 92} />}
+        {vehiculo.salud && <AnilloSalud porcentaje={vehiculo.salud.porcentaje} nivel={vehiculo.salud.nivel} tamano={92} />}
       </Tarjeta>
+      )}
 
       {/* Acciones principales: las que más se usan */}
       <Fila estilo={{ gap: 10 }}>

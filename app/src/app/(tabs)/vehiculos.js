@@ -14,7 +14,9 @@ import AnilloSalud from '../../components/AnilloSalud';
 export default function Vehiculos() {
   const c = useColores();
   // En el computador las tarjetas van de a dos por fila
-  const enGrilla = useWindowDimensions().width >= 1000;
+  const ancho = useWindowDimensions().width;
+  const enGrilla = ancho >= 1000;
+  const celular = ancho < 480;
   const { datos: vehiculos, error, refrescar, refrescando } = useDatos('/vehiculos');
 
   if (error) return <Pantalla><Aviso>{error}</Aviso></Pantalla>;
@@ -37,15 +39,16 @@ export default function Vehiculos() {
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 14 }}>
       {vehiculos.map((v) => {
         const estado = ESTADO_VEHICULO[v.estado];
+        const anchoFoto = celular ? 72 : 96;
         return (
           <Tarjeta key={v.id} estilo={{ gap: 12, borderLeftWidth: 6, borderLeftColor: c[`${estado.clase}Barra`], flexBasis: enGrilla ? '48%' : '100%', flexGrow: 1 }}>
             <Pressable onPress={() => router.push(`/vehiculo/${v.id}`)} accessibilityRole="button" accessibilityLabel={`Ver ${v.placa}`}
               style={({ pressed }) => ({ flexDirection: 'row', gap: 12, alignItems: 'center', opacity: pressed ? 0.75 : 1 })}>
               {v.foto_url
-                ? <Image source={{ uri: urlArchivo(v.foto_url) }} style={{ width: 96, height: 64, borderRadius: 12 }} accessibilityLabel={`Foto de ${v.placa}`} />
+                ? <Image source={{ uri: urlArchivo(v.foto_url) }} style={{ width: anchoFoto, height: anchoFoto * 0.67, borderRadius: 12 }} accessibilityLabel={`Foto de ${v.placa}`} />
                 : (
-                  <View style={{ width: 96, height: 64, borderRadius: 12, backgroundColor: c[`${estado.clase}Fondo`], alignItems: 'center', justifyContent: 'center' }}>
-                    <IlustracionVehiculo tipo={v.tipo} ancho={82} color={c[estado.clase]} />
+                  <View style={{ width: anchoFoto, height: anchoFoto * 0.67, borderRadius: 12, backgroundColor: c[`${estado.clase}Fondo`], alignItems: 'center', justifyContent: 'center' }}>
+                    <IlustracionVehiculo tipo={v.tipo} ancho={anchoFoto - 14} color={c[estado.clase]} />
                   </View>
                 )}
               <View style={{ flex: 1, gap: 3 }}>
@@ -59,8 +62,8 @@ export default function Vehiculos() {
                 </Texto>
                 <Texto variante="pequeno" estilo={{ color: c[estado.clase] }}>{EXPLICACION_VEHICULO[v.estado]}</Texto>
               </View>
-              {v.salud && <AnilloSalud porcentaje={v.salud.porcentaje} nivel={v.salud.nivel} tamano={52} />}
-              <Ionicons name="chevron-forward" size={20} color={c.textoSuave} />
+              {v.salud && <AnilloSalud porcentaje={v.salud.porcentaje} nivel={v.salud.nivel} tamano={celular ? 46 : 52} />}
+              {!celular && <Ionicons name="chevron-forward" size={20} color={c.textoSuave} />}
             </Pressable>
             <Fila>
               <Boton titulo="Registrar cambio" icono="construct-outline" pequeno onPress={() => router.push(`/vehiculo/${v.id}/servicio`)} />

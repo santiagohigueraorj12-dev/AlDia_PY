@@ -17,13 +17,13 @@ export default function Cuenta() {
   const iniciales = usuario.nombre.split(' ').filter(Boolean).slice(0, 2).map((p) => p[0].toUpperCase()).join('');
   return (
     <Pantalla>
-      <Tarjeta estilo={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+      <Tarjeta estilo={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 14 }}>
         <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: c.primario, alignItems: 'center', justifyContent: 'center' }}>
           <Text style={{ color: c.primarioTexto, fontSize: 20, fontWeight: '700' }}>{iniciales}</Text>
         </View>
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, minWidth: 160 }}>
           <Texto variante="subtitulo">{usuario.nombre}</Texto>
-          <Texto variante="suave">{usuario.correo}</Texto>
+          <Texto variante="suave" numberOfLines={1}>{usuario.correo}</Texto>
         </View>
         <Boton titulo="Cerrar sesión" icono="log-out-outline" pequeno onPress={cerrarSesion} />
       </Tarjeta>

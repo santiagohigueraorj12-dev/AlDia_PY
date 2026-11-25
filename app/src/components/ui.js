@@ -175,18 +175,20 @@ export function ElementoLista({ icono, tono, titulo, detalle, derecha, onPress, 
 export function Segmentos({ opciones, valor, onCambio }) {
   const c = useColores();
   // En pantallas angostas (celular) se quitan los íconos para que quepan los textos
-  const conIconos = useWindowDimensions().width >= 440;
+  const ancho = useWindowDimensions().width;
+  const conIconos = ancho >= 440;
+  const apretado = ancho < 440 && opciones.length >= 4;  // 4 pestañas en un celular: letra más pequeña para que quepan
   return (
     <View style={{ flexDirection: 'row', backgroundColor: c.superficie, borderColor: c.borde, borderWidth: 1, borderRadius: 14, padding: 4, gap: 4 }} accessibilityRole="tablist">
       {opciones.map((o) => {
         const activo = o.id === valor;
         return (
           <Pressable key={o.id} onPress={() => onCambio(o.id)} accessibilityRole="tab" accessibilityState={{ selected: activo }}
-            style={{ flex: 1, flexDirection: 'row', gap: 6, alignItems: 'center', justifyContent: 'center', paddingVertical: 9, borderRadius: 9,
+            style={{ flex: 1, flexDirection: 'row', gap: 6, alignItems: 'center', justifyContent: 'center', paddingVertical: 9, paddingHorizontal: apretado ? 2 : 6, borderRadius: 9,
               backgroundColor: activo && !c.rellenoDegradado ? c.primario : 'transparent', overflow: 'hidden' }}>
             {activo && <RellenoPrimario />}
             {conIconos && o.icono && <Ionicons name={o.icono} size={17} color={activo ? (c.rellenoDegradado ? c.sobrePrimario : c.primarioTexto) : c.textoSuave} />}
-            <Text style={{ color: activo ? (c.rellenoDegradado ? c.sobrePrimario : c.primarioTexto) : c.textoSuave, fontWeight: '700', fontSize: 14, textAlign: 'center' }}>{o.titulo}</Text>
+            <Text style={{ color: activo ? (c.rellenoDegradado ? c.sobrePrimario : c.primarioTexto) : c.textoSuave, fontWeight: '700', fontSize: apretado ? 12.5 : 14, textAlign: 'center' }} numberOfLines={1}>{apretado && ancho < 380 && o.corto ? o.corto : o.titulo}</Text>
           </Pressable>
         );
       })}
@@ -335,6 +337,7 @@ export function BarraDesgaste({ porcentaje, estado }) {
  */
 export function Cifra({ valor, texto, icono, tono = 'primario', ancho = '47%' }) {
   const c = useColores();
+  const angosta = useWindowDimensions().width < 420;  // celular: ícono y cifra un poco más pequeños para que quepan
   // Tarjeta grafito (como un indicador del tablero); el tono solo pinta el ícono y la barra lateral.
   // Colores vivos sobre grafito: contraste ≥ 4,5 (WCAG AA, RNF-05)
   const color = c.esOscuro
@@ -344,14 +347,14 @@ export function Cifra({ valor, texto, icono, tono = 'primario', ancho = '47%' })
     <Degradado
       estilo={{ flexBasis: ancho, flexGrow: 1, alignSelf: 'stretch', borderRadius: 12, borderWidth: 1, borderColor: c.borde, boxShadow: `0 4px 14px ${c.sombra}` }}>
       <View style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 3, backgroundColor: color }} />
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, padding: 13, paddingLeft: 15 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: angosta ? 8 : 10, padding: angosta ? 11 : 13, paddingLeft: angosta ? 13 : 15 }}>
         {icono && (
-          <View style={{ width: 36, height: 36, borderRadius: 8, backgroundColor: `${color}22`, alignItems: 'center', justifyContent: 'center' }}>
-            <Ionicons name={icono} size={19} color={color} />
+          <View style={{ width: angosta ? 30 : 36, height: angosta ? 30 : 36, borderRadius: 8, backgroundColor: `${color}22`, alignItems: 'center', justifyContent: 'center' }}>
+            <Ionicons name={icono} size={angosta ? 16 : 19} color={color} />
           </View>
         )}
         <View style={{ flexShrink: 1 }}>
-          <Text style={{ color: c.sobreDegradado, fontSize: 20, fontWeight: '800', letterSpacing: 0.2 }}>{valor}</Text>
+          <Text style={{ color: c.sobreDegradado, fontSize: angosta ? 17 : 20, fontWeight: '800', letterSpacing: 0.2 }}>{valor}</Text>
           <Text style={{ color: c.sobreDegradadoSuave, fontSize: 12.5 }}>{texto}</Text>
         </View>
       </View>

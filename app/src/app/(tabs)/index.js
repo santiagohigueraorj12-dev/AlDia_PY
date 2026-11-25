@@ -198,15 +198,16 @@ function Resumen({ nombre, pendientes, salud, vehiculos }) {
 
 /** Invita a llenar los datos que faltan del perfil (RF-03). */
 function CompletarPerfil({ perfil }) {
+  const celular = useWindowDimensions().width < 480;  // en el celular el botón va debajo, a todo el ancho
   return (
-    <Tarjeta estilo={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+    <Tarjeta estilo={{ flexDirection: 'row', flexWrap: celular ? 'wrap' : 'nowrap', alignItems: 'center', gap: 12 }}>
       <Icono nombre="person-circle-outline" tono="primario" tamano={44} />
-      <View style={{ flex: 1, gap: 6 }}>
+      <View style={{ flex: 1, gap: 6, minWidth: 180 }}>
         <Texto variante="negrita">Completa tu perfil ({perfil.porcentaje} %)</Texto>
         <BarraDesgaste porcentaje={perfil.porcentaje} estado="proxima" />
         <Texto variante="pequeno">Te falta: {perfil.faltan.join(', ').toLowerCase()}.</Texto>
       </View>
-      <Boton titulo="Completar" icono="create-outline" pequeno onPress={() => router.push('/perfil')} />
+      <Boton titulo="Completar" icono="create-outline" pequeno onPress={() => router.push('/perfil')} estilo={celular ? { flexBasis: '100%' } : undefined} />
     </Tarjeta>
   );
 }

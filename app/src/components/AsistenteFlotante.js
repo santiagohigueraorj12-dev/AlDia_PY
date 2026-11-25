@@ -32,7 +32,7 @@ export default function AsistenteFlotante() {
   if (!enDetalle && !conPestanas) return null;
 
   // Sobre las pestañas de abajo, o en la esquina si no hay pestañas
-  const abajo = (conPestanas && pestanasAbajo ? 72 : 20) + insets.bottom;
+  const abajo = (conPestanas && pestanasAbajo ? 70 : 20) + insets.bottom;
 
   return (
     <>
@@ -41,14 +41,14 @@ export default function AsistenteFlotante() {
         accessibilityRole="button"
         accessibilityLabel="Abrir el asistente de AlDía"
         style={({ pressed }) => ({
-          position: 'absolute', right: 18, bottom: abajo,
-          width: 58, height: 58, borderRadius: 29, backgroundColor: c.rellenoDegradado ? 'transparent' : c.primario, overflow: 'hidden',
+          position: 'absolute', right: pestanasAbajo ? 12 : 18, bottom: abajo,
+          width: pestanasAbajo ? 48 : 58, height: pestanasAbajo ? 48 : 58, borderRadius: 29, backgroundColor: c.rellenoDegradado ? 'transparent' : c.primario, overflow: 'hidden',
           alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.85 : 1,
           shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 6,
         })}
       >
         <RellenoPrimario />
-        <Ionicons name="chatbubble-ellipses" size={28} color={c.rellenoDegradado ? c.sobrePrimario : c.primarioTexto} />
+        <Ionicons name="chatbubble-ellipses" size={pestanasAbajo ? 23 : 28} color={c.rellenoDegradado ? c.sobrePrimario : c.primarioTexto} />
       </Pressable>
 
       {abierto && (
