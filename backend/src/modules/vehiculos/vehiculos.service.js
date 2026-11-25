@@ -470,7 +470,7 @@ async function sugerencias(usuarioId, vehiculoId, parteIds) {
   return sugerenciasServicio(parteIds, vehiculo.partes);
 }
 
-async function registrarServicio(usuarioId, vehiculoId, { fecha, km, lugar, cambios }) {
+async function registrarServicio(usuarioId, vehiculoId, { fecha, km, lugar, cambios }, facturaUrl = null) {
   const vehiculo = await vehiculoDelUsuario(usuarioId, vehiculoId);
   const partes = await repo.partesActivas(vehiculoId);
 
@@ -499,7 +499,7 @@ async function registrarServicio(usuarioId, vehiculoId, { fecha, km, lugar, camb
 
   // --- Se guarda todo junto o nada (RNF-07) ---
   await transaccion(async (conn) => {
-    const servicioId = await repo.crearServicio(conn, { vehiculoId, fecha, km, lugar });
+    const servicioId = await repo.crearServicio(conn, { vehiculoId, fecha, km, lugar, archivoUrl: facturaUrl });  // RF-30
     for (const c of cambios) {
       await repo.registrarCambio(conn, {
         servicioId, parteId: c.parte_id, costo: c.costo, marcaReferencia: c.marca_referencia, km, fecha,

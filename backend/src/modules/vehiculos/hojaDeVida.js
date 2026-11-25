@@ -51,7 +51,9 @@ function generarHojaDeVida(res, vehiculo, servicios, { revisiones = [], novedade
   const filas = [];
   for (const s of servicios) {
     for (const c of s.cambios) {
-      filas.push([formatoColombia(s.fecha), `${s.km.toLocaleString('es-CO')} km`, c.parte, c.marca_referencia || '—', s.lugar || '—', pesos(c.costo)]);
+      // RF-30: si el servicio tiene factura adjunta, se indica junto al lugar
+      const lugar = `${s.lugar || '—'}${s.archivo_url ? ' (con factura)' : ''}`;
+      filas.push([formatoColombia(s.fecha), `${s.km.toLocaleString('es-CO')} km`, c.parte, c.marca_referencia || '—', lugar, pesos(c.costo)]);
     }
   }
   tabla(doc, [

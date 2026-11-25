@@ -13,7 +13,7 @@ import { IconoAlDia } from './LogoAlDia';
 const NATIVO = Platform.OS !== 'web';
 
 /** Valor que sube y baja suave sin parar (para que las tarjetas "floten"). */
-function useFlotar(retraso) {
+export function useFlotar(retraso) {
   const v = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     const ciclo = Animated.loop(Animated.sequence([
@@ -27,7 +27,7 @@ function useFlotar(retraso) {
 }
 
 /** Tarjeta flotante con un aviso (ícono de color, título y detalle). */
-function Aviso3D({ icono, color, titulo, detalle, estilo, retraso, escala }) {
+export function Aviso3D({ icono, color, titulo, detalle, estilo, retraso, escala }) {
   const c = useColores();
   const v = useFlotar(retraso);
   return (

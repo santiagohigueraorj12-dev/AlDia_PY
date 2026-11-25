@@ -97,6 +97,7 @@ gasta en mantenimiento y controla el vencimiento de los documentos del vehículo
 - RF-25: Ver la salud de cada vehículo y de todos en conjunto (anillo de 0 a 100 %, RN-19).
 - RF-26: Ver la gráfica de gastos de los últimos 12 meses y en qué se va la plata.
 - RF-27: Marcar una parte como revisada en buen estado y elegir el mes de la próxima revisión (aparece en el calendario, RN-20).
+- RF-30: Adjuntar la foto o el PDF de la factura a cada cambio de partes y verla en el historial y en la hoja de vida.
 - RF-29: Transferir el vehículo a otro usuario de AlDía con todo su historial (RN-23).
 - RF-28: Panel de daños (CRUD): registrar, consultar, editar, marcar como arreglados y eliminar los daños del vehículo (falla o golpe, con foto opcional) (RN-21).
 

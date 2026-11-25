@@ -159,10 +159,10 @@ async function ultimoCostoPorParte(vehiculoId) {
 
 // --- Servicios y cambios ---
 
-async function crearServicio(conn, { vehiculoId, fecha, km, lugar }) {
+async function crearServicio(conn, { vehiculoId, fecha, km, lugar, archivoUrl = null }) {
   const r = await conn.query(
-    'INSERT INTO servicios (vehiculo_id, fecha, km, lugar) VALUES (?, ?, ?, ?)',
-    [vehiculoId, fecha, km, lugar || null],
+    'INSERT INTO servicios (vehiculo_id, fecha, km, lugar, archivo_url) VALUES (?, ?, ?, ?, ?)',
+    [vehiculoId, fecha, km, lugar || null, archivoUrl],
   );
   return r.insertId;
 }
@@ -184,7 +184,7 @@ async function registrarCambio(conn, { servicioId, parteId, costo, marcaReferenc
 /** RF-09: servicios de un vehículo, cada uno con sus cambios y su total. */
 async function historialServicios(vehiculoId) {
   const servicios = await query(
-    'SELECT id, fecha, km, lugar FROM servicios WHERE vehiculo_id = ? ORDER BY fecha DESC, id DESC',
+    'SELECT id, fecha, km, lugar, archivo_url FROM servicios WHERE vehiculo_id = ? ORDER BY fecha DESC, id DESC',
     [vehiculoId],
   );
   if (servicios.length === 0) return [];
@@ -203,7 +203,7 @@ async function historialServicios(vehiculoId) {
 /** RF-09: cambios de una parte. */
 function historialParte(parteId) {
   return query(
-    `SELECT s.fecha, s.km, s.lugar, c.costo, c.marca_referencia
+    `SELECT s.fecha, s.km, s.lugar, s.archivo_url, c.costo, c.marca_referencia
      FROM cambios_parte c JOIN servicios s ON s.id = c.servicio_id
      WHERE c.parte_id = ? ORDER BY s.fecha DESC`,
     [parteId],
@@ -335,8 +335,9 @@ async function transferir(conn, vehiculoId, deUsuarioId, aUsuarioId) {
       WHERE usuario_id = ? AND (
         CONCAT('/api/archivos/', id) IN (SELECT foto_url FROM vehiculos WHERE id = ? AND foto_url IS NOT NULL)
         OR CONCAT('/api/archivos/', id) IN (SELECT archivo_url FROM documentos WHERE vehiculo_id = ? AND archivo_url IS NOT NULL)
-        OR CONCAT('/api/archivos/', id) IN (SELECT foto_url FROM novedades WHERE vehiculo_id = ? AND foto_url IS NOT NULL))`,
-    [aUsuarioId, deUsuarioId, vehiculoId, vehiculoId, vehiculoId],
+        OR CONCAT('/api/archivos/', id) IN (SELECT foto_url FROM novedades WHERE vehiculo_id = ? AND foto_url IS NOT NULL)
+        OR CONCAT('/api/archivos/', id) IN (SELECT archivo_url FROM servicios WHERE vehiculo_id = ? AND archivo_url IS NOT NULL))`,
+    [aUsuarioId, deUsuarioId, vehiculoId, vehiculoId, vehiculoId, vehiculoId],
   );
 }
 

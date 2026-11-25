@@ -2,7 +2,7 @@
 // secciones de partes, historial de servicios y documentos.
 // Las acciones (registrar cambio, km, parte, documento) abren otras pantallas.
 import { useState } from 'react';
-import { Image, Pressable, Text, View, useWindowDimensions } from 'react-native';
+import { Image, Linking, Pressable, Text, View, useWindowDimensions } from 'react-native';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { api, descargarYCompartir, urlArchivo } from '../../../api/cliente';
@@ -254,6 +254,8 @@ function Servicios({ vehiculoId }) {
         <Texto variante="negrita">{pesos(s.total)}</Texto>
       </Fila>
       {s.lugar && <Texto variante="suave">{s.lugar}</Texto>}
+      {/* RF-30: factura del taller */}
+      {s.archivo_url && <Boton titulo="Ver factura" icono="receipt-outline" tipo="enlace" pequeno onPress={() => Linking.openURL(urlArchivo(s.archivo_url))} estilo={{ alignSelf: 'flex-start' }} />}
       {s.cambios.map((cambio) => (
         <Fila key={cambio.parte_id} estilo={{ justifyContent: 'space-between' }}>
           <Texto estilo={{ flexShrink: 1 }}>• {cambio.parte}{cambio.marca_referencia ? ` (${cambio.marca_referencia})` : ''}</Texto>

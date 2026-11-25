@@ -4,10 +4,10 @@
 // RF-28: "Se dañó" (registrar un daño de esta parte).
 // Sin "parteId" en la ruta -> parte nueva.  Con "parteId" -> editar esa parte.
 import { useCallback, useState } from 'react';
-import { View } from 'react-native';
+import { Linking, View } from 'react-native';
 import { volver } from '../../../utils/navegacion';
 import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { api } from '../../../api/cliente';
+import { api, urlArchivo } from '../../../api/cliente';
 import { useErrores } from '../../../api/useErrores';
 import { Aviso, BarraDesgaste, Boton, Campo, Cargando, Casilla, Fila, NotaObligatorios, Pantalla, Separador, Tarjeta, Texto } from '../../../components/ui';
 import Selector from '../../../components/Selector';
@@ -172,6 +172,7 @@ export default function Parte() {
                   <Texto>{pesos(h.costo)}</Texto>
                 </Fila>
                 <Texto variante="pequeno">{[h.marca_referencia, h.lugar].filter(Boolean).join(' · ') || 'Sin detalles'}</Texto>
+                {h.archivo_url && <Boton titulo="Ver factura" icono="receipt-outline" tipo="enlace" pequeno onPress={() => Linking.openURL(urlArchivo(h.archivo_url))} estilo={{ alignSelf: 'flex-start' }} />}
               </View>
             ))}
           </Tarjeta>

@@ -115,15 +115,16 @@ const esquemas = {
     costo: entero('el costo', { opcional: true }).transform((v) => v ?? 0),
     marca_referencia: textoOpcional('la marca', { max: 120 }),
   }),
+  // RF-30: llega como FormData cuando trae la factura; entonces "cambios" viene como texto JSON
   servicio: z.object({
     fecha: fecha('la fecha del servicio', { noFutura: true }),
     km: entero('el kilometraje'),
     lugar: textoOpcional('el lugar', { max: 120 }),
-    cambios: z.array(z.object({
+    cambios: z.preprocess((v) => { if (typeof v !== 'string') return v; try { return JSON.parse(v); } catch { return v; } }, z.array(z.object({
       parte_id: z.number().int(),
       costo: entero('el costo', { opcional: true }).transform((v) => v ?? 0),  // vacío = $0
       marca_referencia: textoOpcional('la marca', { max: 120 }),
-    }), { required_error: 'Elige al menos una parte' }).min(1, 'Elige al menos una parte'),
+    }), { required_error: 'Elige al menos una parte' }).min(1, 'Elige al menos una parte')),
   }),
 };
 
@@ -147,7 +148,7 @@ vehiculos.put('/:id/ultimos-cambios', validar(esquemas.ultimosCambios), c.fijarU
 
 // Servicios / cambios de partes (RF-08, RF-09)
 vehiculos.post('/:id/servicios/sugerencias', validar(esquemas.sugerencias), c.sugerencias);  // RN-10
-vehiculos.post('/:id/servicios', validar(esquemas.servicio), c.registrarServicio);
+vehiculos.post('/:id/servicios', subirArchivo.single('factura'), validar(esquemas.servicio), c.registrarServicio);  // RF-30: factura opcional
 vehiculos.get('/:id/servicios', c.historial);
 
 // Documentos del vehículo (RF-12)

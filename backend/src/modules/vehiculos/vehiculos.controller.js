@@ -24,7 +24,7 @@ module.exports = {
   fijarUltimosCambios: async (req, res) => res.json(await servicio.fijarUltimosCambios(usuario(req), id(req), req.body.partes)),
 
   sugerencias: async (req, res) => res.json(await servicio.sugerencias(usuario(req), id(req), req.body.parteIds)),
-  registrarServicio: async (req, res) => res.status(201).json(await servicio.registrarServicio(usuario(req), id(req), req.body)),
+  registrarServicio: async (req, res) => res.status(201).json(await servicio.registrarServicio(usuario(req), id(req), req.body, urlDeArchivo(req.file))),
   historial: async (req, res) => res.json(await servicio.historial(usuario(req), id(req))),
 
   revisarParte: async (req, res) => res.json(await servicio.revisarParte(usuario(req), id(req), req.body)),

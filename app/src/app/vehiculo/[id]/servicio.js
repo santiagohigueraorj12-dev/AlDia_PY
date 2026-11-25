@@ -3,9 +3,10 @@
 // RN-10: si se elige el aceite, el backend puede sugerir agregar el filtro.
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
+import * as DocumentPicker from 'expo-document-picker';
 import { volver } from '../../../utils/navegacion';
 import { useLocalSearchParams } from 'expo-router';
-import { api } from '../../../api/cliente';
+import { api, archivoParaFormulario } from '../../../api/cliente';
 import { useDatos } from '../../../api/useDatos';
 import { useErrores } from '../../../api/useErrores';
 import { Aviso, Boton, Campo, Cargando, Casilla, Etiqueta, Fila, MensajeCampo, NotaObligatorios, Pantalla, Paso, Separador, Tarjeta, Texto } from '../../../components/ui';
@@ -20,6 +21,7 @@ export default function RegistrarServicio() {
   const [fecha, setFecha] = useState(hoyISO());
   const [km, setKm] = useState('');
   const [lugar, setLugar] = useState('');
+  const [factura, setFactura] = useState(null);  // RF-30: { uri, nombre, tipo, web }
   // Partes elegidas: { [parteId]: { costo, marca_referencia } }
   const [elegidas, setElegidas] = useState(parteId ? { [parteId]: { costo: '', marca_referencia: '' } } : {});
   const [sugerencias, setSugerencias] = useState([]);
@@ -54,24 +56,37 @@ export default function RegistrarServicio() {
     setElegidas({ ...elegidas, [parteId]: { ...elegidas[parteId], [campo]: valor } });
   }
 
+  // RF-30: foto o PDF de la factura del taller (opcional)
+  async function elegirFactura() {
+    const r = await DocumentPicker.getDocumentAsync({ type: ['image/jpeg', 'image/png', 'application/pdf'], copyToCacheDirectory: true });
+    if (r.canceled) return;
+    const a = r.assets[0];
+    if (a.size && a.size > 5 * 1024 * 1024) { mostrar(new Error('La factura no puede pesar más de 5 MB')); return; }
+    setFactura({ uri: a.uri, nombre: a.name, tipo: a.mimeType || 'application/octet-stream', web: a.file });
+  }
+
   async function guardar() {
     reiniciar();
     setEnviando(true);
     try {
       // Los números se envían tal como se escribieron ("15.400", "$38.000"): el backend los entiende
-      await api(`/vehiculos/${id}/servicios`, {
-        metodo: 'POST',
-        datos: {
-          fecha,
-          km,
-          lugar,
-          cambios: ids.map((parteId) => ({
-            parte_id: parteId,
-            costo: elegidas[parteId].costo,
-            marca_referencia: elegidas[parteId].marca_referencia,
-          })),
-        },
-      });
+      const cambios = ids.map((parteId) => ({
+        parte_id: parteId,
+        costo: elegidas[parteId].costo,
+        marca_referencia: elegidas[parteId].marca_referencia,
+      }));
+      if (factura) {
+        // Con factura se envía como FormData; "cambios" va como texto JSON
+        const formulario = new FormData();
+        formulario.append('fecha', fecha);
+        formulario.append('km', String(km));
+        formulario.append('lugar', lugar);
+        formulario.append('cambios', JSON.stringify(cambios));
+        formulario.append('factura', archivoParaFormulario(factura));
+        await api(`/vehiculos/${id}/servicios`, { metodo: 'POST', formulario });
+      } else {
+        await api(`/vehiculos/${id}/servicios`, { metodo: 'POST', datos: { fecha, km, lugar, cambios } });
+      }
       celebrar(ids.length === 1 ? '¡Cambio registrado!' : `¡${ids.length} cambios registrados!`);
       volver(`/vehiculo/${id}`);
     } catch (e) {
@@ -95,6 +110,8 @@ export default function RegistrarServicio() {
           onChangeText={(t) => { setKm(t); limpiar('km'); }} error={errores.km}
           ayuda={`No puede ser mayor al actual (${vehiculo.km_actual.toLocaleString('es-CO')} km).`} />
         <Campo etiqueta="Lugar o taller" placeholder="Ej.: Taller MotoExpress" value={lugar} onChangeText={setLugar} error={errores.lugar} />
+        <Boton titulo={factura ? factura.nombre : 'Adjuntar foto o PDF de la factura (opcional)'} icono={factura ? 'attach' : 'receipt-outline'} onPress={elegirFactura} />
+        <MensajeCampo ayuda="JPG, PNG o PDF de máximo 5 MB. Queda como evidencia en el historial y en la hoja de vida." error={errores.factura} />
       </Tarjeta>
 
       <Tarjeta>
