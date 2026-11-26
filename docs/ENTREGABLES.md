@@ -6,7 +6,7 @@ Sustentación: 26 de noviembre de 2026.
 | # | Entregable | Archivos | Código del documento |
 |---|---|---|---|
 | 1 | Despliegue de la aplicación | En internet: https://aldia-ru4q.onrender.com (Render + Aiven) · en red local: `desplegar.bat` · [Manual de instalación y despliegue](manuales/AlDia_Manual_de_Instalacion_y_Despliegue.pdf), secciones 5 y 6 | ALD-MI-01 |
-| 2 | Documentación de requisitos corregida | [Especificación de requisitos v2.2](requisitos/AlDia_Especificacion_de_Requisitos.pdf) (control de cambios y matriz de trazabilidad) · resumen en [ALCANCE.md](ALCANCE.md) | ALD-ERS-02 |
+| 2 | Documentación de requisitos corregida | [Especificación de requisitos v2.2](requisitos/AlDia_Especificacion_de_Requisitos.pdf) (control de cambios y matriz de trazabilidad) + [requisitos, historias de usuario y criterios de aceptación](requisitos/AlDia_Requisitos_Historias_de_Usuario.xlsx) (Excel) · resumen en [ALCANCE.md](ALCANCE.md) | ALD-ERS-02, ALD-HU-01 |
 | 3 | Plan de pruebas | [Documentación de pruebas](pruebas/AlDia_Documentacion_de_Pruebas.pdf) según ISO/IEC/IEEE 29119-3 · [Especificación de casos (Excel)](pruebas/AlDia_Especificacion_Casos_de_Prueba.xlsx) · 204 pruebas unitarias y 15 pruebas de la API | — |
 | 4 | Plan de respaldo | [Plan de respaldo](respaldo/AlDia_Plan_de_Respaldo.pdf) · `respaldar.bat` y `restaurar.bat` | ALD-PR-01 |
 | 5 | Manual de usuario | [Manual de usuario](manuales/AlDia_Manual_de_Usuario.pdf) (con capturas de la app) | ALD-MU-01 |

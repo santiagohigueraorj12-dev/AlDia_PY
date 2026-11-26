@@ -27,7 +27,7 @@ Todos están en Word y PDF. La lista completa está en [docs/ENTREGABLES.md](doc
 | Entregable | Documento |
 |---|---|
 | Despliegue de la aplicación | `desplegar.bat` + [Manual de instalación y despliegue](docs/manuales/AlDia_Manual_de_Instalacion_y_Despliegue.pdf) |
-| Requisitos corregidos | [Especificación de requisitos v2.2](docs/requisitos/AlDia_Especificacion_de_Requisitos.pdf) (resumen en [docs/ALCANCE.md](docs/ALCANCE.md)) |
+| Requisitos corregidos | [Especificación de requisitos v2.2](docs/requisitos/AlDia_Especificacion_de_Requisitos.pdf) + [requisitos, historias de usuario y criterios de aceptación en Excel](docs/requisitos/AlDia_Requisitos_Historias_de_Usuario.xlsx) (resumen en [docs/ALCANCE.md](docs/ALCANCE.md)) |
 | Plan de pruebas | [Documentación de pruebas ISO/IEC/IEEE 29119-3](docs/pruebas/AlDia_Documentacion_de_Pruebas.pdf) + [casos en Excel](docs/pruebas/AlDia_Especificacion_Casos_de_Prueba.xlsx) |
 | Plan de respaldo | [Plan de respaldo](docs/respaldo/AlDia_Plan_de_Respaldo.pdf) + `respaldar.bat` / `restaurar.bat` |
 | Manual de usuario | [Manual de usuario](docs/manuales/AlDia_Manual_de_Usuario.pdf) |
