@@ -105,7 +105,7 @@ se ve el resultado: la base `aldia` con sus tablas.
 | Rol | Correo | Contraseña |
 |---|---|---|
 | Usuario de prueba (Laura Martínez, con vehículos, cambios, gastos, documentos y daños) | `laura.ejemplo@aldia.co` | `AlDia-5dfcba0b-2026` |
-| Administrador | `admin@aldia.co` | Se configura en Render (`ADMIN_CLAVE`) y no se publica por seguridad |
+| Administrador (Santiago Higuera) | `santiagohigueraorj12@gmail.com` | Se configura en Render (variable `ADMINS`) y no se publica por seguridad |
 
 **En una instalación local** (se crean solos con la base nueva o con `database/AlDia_base_de_datos_completa.sql`):
 
