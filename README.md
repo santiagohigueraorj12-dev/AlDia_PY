@@ -99,10 +99,20 @@ con el número siguiente (`007_...sql`) y se ejecuta con `npm run bd:migrar` (o 
 se ve el resultado: la base `aldia` con sus tablas.
 
 ### Usuarios de prueba
+
+**En la página publicada** (<https://aldia-ru4q.onrender.com>):
+
+| Rol | Correo | Contraseña |
+|---|---|---|
+| Usuario de prueba (Laura Martínez, con vehículos, cambios, gastos, documentos y daños) | `laura.ejemplo@aldia.co` | `AlDia-5dfcba0b-2026` |
+| Administrador | `admin@aldia.co` | Se configura en Render (`ADMIN_CLAVE`) y no se publica por seguridad |
+
+**En una instalación local** (se crean solos con la base nueva o con `database/AlDia_base_de_datos_completa.sql`):
+
 | Rol | Correo | Contraseña |
 |---|---|---|
 | Administrador | `admin@aldia.co` | `Admin123*` |
-| Usuario demo (se crea con la base nueva) | `demo@aldia.co` | `Demo123*` |
+| Usuario demo | `demo@aldia.co` | `Demo123*` |
 
 El usuario demo tiene una **moto** que "Requiere atención" (pastillas de freno vencidas) y un **carro** "No apto
 para circular" (revisión técnico-mecánica vencida, SOAT por vencer y kilometraje estimado).
