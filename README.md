@@ -88,8 +88,9 @@ La carpeta `database/` separa la creación del esquema y sus modificaciones:
 
 | Carpeta | Qué tiene |
 |---|---|
-| `database/estructuraBD/` | `001_crear_tablas.sql`: crea las tablas, agrupadas por función y orden de dependencias. `002_actualizar_tablas.sql`: aplica los cambios de esquema después de crear las tablas; es compatible con bases existentes. |
+| `database/estructuraBD/` | `001_crear_tablas.sql`: crea las tablas, agrupadas por función y orden de dependencias. `002` a `006`: aplican los cambios de esquema que vinieron después (archivos y correos, revisiones y novedades, tipo de moto y cilindraje, factura de los servicios); son compatibles con bases existentes. |
 | `database/semillas/` | Datos iniciales: catálogos (tipos de vehículo, plan base de partes, reglas RTM), el usuario administrador y los datos de demostración. |
+| `database/AlDia_base_de_datos_completa.sql` | **Toda la base en un solo archivo** (16 tablas, catálogos, administrador y demo). En HeidiSQL: *Archivo → Ejecutar archivo SQL…* No hace falta para usar la app, porque el backend crea la base solo. |
 
 La tabla **`migraciones`** anota cuáles ya se ejecutaron. El backend procesa los archivos en orden alfabético:
 primero crea las tablas y después las actualiza. Los scripts agrupados reconocen tablas y cambios existentes para
@@ -109,8 +110,8 @@ para circular" (revisión técnico-mecánica vencida, SOAT por vencer y kilometr
 ### Pruebas unitarias
 ```bash
 cd backend
-npm test                    # 175 pruebas
-npm run test:api            # 15 pruebas de la API (flujos completos con una base de datos de prueba que se borra sola): reglas de negocio, revisiones y novedades, salud, perfil, fechas, errores, validaciones, asistente, correos y documentación
+npm test                    # 175 pruebas: reglas de negocio, revisiones y novedades, salud, perfil, fechas, errores, validaciones, asistente, correos y documentación
+npm run test:api            # 15 pruebas de la API (flujos completos con una base de datos de prueba que se borra sola; necesita MariaDB encendido)
 npm run test:cobertura      # con porcentaje de cobertura
 
 cd ../app
@@ -120,7 +121,7 @@ Cada prueba tiene un identificador fijo (por ejemplo `CP-DES-02`). La documentac
 **ISO/IEC/IEEE 29119-3** y está en `docs/pruebas/`:
 - `AlDia_Documentacion_de_Pruebas.docx` (y PDF): política y estrategia, plan de pruebas con registro de riesgos,
   diseño (conjuntos y condiciones), procedimientos, datos y entorno, registro de ejecución, incidentes e informes.
-- `AlDia_Especificacion_Casos_de_Prueba.xlsx`: los 155 casos con entradas, resultado esperado y resultado real,
+- `AlDia_Especificacion_Casos_de_Prueba.xlsx`: los 219 casos con entradas, resultado esperado y resultado real,
   la matriz de trazabilidad con los requisitos, el registro de ejecución y los incidentes.
 
 ---
@@ -129,8 +130,9 @@ Cada prueba tiene un identificador fijo (por ejemplo `CP-DES-02`). La documentac
 ```
 AlDia_PY/
 ├── database/
-│   ├── estructuraBD/     Creación y actualizaciones del esquema, organizadas por fase
-│   └── semillas/        Datos iniciales: catálogos, administrador y demo
+│   ├── estructuraBD/     Creación y actualizaciones del esquema (migraciones 001 a 006)
+│   ├── semillas/        Datos iniciales: catálogos, administrador y demo
+│   └── AlDia_base_de_datos_completa.sql   Toda la base en un solo archivo
 ├── docs/                Entregables: analisis/, requisitos/, manuales/, pruebas/ (ISO/IEC/IEEE 29119-3), respaldo/, alcance y arquitectura
 ├── app/                 ⭐ App para celular y computador (Expo)
 │   └── src/
@@ -150,14 +152,17 @@ AlDia_PY/
 │   │   ├── utils/       Fechas, PDF, errores
 │   │   ├── app.js       Todas las rutas de la API
 │   │   └── server.js    Arranque
-│   └── tests/           Pruebas unitarias de domain/ y utils/
+│   ├── tests/           Pruebas unitarias de domain/ y utils/
+│   └── tests-api/       Pruebas de la API (flujos completos con una base de prueba)
 └── iniciar.bat          Enciende todo con doble clic (Windows)
 ```
 
 ## Notas
-- **Recuperar contraseña:** no hay servidor de correo. En desarrollo el código de recuperación aparece en la
-  pantalla y en la consola del backend.
+- **Correos:** el código para recuperar la contraseña y el resumen diario de alertas salen por la API de Gmail
+  (variables `GMAIL_*` del `.env`). Sin esas variables, en desarrollo el código de recuperación aparece en la pantalla
+  y en la consola del backend.
 - **Archivos adjuntos** (fotos, SOAT en PDF…) se guardan en `backend/uploads/`.
 - **Notificaciones:** se ven dentro de la app (pestaña Alertas). Las notificaciones *push* reales en Android
   necesitan una "development build" (Expo Go ya no las soporta), por eso no se incluyeron.
-- La tarea automática revisa todos los vehículos al iniciar el backend y cada día a las 6:00 a. m.
+- La tarea automática revisa todos los vehículos al iniciar el backend y cada día a las 6:00 a. m., y le envía a cada
+  usuario un solo correo con sus alertas nuevas.
